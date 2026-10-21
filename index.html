@@ -208,7 +208,7 @@ PAT.de=diagPat('de','Expandierende Diagonale',['DIAG-2','DE-3','DE-9'],{},
  v=>'<p class="mut">'+RET(v)+'</p><p class="mut">Hinweis: Dass jede der fünf Wellen dreiteilig ist, prüft die App erst in der späteren Subwellen-Stufe.</p>');
 // Komplexe Korrekturen: Double Zigzag (0, W, X, Y) und Dreifache Form (0, W, X1, Y, X2, Z). Aufbau je Teil als eigenes Korrekturmuster.
 const WXW='Regelwerk, Abschnitt Welle X';
-const wx2=(a,b,wave,name,wname)=>({page:null,where:WXW,hard:1,wave,name,hint:'Schau, wie weit '+name.split(' retraced')[0]+' gegen '+wname+' zurückläuft.',
+const wx2=(a,b,wave,name,wname)=>({page:null,where:WXW,hard:1,wave,name,hint:'Schau, wie weit '+name.split(' retraced')[0].replace(/^Die/,'die')+' gegen '+wname+' zurückläuft.',
  ex:'Welle X muss unter 100 % der vorangegangenen Welle bleiben. Eine überschießende Welle X lässt das Regelwerk nicht zu. Bis 99 % ist erlaubt, aber ein starkes Warnsignal.',
  ok:u=>L(u,a)/L(u,b)<1});
 // Starkes Warnsignal (kein Regelbruch): X läuft fast bis zum Start der Vorwelle zurück. Grenze 88,7 % ist eine Annahme, bitte von Lenny bestätigen lassen.
@@ -441,7 +441,7 @@ const saveProgress=()=>{try{localStorage.setItem(SAVE,JSON.stringify({pts:st.pts
 const $=q=>document.querySelector(q);
 function stats(){saveProgress();const lv=Math.floor(st.pts/50)+1;$('#lv').textContent=lv;$('#pt').textContent=st.pts;$('#sr').textContent=st.streak;$('#pb').style.width=(st.pts%50)*2+'%';}
 function home(){
- $('#view').innerHTML='<p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div><p id="rs" style="text-align:center;margin-top:28px">'+RSBTN+'</p>';
+ $('#view').innerHTML='<p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist: normal per Auswahl oder schwer durch eigenes Zählen.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div><p id="rs" style="text-align:center;margin-top:28px">'+RSBTN+'</p>';
 }
 // Fortschritt zurücksetzen: unauffälliger Button, Sicherheitsabfrage direkt auf der Seite (kein Browser-Popup)
 const RSBTN='<button class="mut" style="border-color:var(--line);font-size:.85rem" onclick="resetAsk()">Fortschritt zurücksetzen</button>';
@@ -468,28 +468,32 @@ function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK
 $('#menu').onclick=()=>home();
 $('#home').onclick=()=>home();$('#home').onkeydown=e=>{if(e.key==='Enter')home()};
 
+// Punkte setzen und verschieben (Maus oder Finger), gemeinsam für „Chart durchzählen“ und „Muster erkennen – Schwer“.
+// Antippen in der Nähe eines gesetzten Punktes greift ihn, sonst wird ein neuer Punkt gesetzt. pic() liefert das SVG mit den aktuellen Punkten.
+function bindPoints(m,n,pic,render){
+ const svg=$('#svg'),xAt=ev=>{const r=$('#svg').getBoundingClientRect();return (ev.clientX-r.left)/r.width*W};
+ const idxOf=x=>Math.max(0,Math.min(45,Math.round((x-X0)/DX)));
+ svg.style.touchAction='none';
+ svg.onpointerdown=e=>{if(m.done)return;e.preventDefault();
+  const f=(xAt(e)-X0)/DX;let k=-1,best=1.2;
+  m.sel.forEach((i,j)=>{if(Math.abs(f-i)<=best){best=Math.abs(f-i);k=j}});
+  if(k>=0){ // gesetzten Punkt verschieben, er bleibt zwischen seinen Nachbarpunkten
+   const mv=ev=>{const lo=k>0?m.sel[k-1]+1:0,hi=k<m.sel.length-1?m.sel[k+1]-1:45,nw=Math.max(lo,Math.min(hi,idxOf(xAt(ev))));
+    if(nw!==m.sel[k]){m.sel[k]=nw;redraw(svg,pic());}};
+   startDrag(svg,e,mv,()=>render());
+  }else if(m.sel.length<n){
+   const i=idxOf(xAt(e));
+   if(m.sel.length&&i<=m.sel[m.sel.length-1])return render('<span class="warn">Der Punkt muss rechts vom vorherigen liegen.</span>');
+   m.sel.push(i);render();
+  }};
+}
 // Modus 1: Chart durchzählen
 function count(P){
  const R=makeRound(P,null),n=P.labels.length,m={sel:[],tips:0,failed:false,done:false};
  const render=(fb)=>{
   $('#view').innerHTML='<p class="mut">'+P.title+': Tippe nacheinander die Punkte '+P.labels.join(', ')+' auf den Chart. Gesetzte Punkte kannst du anfassen und verschieben. Nächster Punkt: <b>'+(m.sel.length<n?P.labels[m.sel.length]:'fertig')+'</b></p><div class="chart">'+draw(R,m.sel,false,m.tl&&P.tri?m.sel:null)+'</div>'+(m.tl&&P.tri?'<p class="mut">Gestrichelt: Trendlinien durch '+(P.waves[0]==='A'?'A, C (bis E) und durch B, D.':'die Enden der Wellen 1, 3 (bis 5) und der Wellen 2, 4.')+'</p>':'')+'<div>'+
   '<button class="p" id="chk" '+(m.sel.length<n||m.done?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
-  // Punkte setzen und verschieben (Maus oder Finger): Antippen in der Nähe eines gesetzten Punktes greift ihn, sonst wird ein neuer Punkt gesetzt.
-  const svg=$('#svg'),xAt=ev=>{const r=$('#svg').getBoundingClientRect();return (ev.clientX-r.left)/r.width*W};
-  const idxOf=x=>Math.max(0,Math.min(45,Math.round((x-X0)/DX)));
-  svg.style.touchAction='none';
-  svg.onpointerdown=e=>{if(m.done)return;e.preventDefault();
-   const f=(xAt(e)-X0)/DX;let k=-1,best=1.2;
-   m.sel.forEach((i,j)=>{if(Math.abs(f-i)<=best){best=Math.abs(f-i);k=j}});
-   if(k>=0){ // gesetzten Punkt verschieben, er bleibt zwischen seinen Nachbarpunkten
-    const mv=ev=>{const lo=k>0?m.sel[k-1]+1:0,hi=k<m.sel.length-1?m.sel[k+1]-1:45,nw=Math.max(lo,Math.min(hi,idxOf(xAt(ev))));
-     if(nw!==m.sel[k]){m.sel[k]=nw;redraw(svg,draw(R,m.sel,false,m.tl&&P.tri?m.sel:null));}};
-    startDrag(svg,e,mv,()=>render());
-   }else if(m.sel.length<n){
-    const i=idxOf(xAt(e));
-    if(m.sel.length&&i<=m.sel[m.sel.length-1])return render('<span class="warn">Der Punkt muss rechts vom vorherigen liegen.</span>');
-    m.sel.push(i);render();
-   }};
+  bindPoints(m,n,()=>draw(R,m.sel,false,m.tl&&P.tri?m.sel:null),render);
   $('#und').onclick=()=>{m.sel.pop();render()};$('#rst').onclick=()=>{m.sel=[];render()};
   $('#chk').onclick=verify;
  };
@@ -558,7 +562,14 @@ function misfit(Q,R){
 }
 // Ein Satz, woran man zwei auf dem Chart gleich regelkonforme Muster unterscheidet
 const diffMsg=(P,Q)=>P.ctx&&Q.ctx?'Unterschied: Auf dem Chart allein passen beide, entscheidend ist die Stelle im größeren Trend ('+P.title+': '+P.ctx+'; '+Q.title+': '+Q.ctx+').':'Unterschied: Vergleiche die beiden Beschreibungen unten.';
+// Muster erkennen: zuerst den Schwierigkeitsgrad wählen
 function recognize(){
+ $('#view').innerHTML='<div class="card"><h2>Muster erkennen</h2><p class="mut">Wähle den Schwierigkeitsgrad.</p>'+
+  '<p><button class="p" onclick="recogNormal()">Normal</button><br><span class="mut">Das Muster aus einer Liste wählen (+10 Punkte).</span></p>'+
+  '<p><button class="p" onclick="recogHard()">Schwer: Chart selbst zählen</button><br><span class="mut">Zählweise wählen, Punkte setzen, dann das genaue Muster bestimmen (+20 Punkte, Bonus +10).</span></p>'+
+  '<p><button onclick="home()">Zurück</button></p></div>';
+}
+function recogNormal(){
  const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=PAT[keys[Math.floor(Math.random()*keys.length)]],R=makeRound(P,null),m={sel:null};
  const render=(fb)=>{
   $('#view').innerHTML='<p class="mut">Welches Muster zeigt dieser Chart? Schau dir die Teilbewegungen und die Lage der Wendepunkte an.</p><div class="chart">'+draw(R,[],!!fb,fb&&P.tri?R.piv:null)+'</div>'+(fb&&P.tri?'<p class="mut">Gestrichelt: die Trendlinien des Musters.</p>':'')+
@@ -570,8 +581,88 @@ function recognize(){
    if(ok){st.streak++;st.pts+=10}else st.streak=0;stats();
    render({v:same?'<p class="ok">Richtig! +10 Punkte</p>':ok?'<p class="ok">Richtig, auch regelkonform! +10 Punkte. Generiert wurde: '+P.title+'.</p>':'<p class="bad">Nicht ganz. Das war ein '+P.title+'.</p>',
     d:(same?'':'<p>'+(ok?diffMsg(P,Q):why)+'</p>')+'<p>'+P.recog+'</p>'+(same?'':'<p class="mut">Deine Wahl war: '+Q.recog+'</p>')});
-   $('#nxt').onclick=recognize;};
+   $('#nxt').onclick=recogNormal;};
  };
+ render();
+}
+// Muster erkennen – Schwer: Chart selbst zählen. Erst die Zählweise wählen, dann Punkte setzen wie in „Chart durchzählen“.
+// Richtig ist die Zählung, wenn die Punkte für mindestens ein Muster dieser Zählweise alle harten Regeln erfüllen
+// (inklusive Richtung und Teilstruktur, wie bei misfit). Danach Bonusfrage: welches Muster genau?
+const ZW=[
+ {name:'1-2-3-4-5',hint:'Impuls und Diagonalen',labels:PAT.imp.labels,pats:['imp','dl','db','de']},
+ {name:'A-B-C',hint:'Zigzag und Flats',labels:PAT.zig.labels,pats:['zig','fr','fe','fru']},
+ {name:'W-X-Y',hint:'Double Zigzag',labels:PAT.dz.labels,pats:['dz']},
+ {name:'W-X-Y-X-Z',hint:'Dreifache Form',labels:PAT.tz.labels,pats:['tz']},
+ {name:'A-B-C-D-E',hint:'Dreiecke',labels:PAT.trk.labels,pats:['trk','tre']}];
+// Gesetzte Punkte (Kerzenindizes idx) des Charts R gegen Muster Q prüfen: null = regelkonform, sonst {kind:'subs'|'struct'|'rules', f}
+function fitPts(Q,R,idx){
+ if(!Q.subs.includes(R.P.subs[0]))return{kind:'subs'};
+ const v=norm(Q,idx.map(i=>R.pr[i]));
+ if(Q.struct&&!Q.struct(v))return{kind:'struct'};
+ const f=hardFails(Q,v);return f.length?{kind:'rules',f}:null;
+}
+const fitWhy=(Q,r,P)=>r.kind==='subs'?'Die Teilwellen passen nicht: Hier sind sie '+fmtSub(P.subs[0])+' aufgebaut, beim Muster „'+Q.title+'“ '+Q.subs.map(fmtSub).join(' oder ')+'.':
+ r.kind==='struct'?'Die Richtung der Wellen passt nicht zum Muster „'+Q.title+'“.':'Verletzte Regel beim Muster „'+Q.title+'“: '+r.f.map(id=>'„'+Q.rules[id].name+'“ ('+tag(Q,id)+')').join(', ')+'.';
+function recogHard(){
+ const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=PAT[keys[Math.floor(Math.random()*keys.length)]],R=makeRound(P,null),
+  m={z:null,sel:[],tips:0,failed:false,done:false};
+ const Z=()=>ZW[m.z],pic=()=>draw({...R,P:{labels:Z()?Z().labels:[]}},m.sel,false,null); // nackter Chart, Beschriftung nur an gesetzten Punkten
+ const fail=html=>{m.failed=true;if(st.streak)st.streak=0,stats();return html};
+ const render=(fb)=>{
+  const z=Z(),n=z?z.labels.length:0;
+  $('#view').innerHTML='<p class="mut">Schwer: Zähle den Chart selbst. '+(z?'Zählweise '+z.name+': Tippe nacheinander die Punkte '+z.labels.join(', ')+' auf den Chart. Gesetzte Punkte kannst du anfassen und verschieben. Nächster Punkt: <b>'+(m.sel.length<n?z.labels[m.sel.length]:'fertig')+'</b>':'Wähle zuerst die Zählweise.')+'</p>'+
+   '<div class="chart">'+pic()+'</div><div class="card"><b>Zählweise</b><br>'+ZW.map((w,i)=>'<button data-z="'+i+'" class="'+(m.z===i?'on':'')+'" '+(m.done?'disabled':'')+'>'+w.name+' · '+w.hint+'</button>').join('')+'</div>'+
+   (z?'<div><button class="p" id="chk" '+(m.sel.length<n||m.done?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div>':'')+
+   '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
+  if(m.done)return;
+  // Neue Zählweise: Punkte bleiben nur, wenn die Punktanzahl gleich bleibt
+  document.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{const i=+b.dataset.z;if(!z||ZW[i].labels.length!==n)m.sel=[];m.z=i;render()});
+  if(!z)return;
+  bindPoints(m,n,pic,render);
+  $('#und').onclick=()=>{m.sel.pop();render()};$('#rst').onclick=()=>{m.sel=[];render()};
+  $('#chk').onclick=verify;
+ };
+ const verify=()=>{
+  const z=Z(),n=z.labels.length;
+  if(n!==R.piv.length)return render(fail('<p class="bad">Noch nicht ganz.</p><p>Die Zählweise '+z.name+' passt nicht zu diesem Chart. Zähle die großen Wendepunkte: Wie viele Wellen hat der Chart? Wähle dann eine andere Zählweise.</p>'));
+  // Platzierung wie in „Chart durchzählen“: jeder Punkt am echten Extrem (Toleranz TOL Kerzen)
+  const bad=m.sel.findIndex((i,k)=>k>0&&Math.abs(i-R.piv[k])>TOL);
+  if(bad===n-1)return render(fail('<p class="bad">Noch nicht ganz.</p><p>Der Chart endet im Extrem der letzten Welle. Setze Punkt '+z.labels[n-1]+' an das letzte Hoch bzw. Tief des Charts.</p>'));
+  if(bad>0)return render(fail('<p class="bad">Noch nicht ganz.</p><p>Punkt '+z.labels[bad]+' sitzt nicht am relevanten Wendepunkt. Setze ihn an das Hoch bzw. Tief, wo die Bewegung wirklich dreht, nicht an eine kleinere Zwischenspitze.</p>'));
+  const res=z.pats.map(k=>({Q:PAT[k],r:fitPts(PAT[k],R,m.sel)})),okQ=res.filter(x=>!x.r).map(x=>x.Q);
+  if(!okQ.length){ // Tipps zum Muster, das am nächsten dran ist (zuerst Teilstruktur, dann Richtung, dann wenigste Regelverstöße)
+   fail();const rank=x=>({subs:300,struct:200,rules:100})[x.r.kind]+(x.r.f?x.r.f.length:0)-(x.Q===P?.5:0);
+   return tipUI(res.sort((a,b)=>rank(a)-rank(b))[0]);}
+  m.done=true;m.ok=okQ;const gain=Math.max(8,20-6*m.tips)-(m.failed?4:0);
+  if(!m.failed)st.streak++;st.pts+=gain;stats();
+  bonus('<p class="ok">Regelkonform! +'+gain+' Punkte</p>');
+ };
+ const tipUI=({Q,r})=>{const z=Z();
+  if(r.kind==='struct')return render('<p class="bad">Noch nicht ganz.</p><p>'+(Q.structMsg||'Prüfe die Richtung deiner Punkte.')+'</p>');
+  const lines=['Die Zählung ist noch nicht regelkonform.'];
+  if(r.kind==='subs'){
+   if(m.tips>=1)lines.push('Tipp 1: Achte auf die Teilwellen: Welche Wellen sind dreiteilig, welche fünfteilig?');
+   if(m.tips>=2)lines.push('Tipp 2: Die Teilwellen dieses Charts sind '+fmtSub(P.subs[0])+' aufgebaut.');
+   if(m.tips>=3){const g={};z.pats.forEach(k=>{const s=PAT[k].subs.map(fmtSub).join(' oder ');(g[s]=g[s]||[]).push(PAT[k].title)}); // Muster mit gleicher Teilstruktur zusammenfassen
+    lines.push('Tipp 3: Bei der Zählweise '+z.name+' sind sie '+Object.entries(g).map(([s,t])=>s+' ('+t.join(', ')+')').join(', ')+' aufgebaut. Wähle eine andere Zählweise.');}
+  }else{const id=r.f[0],x=Q.rules[id];
+   if(m.tips>=1)lines.push('Tipp 1: '+x.hint);
+   if(m.tips>=2)lines.push('Tipp 2: Es geht um die Regel „'+x.name+'“.');
+   if(m.tips>=3)lines.push('Tipp 3: '+tag(Q,id)+'. '+x.ex);}
+  render('<p class="bad">Noch nicht ganz.</p>'+lines.map(t=>'<p>'+t+'</p>').join('')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':''));
+  const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipUI({Q,r})};
+ };
+ // Bonusfrage: Welches Muster genau? Gibt es in der Zählweise nur ein Muster, ist es eindeutig: Bonus ohne Frage.
+ // Ein falscher Bonus kostet keine Serie, die Zählung selbst war ja richtig.
+ const bonus=head=>{const z=Z();
+  if(z.pats.length===1){st.pts+=10;stats();return end(head+'<p class="ok">Bonus +10: Die Zählweise '+z.name+' gehört nur zum Muster „'+PAT[z.pats[0]].title+'“.</p>')}
+  render(head+'<p><b>Bonusfrage (+10): Welches Muster genau?</b></p>'+z.pats.map(k=>'<button data-b="'+k+'">'+PAT[k].title+'</button>').join(''));
+  document.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{const Q=PAT[b.dataset.b],ok=m.ok.includes(Q);
+   if(ok){st.pts+=10;stats()}
+   end(head+(Q===P?'<p class="ok">Bonus richtig! +10 Punkte</p>':ok?'<p class="ok">Bonus richtig, auch regelkonform! +10 Punkte</p><p>'+diffMsg(P,Q)+'</p>':'<p class="bad">Bonus leider falsch.</p><p>'+fitWhy(Q,fitPts(Q,R,m.sel),P)+'</p>'));});
+ };
+ // Erst am Ende verraten, welches Muster generiert wurde (sonst wäre die Bonusfrage vorweggenommen)
+ const end=html=>{render(html+'<p>Generiert wurde: <b>'+P.title+'</b>. '+P.recog+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=recogHard};
  render();
 }
 
