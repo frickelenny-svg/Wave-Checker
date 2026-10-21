@@ -156,11 +156,16 @@ const OVL={page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'4',name
  hint:'Prüfe, ob Welle 4 in das Preisterritorium von Welle 1 hineinläuft.',
  ex:'Bei einer Diagonale überlappen sich die Wellen 1 und 4: Welle 4 läuft in das Preisterritorium der Welle 1 hinein.',
  ok:u=>u[4]<u[1]};
+// Fortschritt (DIAG-5, Lenny 21.10.2026): Ohne diese Regel erfüllte ein seitwärts laufendes Dreieck rechnerisch alle Diagonalen-Regeln.
+const DPROG={page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Die Diagonale kommt nicht voran',
+ hint:'Vergleiche die Enden der Wellen 1, 3 und 5: Endet jede höher als die davor?',
+ ex:'Bei einer Diagonale endet Welle 3 über dem Ende der Welle 1 und Welle 5 über dem Ende der Welle 3 (im Abwärtstrend spiegelbildlich).',
+ ok:u=>u[3]>u[1]&&u[5]>u[3]};
 const W3KURZ=a=>({page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Welle 3 ist die kürzeste Impulswelle',
  hint:'Vergleiche die Längen der Wellen 1, 3 und 5.',ex:'Welle 3 darf bei der '+a+' niemals die kürzeste der Impulswellen sein.',
  ok:u=>!(L(u,3)<L(u,1)&&L(u,3)<L(u,5))});
 const DRL={
- dl:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,
+ dl:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,'DIAG-5':DPROG,
   'DL-4':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Welle 1 ist nicht die längste Welle',
    hint:'Vergleiche Welle 1 mit allen anderen Wellen: Ist sie die längste?',ex:'Bei der Leading Diagonale ist Welle 1 die längste der fünf Wellen.',
    ok:u=>L(u,1)>L(u,2)&&L(u,1)>L(u,3)&&L(u,1)>L(u,4)&&L(u,1)>L(u,5)},
@@ -168,7 +173,7 @@ const DRL={
   'DL-8':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'5',name:'Welle 5 ist länger als Welle 3',
    hint:'Vergleiche Welle 5 mit Welle 3.',ex:'Welle 5 darf bei der Leading Diagonale niemals länger als Welle 3 sein.',
    ok:u=>L(u,5)<=L(u,3)}},
- db:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,
+ db:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,'DIAG-5':DPROG,
   'DB-8':W3KURZ('Beendenden Diagonale'),
   'DB-10':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'5',name:'Welle 5 ist nicht kürzer als Welle 3',
    hint:'Vergleiche Welle 5 mit Welle 3.',ex:'Bei der Beendenden Diagonale darf Welle 5 nicht länger als Welle 3 sein (maximal 99,99 % von Welle 3).',
@@ -176,7 +181,7 @@ const DRL={
   'DB-4':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Welle 3 ist nicht kürzer als Welle 1',
    hint:'Vergleiche Welle 3 mit Welle 1.',ex:'Bei der Beendenden Diagonale ist Welle 3 kürzer als Welle 1.',
    ok:u=>L(u,3)<L(u,1)}},
- de:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,
+ de:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,'DIAG-5':DPROG,
   'DE-3':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Die Wellen 1, 3 und 5 werden nicht immer länger',
    hint:'Vergleiche die Längen der Wellen 1, 3 und 5: Wird jede länger als die davor?',
    ex:'Bei der Expandierenden Diagonale werden die Wellen immer länger: Welle 1 ist die kürzeste, Welle 5 die längste.',
@@ -227,6 +232,11 @@ CXR.dz['DRE-1']=DRE1;CXR.tz['DRE-1']=DRE1;
 // Welle Z bildet kein Dreieck aus (WZ-1, Entscheidung Lenny 20.10.2026). Geprüft wie DRE-1 über die Beschriftung der Teile.
 CXR.tz['WZ-1']={page:null,where:'Regelwerk, Abschnitt Welle Z',hard:1,wave:'Z',name:'Dreieck in Welle Z',hint:'Schau, welches Muster in Welle Z steht. Gibt es ein Muster, das dort nicht vorkommen darf?',
  ex:'Welle Z darf kein Dreieck ausbilden.',ok:()=>true};
+// Fortschritt (KOM-4, Lenny 21.10.2026): Y endet unter W, Z unter Y. Der Generator (genCx) verwirft Charts, die das nicht erfüllen.
+CXR.tz['KOM-4']={page:null,where:'Regelwerk, Abschnitt Komplexe Korrekturen',hard:1,wave:'Y',name:'Die Dreifache Form kommt nicht voran',
+ hint:'Vergleiche die Enden der Wellen W, Y und Z: Endet jede tiefer als die davor?',
+ ex:'Bei W-X-Y-X-Z endet Welle Y unter dem Ende der Welle W und Welle Z unter dem Ende der Welle Y (bei steigenden Preisen spiegelbildlich).',
+ ok:u=>u[3]<u[1]&&u[5]<u[3]};
 const ARTEN=['Zigzag','Regular Flat','Expanded Flat','Running Flat','Dreieck']; // mögliche Muster der Teile; dasselbe Muster darf mehrfach vorkommen (KOM-1 laut Klarstellung von Lenny)
 // Muster der Teile prüfen: liefert die verletzten Regel-IDs
 
@@ -299,7 +309,7 @@ function genDiag(kind,violate){
   if(kind==='de'){L2=L1*rnd(.3,.8);L3=L1*rnd(wide?.7:1.1,wide?1.8:2);L4=L3*(violate==='DE-9'?rnd(1.02,1.3):violate==='DIAG-2'?rnd(.3,.9):rnd(.5,.887));L5=L3*rnd(1.1,1.6);} // Welle 4 retraced 50 % bis 88,7 % der Welle 3 (DE-9)
   else{L2=L1*rnd(.3,.85);L3=L1*rnd(.4,wide?1.5:.98);L4=L1*rnd(.15,.9);L5=L1*rnd(.15,wide?1.3:.95);}
   const u=[0,L1,L1-L2,L1-L2+L3,L1-L2+L3-L4,L1-L2+L3-L4+L5];
-  // Form: Hochs steigen (3 über 1, 5 über 3); Tiefs steigen (kontrahierend) bzw. fallen (expandierend)
+  // Form: Hochs steigen (3 über 1, 5 über 3, Regel DIAG-5); Tiefs steigen (kontrahierend) bzw. fallen (expandierend)
   if(!(u[3]>u[1]&&u[5]>u[3]&&u[4]>u[0]&&(kind==='de'?(u[4]>u[2]||violate==='DE-9'||violate==='DIAG-2'):u[4]>u[2])))continue;
   const f=hardFails(P,u),Ln=j=>Math.abs(u[j]-u[j-1]);
   if(violate){
@@ -358,6 +368,13 @@ PAT.dz.recog='Double Zigzag (W-X-Y): drei Korrekturwellen, bei denen W, X und Y 
 PAT.tz.recog='Dreifache Form (W-X-Y-X-Z): wie der Double Zigzag, aber mit einer zweiten X-Welle und einem dritten Korrekturmuster Z. W, Y und Z laufen in dieselbe Richtung, die beiden X dagegen und jeweils unter 100 % zurück (Regelwerk, Abschnitt Komplexe Korrekturen und Welle X).';
 PAT.dz.gen=v=>genCx('dz',v);PAT.dz.shape={piv:[0,15,25,45],fr:[abcF,abcF,abcF]};
 PAT.tz.gen=v=>genCx('tz',v);PAT.tz.shape={piv:[0,9,18,27,36,45],fr:[abcF,abcF,abcF,abcF,abcF]};
+// Teilstruktur je Muster (Regelwerk, wie in den recog-Texten): 5 = fünfteilige, 3 = dreiteilige Teilwelle.
+// Der erste Eintrag ist die Struktur, mit der der Chart gezeichnet wird. Die Leading Diagonale darf 5-3-5-3-5 oder 3-3-3-3-3 sein.
+// Wird im Modus „Muster erkennen“ gebraucht: Ohne diesen Vergleich wären z. B. Zigzag (5-3-5) und Regular Flat (3-3-5) immer austauschbar.
+PAT.imp.subs=['53535'];PAT.dl.subs=['53535','33333'];PAT.zig.subs=['535'];PAT.fr.subs=PAT.fe.subs=PAT.fru.subs=['335'];PAT.dz.subs=['333'];
+PAT.trk.subs=PAT.tre.subs=PAT.db.subs=PAT.de.subs=PAT.tz.subs=['33333'];
+// Wo das Muster im größeren Trend vorkommt (Regelwerk). Nur daran lassen sich Muster unterscheiden, zu denen derselbe Chart regelkonform ist.
+PAT.trk.ctx=PAT.tre.ctx='nie in Welle 2, C und W';PAT.dl.ctx='nur in Welle 1';PAT.db.ctx='nur in Welle 5 und C';PAT.de.ctx='nur in Welle 1, 5 und C';PAT.tz.ctx='kann in Welle 2 und 4 vorkommen';
 const triF=()=>[0,1,.5,.85,.65,1]; // fünfteiliges Dreieck (Teil A-B-C-D-E), endet auf dem Teilziel
 // Muster der Teile wählen (nur Fehler finden): frei wählbar, nur W darf kein Dreieck sein; mit DRE-1 steht ein Dreieck in W
 function pickNames(P,violate){
@@ -514,7 +531,23 @@ function find(P){
  };
  render();
 }
-// Modus 3: Muster erkennen – zufälliges Muster, ohne Beschriftung im Chart
+// Modus 3: Muster erkennen – zufälliges Muster, ohne Beschriftung im Chart.
+// Richtig ist jedes Muster, zu dem der Chart regelkonform ist (Entscheidung Lenny 21.10.2026), nicht nur das generierte.
+const fmtSub=s=>s.split('').join('-');
+// Passt der Chart R regelkonform zum Muster Q? Liefert null (passt) oder den Grund in Worten für den Nutzer (ohne Regel-IDs).
+// Geprüft werden: gleiche Punktanzahl, Richtung/Struktur, alle HARTEN Regeln von Q an den Wendepunkten, Teilstruktur (subs).
+function misfit(Q,R){
+ const sel='beim Muster „'+Q.title+'“';
+ if(Q.labels.length!==R.piv.length)return 'Der Chart hat '+(R.piv.length-1)+' Wellen, '+sel+' sind es '+(Q.labels.length-1)+'.';
+ const v=norm(Q,R.piv.map(i=>R.pr[i]));
+ if(Q.struct&&!Q.struct(v))return 'Die Richtung der Wellen passt nicht '+sel+'.';
+ const f=hardFails(Q,v);
+ if(f.length)return 'Verletzte Regel '+sel+': '+f.map(id=>'„'+Q.rules[id].name+'“ ('+tag(Q,id)+')').join(', ')+'.';
+ if(!Q.subs.includes(R.P.subs[0]))return 'Die Teilwellen passen nicht: Hier sind sie '+fmtSub(R.P.subs[0])+' aufgebaut, '+sel+' '+Q.subs.map(fmtSub).join(' oder ')+'.';
+ return null;
+}
+// Ein Satz, woran man zwei auf dem Chart gleich regelkonforme Muster unterscheidet
+const diffMsg=(P,Q)=>P.ctx&&Q.ctx?'Unterschied: Auf dem Chart allein passen beide, entscheidend ist die Stelle im größeren Trend ('+P.title+': '+P.ctx+'; '+Q.title+': '+Q.ctx+').':'Unterschied: Vergleiche die beiden Beschreibungen unten.';
 function recognize(){
  const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=PAT[keys[Math.floor(Math.random()*keys.length)]],R=makeRound(P,null),m={sel:null};
  const render=(fb)=>{
@@ -523,10 +556,10 @@ function recognize(){
   '</div><div class="dock">'+(fb?fb.v+'<button class="p" id="nxt">Nächster Chart</button>':'<button class="p" id="go" '+(m.sel?'':'disabled')+'>Antworten</button>')+'</div>'+(fb?'<div class="card" id="fb">'+fb.d+'</div>':'');
   if(fb)return;
   document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{m.sel=b.dataset.k;render()});
-  $('#go').onclick=()=>{const ok=m.sel===P.key;
+  $('#go').onclick=()=>{const Q=PAT[m.sel],same=m.sel===P.key,why=same?null:misfit(Q,R),ok=!why;
    if(ok){st.streak++;st.pts+=10}else st.streak=0;stats();
-   render({v:ok?'<p class="ok">Richtig! +10 Punkte</p>':'<p class="bad">Nicht ganz. Das war ein '+P.title+'.</p>',
-    d:'<p>'+P.recog+'</p>'+(ok?'':'<p class="mut">Deine Wahl war: '+PAT[m.sel].recog+'</p>')});
+   render({v:same?'<p class="ok">Richtig! +10 Punkte</p>':ok?'<p class="ok">Richtig, auch regelkonform! +10 Punkte. Generiert wurde: '+P.title+'.</p>':'<p class="bad">Nicht ganz. Das war ein '+P.title+'.</p>',
+    d:(same?'':'<p>'+(ok?diffMsg(P,Q):why)+'</p>')+'<p>'+P.recog+'</p>'+(same?'':'<p class="mut">Deine Wahl war: '+Q.recog+'</p>')});
    $('#nxt').onclick=recognize;};
  };
  render();
