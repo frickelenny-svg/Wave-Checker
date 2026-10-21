@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wave Checker – Elliott-Wellen trainieren</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#EFF3F1;--ink:#14313B;--mut:#5B7079;--card:#fff;--line:#C9D6D3;--up:#17806A;--dn:#C0452D;--warn:#9A6414;--btn:#14313B;--btnt:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1D22;--ink:#E4EEEC;--mut:#8FA7A8;--card:#16282E;--line:#2A4249;--up:#4CC2A4;--dn:#F07A5F;--warn:#E3B04B;--btn:#E4EEEC;--btnt:#0F1D22}}
+:root[data-theme="dark"]{--bg:#0F1D22;--ink:#E4EEEC;--mut:#8FA7A8;--card:#16282E;--line:#2A4249;--up:#4CC2A4;--dn:#F07A5F;--warn:#E3B04B;--btn:#E4EEEC;--btnt:#0F1D22}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.5}
+main{max-width:760px;margin:0 auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+h1{font-size:1.5rem;font-weight:800;margin:0;cursor:pointer}
+h2{font-size:1.15rem;margin:0 0 6px}
+.stats{display:flex;gap:14px;font-size:.9rem;color:var(--mut)}
+.stats b{color:var(--ink)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;background:var(--up);transition:width .3s}
+.dock{position:sticky;bottom:0;z-index:5;background:var(--bg);border-top:1px solid var(--line);padding:10px 0;margin:0 0 12px}.dock p{margin:0 0 8px}#menu{margin-bottom:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
+button{font:inherit;cursor:pointer;border:1px solid var(--ink);background:transparent;color:var(--ink);border-radius:8px;padding:8px 14px;margin:4px 6px 4px 0}
+button.p{background:var(--btn);color:var(--btnt);border-color:var(--btn)}
+button.on{background:var(--ink);color:var(--bg)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+.mut{color:var(--mut);font-size:.92rem}
+.ok{color:var(--up);font-weight:600}.bad{color:var(--dn);font-weight:600}.warn{color:var(--warn)}
+.chart{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.lab{font:600 11px "Bricolage Grotesque",system-ui,sans-serif;fill:var(--ink);text-anchor:middle}
+</style>
+</head>
+<body>
+<main>
+<header><h1 id="home" tabindex="0">Wave Checker</h1>
+<div class="stats"><span>Level <b id="lv">1</b></span><span>Punkte <b id="pt">0</b></span><span>Serie <b id="sr">0</b></span></div></header>
+<div class="bar"><i id="pb" style="width:0"></i></div>
+<button id="menu" hidden>← Hauptmenü</button>
+<div id="view"></div>
+</main>
+<script>
+/* ===== Wave Checker – Prototyp: Impuls (S.38) und Zigzag (S.42) =====
+   Aufbau: 1) Regeln je Muster (jede Regel = eine Prüffunktion mit interner ID)
+           2) Chart-Generator  3) Zeichnen  4) Spielmodi.
+   Alle Prüfungen laufen im Code, ohne KI. Regel-IDs sieht nur der Code, nie der Nutzer. */
+
+// ---- 1) Regeln. Alle Werte u/v sind normalisiert: Punkt 0 = 0, Impuls zeigt nach oben, Zigzag-Welle A nach unten.
+// hard=1: harte Regel (Zählung falsch). hard=0: harte Orientierung (nur Warnung).
+const L=(v,k)=>Math.abs(v[k]-v[k-1]); // Länge der Welle zwischen Punkt k-1 und k
+const IMPR={
+ 'IMP-1':{page:38,hard:1,wave:'2',name:'Welle 2 unter dem Start von Welle 1',
+  hint:'Schau auf Welle 2: Wie weit läuft sie zurück?',
+  ex:'Welle 2 darf den Startpunkt der Welle 1 nicht unterschreiten (im Abwärtstrend: nicht überschreiten).',
+  ok:v=>v[2]>=v[0]},
+ 'IMP-2':{page:38,hard:1,wave:'3',name:'Welle 3 ist die kürzeste Impulswelle',
+  hint:'Vergleiche die Längen der Wellen 1, 3 und 5.',
+  ex:'Welle 3 darf nie die kürzeste der Impulswellen 1, 3 und 5 sein.',
+  ok:v=>!(L(v,3)<L(v,1)&&L(v,3)<L(v,5))},
+ 'IMP-3':{page:38,hard:1,wave:'4',name:'Welle 4 überschneidet Welle 1',
+  hint:'Prüfe, wie tief Welle 4 läuft. Berührt sie das Preisterritorium von Welle 1?',
+  ex:'Welle 4 darf das Preisterritorium der Welle 1 nicht schneiden (Ausnahme: Diagonale).',
+  ok:v=>v[4]>=v[1]},
+ 'IMP-4':{page:38,hard:1,wave:'1',name:'Falsche Richtung einer Welle',
+  hint:'Prüfe die Richtung jeder Welle: 1, 3, 5 laufen mit dem Trend, 2 und 4 dagegen.',
+  ex:'Welle 1, 3 und 5 verlaufen immer in Trendrichtung, die Wellen 2 und 4 sind Korrekturen dagegen.',
+  ok:v=>v[1]>v[0]&&v[2]<v[1]&&v[3]>v[2]&&v[4]<v[3]&&v[5]>v[4]},
+ 'W3-4':{page:null,hard:0,wave:'3',name:'Welle 3 expandiert weniger als 123,6 %',
+  hint:'Vergleiche Welle 3 mit Welle 1.',
+  ex:'Harte Orientierung: Welle 3 sollte mindestens 123,6 % von Welle 1 erreichen. Das ist eine Warnung, kein sicherer Fehler.',
+  ok:v=>L(v,3)>=1.236*L(v,1)}
+};
+const ZZR={ // Zigzag: Punkte 0, A, B, C (Abwärtskorrektur, im Aufwärtsfall spiegelbildlich)
+ 'ZZ-2':{page:42,hard:1,wave:'B',name:'Welle B überschreitet den Start von Welle A',
+  hint:'Schau auf das Ende von Welle B: Wie weit läuft sie gegen Welle A zurück?',
+  ex:'Welle B darf den Startpunkt der Welle A nicht überschreiten (bei steigenden Preisen: nicht unterschreiten).',
+  ok:u=>u[2]<u[0]},
+ 'ZZ-3':{page:42,hard:1,wave:'C',name:'Welle C endet nicht jenseits vom Ende der Welle A',
+  hint:'Vergleiche das Ende von Welle C mit dem Ende von Welle A.',
+  ex:'Welle C muss unter dem Endpunkt der Welle A enden (bei steigenden Preisen: darüber).',
+  ok:u=>u[3]<u[1]}
+};
+const pct=x=>(Math.round(x*1000)/10).toString().replace('.',',')+' %';
+const PAT={
+ imp:{key:'imp',title:'Impuls',labels:['0','1','2','3','4','5'],waves:['1','2','3','4','5'],rules:IMPR,viol:['IMP-1','IMP-2','IMP-3'],
+  sign:p=>p[1]>=p[0]?1:-1, // Richtung: Welle 1 bestimmt den Trend
+  endMsg:'Der Chart endet im Extrem von Welle 5. Setze Punkt 5 an das letzte Hoch (im Abwärtstrend: Tief) des Charts.',
+  info:v=>'<p class="mut">Orientierung: Welle 2 lief '+pct(L(v,2)/L(v,1))+' zurück (häufig 50, 61,8 oder 78,6 %), Welle 4 '+pct(L(v,4)/L(v,3))+' (häufig 38,2 oder 50 %).'+(v[5]<v[3]?' Welle 5 endet unter dem Hoch von Welle 3: eine Truncation, die in echten Charts selten vorkommt.':'')+'</p>'},
+ zig:{key:'zig',title:'Zigzag',labels:['0','A','B','C'],waves:['A','B','C'],rules:ZZR,viol:['ZZ-2','ZZ-3'],
+  sign:p=>p[1]<=p[0]?1:-1, // Richtung: Welle A bestimmt die Korrektur
+  struct:u=>u[1]<u[0]&&u[2]>u[1]&&u[3]<u[2], // App-Vorgabe: A und C laufen in eine Richtung, B dagegen
+  structMsg:'Bei einem Zigzag laufen A und C in dieselbe Richtung, B läuft dagegen. Prüfe die Richtung deiner Punkte.',
+  endMsg:'Der Chart endet im Extrem von Welle C. Setze Punkt C an das letzte Tief (bei steigenden Preisen: Hoch) des Charts.',
+  info:v=>'<p class="mut">Orientierung: Welle B lief '+pct(L(v,2)/L(v,1))+' von A zurück (maximal knapp unter 100 %), Welle C erreicht '+pct(L(v,3)/L(v,1))+' von A (häufig 100 %, zwischen 61,8 und 161,8 %).</p><p class="mut">Hinweis: Dass A und C fünfteilig sind, prüft die App erst in der späteren Subwellen-Stufe.</p>'}
+};
+// Flats (Punkte 0, A, B, C): A und B dreiteilig, C fünfteilig. Drei Varianten, jede mit eigenen Regeln.
+const MIR=' (bei steigenden Preisen spiegelbildlich)';
+const FLR={
+ fr:{ // Regular Flat
+  'FR-2':{page:46,hard:1,wave:'B',name:'Welle B überschreitet den Start von Welle A',
+   hint:'Schau, wo Welle B endet: Nähert sie sich dem Start von Welle A an oder schießt sie darüber?',
+   ex:'Beim Regular Flat nähert sich Welle B dem Startpunkt der Welle A an, statt ihn zu überschreiten.'+MIR,ok:u=>u[2]<u[0]},
+  'FR-3':{page:46,hard:1,wave:'C',name:'Welle C endet nicht unter dem Tief von Welle A',
+   hint:'Vergleiche das Ende von Welle C mit dem Ende von Welle A.',
+   ex:'Beim Regular Flat endet Welle C leicht unter dem Tief von Welle A.'+MIR,ok:u=>u[3]<u[1]}},
+ fe:{ // Expanded Flat
+  'FE-2':{page:46,hard:1,wave:'B',name:'Welle B überschreitet den Start von Welle A nicht',
+   hint:'Schau, wo Welle B endet: Kommt sie über den Start von Welle A hinaus?',
+   ex:'Beim Expanded Flat überschreitet Welle B den Startpunkt der Welle A.'+MIR,ok:u=>u[2]>u[0]},
+  'FE-3':{page:46,hard:1,wave:'C',name:'Welle C endet nicht unter dem Tief von Welle A',
+   hint:'Vergleiche das Ende von Welle C mit dem Ende von Welle A.',
+   ex:'Beim Expanded Flat endet Welle C unterhalb des Tiefs von Welle A.'+MIR,ok:u=>u[3]<u[1]}},
+ fru:{ // Running Flat
+  'FRU-2':{page:46,hard:1,wave:'B',name:'Welle B überschießt den Start von Welle A nicht',
+   hint:'Schau, wo Welle B endet: Schießt sie über den Start von Welle A hinaus?',
+   ex:'Beim Running Flat überschießt Welle B den Startpunkt der Welle A.'+MIR,ok:u=>u[2]>u[0]},
+  'FRU-3':{page:46,hard:1,wave:'C',name:'Welle C bildet ein neues Tief unter Welle A',
+   hint:'Vergleiche das Ende von Welle C mit dem Ende von Welle A.',
+   ex:'Beim Running Flat schafft es Welle C nicht, ein neues Tief unterhalb der Welle A auszubilden.'+MIR,ok:u=>u[3]>u[1]}}
+};
+// Gemeinsame harte Orientierung für Welle B in Flats
+const WB2={page:null,hard:0,wave:'B',name:'Welle B liegt außerhalb von 88,7 % bis 161,8 % der Welle A',
+ hint:'Vergleiche die Länge von Welle B mit Welle A.',
+ ex:'Harte Orientierung: Welle B retraced mindestens 88,7 % bis maximal 161,8 % der Welle A. Das ist eine Warnung, kein sicherer Fehler.',
+ ok:u=>{const r=L(u,2)/L(u,1);return r>=.887&&r<=1.618}};
+const flatPat=(key,title,viol)=>({key,title,labels:['0','A','B','C'],waves:['A','B','C'],rules:{...FLR[key],'WB-2':WB2},viol,
+ sign:PAT.zig.sign,struct:PAT.zig.struct,structMsg:PAT.zig.structMsg,
+ endMsg:'Der Chart endet im Extrem von Welle C. Setze Punkt C an das letzte Tief (bei steigenden Preisen: Hoch) des Charts.',
+ info:v=>'<p class="mut">Orientierung: Welle B lief '+pct(L(v,2)/L(v,1))+' von A zurück (Regelwerk: mindestens 88,7 %, höchstens 161,8 %). Welle C erreicht '+pct(L(v,3)/L(v,1))+' von A (häufig 61,8 %, bis 261,8 %).</p><p class="mut">Hinweis: Dass A und B dreiteilig und C fünfteilig sind, prüft die App erst in der späteren Subwellen-Stufe.</p>'});
+PAT.fr=flatPat('fr','Regular Flat',['FR-2','FR-3']);
+PAT.fe=flatPat('fe','Expanded Flat',['FE-2','FE-3']);
+PAT.fru=flatPat('fru','Running Flat',['FRU-2','FRU-3']);
+// Dreiecke (Punkte 0, A, B, C, D, E): fünf dreiteilige Wellen. Kontrahierend oder expandierend.
+const TRR={
+ trk:{'DRE-7':{page:50,hard:1,wave:'B',name:'Eine Welle ist nicht kürzer als die vorangegangene',
+  hint:'Vergleiche die Längen der fünf Wellen: Wird jede Welle kürzer als die davor?',
+  ex:'Beim kontrahierenden Dreieck ist Welle A die längste der fünf Wellen, und jede Welle ist kürzer als die vorangegangene.',
+  ok:u=>L(u,1)>L(u,2)&&L(u,2)>L(u,3)&&L(u,3)>L(u,4)&&L(u,4)>L(u,5)}},
+ tre:{'DRE-8':{page:50,hard:1,wave:'B',name:'Eine Welle ist nicht länger als die vorangegangene',
+  hint:'Vergleiche die Längen der fünf Wellen: Wird jede Welle länger als die davor?',
+  ex:'Beim expandierenden Dreieck ist Welle A die kürzeste der fünf Wellen, und jede Welle ist länger als die vorangegangene.',
+  ok:u=>L(u,1)<L(u,2)&&L(u,2)<L(u,3)&&L(u,3)<L(u,4)&&L(u,4)<L(u,5)}}
+};
+const triPat=(key,title,viol)=>({key,title,labels:['0','A','B','C','D','E'],waves:['A','B','C','D','E'],rules:TRR[key],viol,
+ sign:p=>p[1]>=p[0]?1:-1,
+ struct:u=>u[1]>u[0]&&u[2]<u[1]&&u[3]>u[2]&&u[4]<u[3]&&u[5]>u[4], // App-Vorgabe: die Richtung wechselt von Welle zu Welle
+ structMsg:'Bei einem Dreieck wechselt die Richtung von Welle zu Welle: A, C und E laufen in eine Richtung, B und D dagegen. Prüfe die Richtung deiner Punkte.',
+ endMsg:'Der Chart endet im Extrem von Welle E. Setze Punkt E an das letzte Hoch bzw. Tief des Charts.',
+ info:v=>'<p class="mut">Orientierung: Dreiecke verlaufen meist flach und treten häufig in Welle 4 auf. Verhältnisse: B '+pct(L(v,2)/L(v,1))+' von A, C '+pct(L(v,3)/L(v,2))+' von B, D '+pct(L(v,4)/L(v,3))+' von C, E '+pct(L(v,5)/L(v,4))+' von D.</p><p class="mut">Hinweis: Dass jede der fünf Wellen dreiteilig ist, prüft die App erst in der späteren Subwellen-Stufe.</p>'});
+PAT.trk=triPat('trk','Kontrahierendes Dreieck',['DRE-7']);
+PAT.tre=triPat('tre','Expandierendes Dreieck',['DRE-8']);
+// Diagonalen (Punkte 0 bis 5): Überlappung von Welle 1 und 4 ist das Kennzeichen. Leading, Beendend, Expandierend.
+const OVL={page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'4',name:'Welle 4 überlappt Welle 1 nicht',
+ hint:'Prüfe, ob Welle 4 in das Preisterritorium von Welle 1 hineinläuft.',
+ ex:'Bei einer Diagonale überlappen sich die Wellen 1 und 4: Welle 4 läuft in das Preisterritorium der Welle 1 hinein.',
+ ok:u=>u[4]<u[1]};
+const W3KURZ=a=>({page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Welle 3 ist die kürzeste Impulswelle',
+ hint:'Vergleiche die Längen der Wellen 1, 3 und 5.',ex:'Welle 3 darf bei der '+a+' niemals die kürzeste der Impulswellen sein.',
+ ok:u=>!(L(u,3)<L(u,1)&&L(u,3)<L(u,5))});
+const DRL={
+ dl:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,
+  'DL-4':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Welle 1 ist nicht die längste Welle',
+   hint:'Vergleiche Welle 1 mit allen anderen Wellen: Ist sie die längste?',ex:'Bei der Leading Diagonale ist Welle 1 die längste der fünf Wellen.',
+   ok:u=>L(u,1)>L(u,2)&&L(u,1)>L(u,3)&&L(u,1)>L(u,4)&&L(u,1)>L(u,5)},
+  'DL-6':W3KURZ('Leading Diagonale'),
+  'DL-8':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'5',name:'Welle 5 ist länger als Welle 3',
+   hint:'Vergleiche Welle 5 mit Welle 3.',ex:'Welle 5 darf bei der Leading Diagonale niemals länger als Welle 3 sein.',
+   ok:u=>L(u,5)<=L(u,3)}},
+ db:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,
+  'DB-8':W3KURZ('Beendenden Diagonale'),
+  'DB-10':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'5',name:'Welle 5 ist nicht kürzer als Welle 3',
+   hint:'Vergleiche Welle 5 mit Welle 3.',ex:'Bei der Beendenden Diagonale darf Welle 5 nicht länger als Welle 3 sein (maximal 99,99 % von Welle 3).',
+   ok:u=>L(u,5)<L(u,3)},
+  'DB-4':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Welle 3 ist nicht kürzer als Welle 1',
+   hint:'Vergleiche Welle 3 mit Welle 1.',ex:'Bei der Beendenden Diagonale ist Welle 3 kürzer als Welle 1.',
+   ok:u=>L(u,3)<L(u,1)}},
+ de:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,
+  'DE-3':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Die Wellen 1, 3 und 5 werden nicht immer länger',
+   hint:'Vergleiche die Längen der Wellen 1, 3 und 5: Wird jede länger als die davor?',
+   ex:'Bei der Expandierenden Diagonale werden die Wellen immer länger: Welle 1 ist die kürzeste, Welle 5 die längste.',
+   ok:u=>L(u,1)<L(u,3)&&L(u,3)<L(u,5)},
+  // Welle-4-Retracement der Expandierenden Diagonale (Lenny, 20.10.2026), gemessen über Start- und Endpunkt der Welle 3
+  'DE-9':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'4',name:'Welle 4 retraced mehr als 99,9 % der Welle 3',
+   hint:'Miss, wie weit Welle 4 von Start bis Ende der Welle 3 zurückläuft.',
+   ex:'Harte Grenze: Bei der Expandierenden Diagonale darf Welle 4 höchstens 99,9 % der Welle 3 retracen.',
+   ok:u=>L(u,4)/L(u,3)<=.999},
+  'DE-9o':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:0,lvl:'o',wave:'4',name:'Welle 4 retraced nicht zwischen 50 % und 88,7 %',
+   hint:'Miss, wie weit Welle 4 von Start bis Ende der Welle 3 zurückläuft.',
+   ex:'Meist retraced Welle 4 zwischen 50 % und 88,7 % der Welle 3, am häufigsten 61,8 % (Orientierung, kein Fehler).',
+   ok:u=>{const r=L(u,4)/L(u,3);return r>=.5&&r<=.887}}}
+};
+const RET=v=>'Orientierung: Welle 2 lief '+pct(L(v,2)/L(v,1))+' zurück, Welle 4 '+pct(L(v,4)/L(v,3))+' (häufig 61,8 %).';
+const diagPat=(key,title,viol,implied,info)=>({key,title,labels:['0','1','2','3','4','5'],waves:['1','2','3','4','5'],rules:DRL[key],viol,implied,
+ sign:PAT.trk.sign,struct:PAT.trk.struct,structMsg:'Bei einer Diagonale laufen die Wellen 1, 3 und 5 in Trendrichtung, die Wellen 2 und 4 dagegen. Prüfe die Richtung deiner Punkte.',
+ endMsg:PAT.imp.endMsg,info});
+PAT.dl=diagPat('dl','Leading Diagonale',['DIAG-2','DL-4','DL-8'],{'DL-8':['DL-6']},
+ v=>'<p class="mut">'+RET(v)+'</p><p class="mut">Hinweis: Dass die Wellen als 5-3-5-3-5 oder 3-3-3-3-3 aufgebaut sind, prüft die App erst in der späteren Subwellen-Stufe.</p>');
+PAT.db=diagPat('db','Beendende Diagonale',['DIAG-2','DB-10','DB-4'],{'DB-10':['DB-8']},
+ v=>'<p class="mut">'+RET(v)+(L(v,1)>=Math.max(L(v,2),L(v,3),L(v,4),L(v,5))?'':' Welle 1 ist meist die längste der fünf Wellen.')+'</p><p class="mut">Hinweis: Dass jede der fünf Wellen dreiteilig ist, prüft die App erst in der späteren Subwellen-Stufe.</p>');
+PAT.de=diagPat('de','Expandierende Diagonale',['DIAG-2','DE-3','DE-9'],{},
+ v=>'<p class="mut">'+RET(v)+'</p><p class="mut">Hinweis: Dass jede der fünf Wellen dreiteilig ist, prüft die App erst in der späteren Subwellen-Stufe.</p>');
+// Komplexe Korrekturen: Double Zigzag (0, W, X, Y) und Dreifache Form (0, W, X1, Y, X2, Z). Aufbau je Teil als eigenes Korrekturmuster.
+const WXW='Regelwerk, Abschnitt Welle X';
+const wx2=(a,b,wave,name,wname)=>({page:null,where:WXW,hard:1,wave,name,hint:'Schau, wie weit '+name.split(' retraced')[0]+' gegen '+wname+' zurückläuft.',
+ ex:'Welle X muss unter 100 % der vorangegangenen Welle bleiben. Eine überschießende Welle X lässt das Regelwerk nicht zu. Bis 99 % ist erlaubt, aber ein starkes Warnsignal.',
+ ok:u=>L(u,a)/L(u,b)<1});
+// Starkes Warnsignal (kein Regelbruch): X läuft fast bis zum Start der Vorwelle zurück. Grenze 88,7 % ist eine Annahme, bitte von Lenny bestätigen lassen.
+const wx2w=(a,b,wave,name)=>({page:null,where:WXW,hard:0,wave,name,hint:'Schau, wie nah Welle X am Start der vorangegangenen Welle endet.',
+ ex:'Starkes Warnsignal: Ein Rücklauf von Welle X über 88,7 % bis knapp unter 100 % ist erlaubt, spricht aber deutlich gegen die Zählung. Das ist kein sicherer Fehler.',ok:u=>L(u,a)/L(u,b)<=.887});
+const wx3=(a,b,wave,name)=>({page:null,hard:0,wave,name,hint:'Vergleiche die Länge der Welle X mit der vorangegangenen Welle.',
+ ex:'Harte Orientierung: Welle X sollte mindestens 38,2 % der vorangegangenen Welle erreichen. Das ist eine Warnung, kein sicherer Fehler.',
+ ok:u=>L(u,a)/L(u,b)>=.382});
+const CXR={
+ dz:{'WX-2':wx2(2,1,'X','Welle X retraced 100 % oder mehr der Welle W','Welle W'),'WX-2w':wx2w(2,1,'X','Welle X retraced über 88,7 % der Welle W'),'WX-3':wx3(2,1,'X','Welle X erreicht weniger als 38,2 % der Welle W')},
+ tz:{'WX-2':wx2(2,1,'X1','Die erste Welle X retraced 100 % oder mehr der Welle W','Welle W'),
+     'WX-2b':wx2(4,3,'X2','Die zweite Welle X retraced 100 % oder mehr der Welle Y','Welle Y'),
+     'WX-2w':wx2w(2,1,'X1','Die erste Welle X retraced über 88,7 % der Welle W'),'WX-2wb':wx2w(4,3,'X2','Die zweite Welle X retraced über 88,7 % der Welle Y'),
+     'WX-3':wx3(2,1,'X1','Die erste Welle X erreicht weniger als 38,2 % der Welle W'),
+     'WX-3b':wx3(4,3,'X2','Die zweite Welle X erreicht weniger als 38,2 % der Welle Y')}
+};
+// Regel auf Ebene der Teilmuster (nur im Modus „Fehler finden“, dort sind die Muster der Teile im Chart beschriftet). ok ist hier immer wahr, geprüft wird über nameFails.
+const DRE1={page:50,hard:1,wave:'W',name:'Dreieck in Welle W',hint:'Schau, welches Muster in Welle W steht. Gibt es ein Muster, das dort nie vorkommt?',
+ ex:'Dreiecke treten niemals in Welle 2, C und W auf.',ok:()=>true};
+CXR.dz['DRE-1']=DRE1;CXR.tz['DRE-1']=DRE1;
+// Welle Z bildet kein Dreieck aus (WZ-1, Entscheidung Lenny 20.10.2026). Geprüft wie DRE-1 über die Beschriftung der Teile.
+CXR.tz['WZ-1']={page:null,where:'Regelwerk, Abschnitt Welle Z',hard:1,wave:'Z',name:'Dreieck in Welle Z',hint:'Schau, welches Muster in Welle Z steht. Gibt es ein Muster, das dort nicht vorkommen darf?',
+ ex:'Welle Z darf kein Dreieck ausbilden.',ok:()=>true};
+const ARTEN=['Zigzag','Regular Flat','Expanded Flat','Running Flat','Dreieck']; // mögliche Muster der Teile; dasselbe Muster darf mehrfach vorkommen (KOM-1 laut Klarstellung von Lenny)
+// Muster der Teile prüfen: liefert die verletzten Regel-IDs
+
+const HCX='<p class="mut">Hinweis: Dass jeder Teil seine eigene innere Struktur hat, siehst du im Modus „Fehler finden“, dort sind die Muster der Teile beschriftet.</p>';
+PAT.dz={key:'dz',title:'Double Zigzag (W-X-Y)',labels:['0','W','X','Y'],waves:['W','X','Y'],rules:CXR.dz,viol:['WX-2','DRE-1'],parts:['W','X','Y'],partLeg:[0,1,2],
+ sign:PAT.zig.sign,struct:PAT.zig.struct,structMsg:'Bei W-X-Y laufen W und Y in dieselbe Richtung, X läuft dagegen. Prüfe die Richtung deiner Punkte.',
+ endMsg:'Der Chart endet im Extrem von Welle Y. Setze Punkt Y an das letzte Tief (bei steigenden Preisen: Hoch) des Charts.',
+ info:v=>'<p class="mut">Orientierung: Welle X lief '+pct(L(v,2)/L(v,1))+' von W zurück (häufig 61,8 %, mindestens 38,2 %, unter 100 %). Welle Y erreicht '+pct(L(v,3)/L(v,1))+' von W (häufig 100 %, zwischen 61,8 % und 261,8 %).</p>'+HCX};
+PAT.tz={key:'tz',title:'Dreifache Form (W-X-Y-X-Z)',labels:['0','W','X1','Y','X2','Z'],waves:['W','X1','Y','X2','Z'],rules:CXR.tz,viol:['WX-2','WX-2b','DRE-1','WZ-1'],parts:['W','Y','Z'],partLeg:[0,2,4],
+ sign:PAT.zig.sign,struct:u=>u[1]<u[0]&&u[2]>u[1]&&u[3]<u[2]&&u[4]>u[3]&&u[5]<u[4],
+ structMsg:'Bei W-X-Y-X-Z laufen W, Y und Z in eine Richtung, die beiden X dagegen. Prüfe die Richtung deiner Punkte.',
+ endMsg:'Der Chart endet im Extrem von Welle Z. Setze Punkt Z an das letzte Tief (bei steigenden Preisen: Hoch) des Charts.',
+ info:v=>'<p class="mut">Orientierung: Die erste Welle X lief '+pct(L(v,2)/L(v,1))+' von W zurück, die zweite '+pct(L(v,4)/L(v,3))+' von Y (häufig 61,8 %, mindestens 38,2 %, unter 100 %). Welle Y erreicht '+pct(L(v,3)/L(v,1))+' von W (häufig 100 %, zwischen 61,8 % und 261,8 %).</p>'+HCX};
+// Hilfsfunktionen: je Muster prüfen
+const tag=(P,id)=>{const r=P.rules[id];return r.page?'Buch S.'+r.page:(r.where||'Orientierung aus dem Regelwerk')};
+const check=(P,v)=>Object.keys(P.rules).filter(id=>!P.rules[id].ok(v));
+const hardFails=(P,v)=>check(P,v).filter(id=>P.rules[id].hard);
+const warns=(P,v)=>check(P,v).filter(id=>!P.rules[id].hard);
+const norm=(P,p)=>{const d=P.sign(p);return p.map(x=>d*(x-p[0]))};
+
+// ---- 2) Generator: würfelt Wellenlängen, bis die Prüfung das gewünschte Ergebnis liefert.
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function genImp(violate){ // violate=null: regelkonform; sonst genau diese Regel verletzen
+ // Truncation ist selten: nur in ca. 4 % der regelkonformen Charts, nie in Fehler-Aufgaben.
+ const allowTrunc=!violate&&Math.random()<.04;
+ for(let n=0;n<6000;n++){
+  const l1=rnd(.8,1.6)*100,p1=l1,p2=p1-rnd(.3,1.3)*l1,l3=rnd(.7,3)*l1,p3=p2+l3,p4=p3-rnd(.2,.7)*l3,p5=p4+rnd(.4,1.8)*l1;
+  const v=[0,p1,p2,p3,p4,p5],f=violate?hardFails(PAT.imp,v):check(PAT.imp,v); // Fehler-Aufgaben: nur harte Regeln zählen
+  if(allowTrunc?!(p5<p3):p5<p3)continue;
+  if(violate==='IMP-2'){const r=l3/Math.min(l1,p5-p4);if(r<.6||r>.85)continue} // Welle 3 klar, aber nicht übertrieben kürzer als die kürzere der Wellen 1 und 5
+  if(violate?(f.length===1&&f[0]===violate):f.length===0) return v;
+ }
+}
+function genZig(violate){
+ for(let n=0;n<6000;n++){
+  const LA=rnd(.8,1.6)*100,u1=-LA,rB=violate==='ZZ-2'?rnd(1.05,1.4):rnd(.3,.9),u2=u1+rB*LA,
+   LC=violate==='ZZ-3'?rB*LA*rnd(.55,.95):rnd(.6,1.7)*LA,u3=u2-LC;
+  const v=[0,u1,u2,u3],f=check(PAT.zig,v);
+  if(violate?(f.length===1&&f[0]===violate):f.length===0) return v;
+ }
+}
+function genFlat(kind,violate){
+ const P=PAT[kind];
+ for(let n=0;n<6000;n++){
+  const LA=rnd(.8,1.6)*100,u1=-LA;
+  // B über dem Start von A? (Regular: nein, Expanded/Running: ja; bei einer Verletzung genau umgekehrt)
+  const bUp=kind==='fr'?violate==='FR-2':kind==='fe'?violate!=='FE-2':violate!=='FRU-2';
+  // C unter dem Tief von A? (Regular/Expanded: ja, Running: nein; bei einer Verletzung umgekehrt)
+  const cLow=kind==='fr'?violate!=='FR-3':kind==='fe'?violate!=='FE-3':violate==='FRU-3';
+  const u2=u1+(bUp?rnd(1.03,1.35):rnd(.89,.99))*LA,
+   u3=cLow?u1-(kind==='fr'?rnd(.03,.2):rnd(.1,.6))*LA:u1+rnd(.1,.5)*LA;
+  const v=[0,u1,u2,u3];if(!P.struct(v))continue;
+  const f=violate?hardFails(P,v):check(P,v);
+  if(violate?(f.length===1&&f[0]===violate):f.length===0)return v;
+ }
+}
+function genTri(kind,violate){
+ const P=PAT[kind],con=kind==='trk',vj=violate?2+Math.floor(Math.random()*4):0; // vj = gebrochene Welle (2..5 = B..E)
+ const Ls=[rnd(1,1.6)*100];
+ for(let j=2;j<=5;j++){const broken=j===vj;
+  Ls.push(Ls[j-2]*(con?(broken?rnd(1.05,1.35):rnd(.7,.92)):(broken?rnd(.7,.95):rnd(1.08,1.4))));}
+ P.lastVW=violate?'ABCDE'[vj-1]:undefined; // die Welle, die gegen die Regel verstößt
+ const u=[0,Ls[0],0,0,0,0];u[2]=u[1]-Ls[1];u[3]=u[2]+Ls[2];u[4]=u[3]-Ls[3];u[5]=u[4]+Ls[4];
+ return u;
+}
+function genDiag(kind,violate){
+ const P=PAT[kind],imp=P.implied||{};P.lastVW=undefined;
+ for(let n=0;n<60000;n++){
+  const L1=rnd(.8,1.6)*100,wide=!!violate;let L2,L3,L4,L5;
+  if(kind==='de'){L2=L1*rnd(.3,.8);L3=L1*rnd(wide?.7:1.1,wide?1.8:2);L4=L3*(violate==='DE-9'?rnd(1.02,1.3):violate==='DIAG-2'?rnd(.3,.9):rnd(.5,.887));L5=L3*rnd(1.1,1.6);} // Welle 4 retraced 50 % bis 88,7 % der Welle 3 (DE-9)
+  else{L2=L1*rnd(.3,.85);L3=L1*rnd(.4,wide?1.5:.98);L4=L1*rnd(.15,.9);L5=L1*rnd(.15,wide?1.3:.95);}
+  const u=[0,L1,L1-L2,L1-L2+L3,L1-L2+L3-L4,L1-L2+L3-L4+L5];
+  // Form: Hochs steigen (3 über 1, 5 über 3); Tiefs steigen (kontrahierend) bzw. fallen (expandierend)
+  if(!(u[3]>u[1]&&u[5]>u[3]&&u[4]>u[0]&&(kind==='de'?(u[4]>u[2]||violate==='DE-9'||violate==='DIAG-2'):u[4]>u[2])))continue;
+  const f=hardFails(P,u),Ln=j=>Math.abs(u[j]-u[j-1]);
+  if(violate){
+   // genau die gewählte Regel verletzen (mitverletzte Folgeregeln sind in P.implied erlaubt)
+   if(!(f.includes(violate)&&f.every(x=>x===violate||(imp[violate]||[]).includes(x))))continue;
+   if(violate==='DL-4'&&!(Ln(4)<Ln(1)&&Ln(5)<Ln(1)))continue;
+   if(violate==='DE-3'){if((Ln(3)<=Ln(1))===(Ln(5)<=Ln(3)))continue;P.lastVW=Ln(3)<=Ln(1)?'3':'5';}
+   return u;
+  }
+  if(check(P,u).length===0)return u;
+ }
+}
+function genCx(kind,violate){
+ const P=PAT[kind],tz=kind==='tz';
+ for(let n=0;n<6000;n++){
+  const LW=rnd(.8,1.6)*100,u1=-LW,u2=u1+(violate==="WX-2"?rnd(1.1,1.5):rnd(.4,.85))*LW,LY=LW*rnd(.6,1.8),u3=u2-LY,v=[0,u1,u2,u3];
+  if(tz){const u4=u3+(violate==="WX-2b"?rnd(1.1,1.5):rnd(.4,.85))*LY;v.push(u4,u4-LW*rnd(.5,1.5));}
+  if(!P.struct(v))continue;
+  const f=violate?hardFails(P,v):check(P,v);
+  if(violate?(f.length===1&&f[0]===violate):f.length===0)return v;
+ }
+}
+// Ein Abschnitt a→b über n Kerzen mit Zwischenextremen (fr = Anteile der Strecke). Endpunkt b gehört zum nächsten Abschnitt.
+function leg(a,b,n,fr){
+ const k=fr.length-1,w=Array.from({length:k},()=>rnd(.8,1.4)),tot=w.reduce((x,y)=>x+y),idx=[0];let t=0;
+ w.forEach(x=>{t+=x;idx.push(Math.round(t/tot*n))});
+ for(let j=1;j<=k;j++)if(idx[j]<=idx[j-1])idx[j]=idx[j-1]+1;
+ const out=[];
+ for(let j=0;j<k;j++){const pa=a+(b-a)*fr[j],pb=a+(b-a)*fr[j+1],lo=Math.min(pa,pb),hi=Math.max(pa,pb);
+  for(let i=idx[j];i<idx[j+1];i++){const s=(i-idx[j])/(idx[j+1]-idx[j]);let x=pa+(pb-pa)*s;
+   if(i>idx[j])x+=(Math.random()-.5)*(hi-lo)*.3;out.push(Math.min(hi,Math.max(lo,x)));}}
+ out.idx=idx; // Kerzenindex der Teilpunkte (für die Subwellen-Stufe)
+ return out;
+}
+const impF=()=>{const f1=rnd(.2,.35),f3=rnd(.65,.85);return[0,f1,f1*rnd(.4,.6),f3,f3-rnd(.1,.18),1]}; // fünfteilig
+const abcF=()=>{const f1=rnd(.5,.7);return[0,f1,f1*rnd(.45,.65),1]};                                   // dreiteilig
+// Zeitliche Aufteilung und Teilstruktur je Korrekturmuster (Zigzag: 5-3-5, Flat: 3-3-5)
+PAT.zig.gen=genZig;PAT.zig.shape={piv:[0,15,25,45],fr:[impF,abcF,impF]};
+for(const k of ['fr','fe','fru']){PAT[k].gen=violate=>genFlat(k,violate);PAT[k].shape={piv:[0,12,24,45],fr:[abcF,abcF,impF]}}
+// Kurzbeschreibung je Muster für die Auflösung im Modus „Muster erkennen“ (aus dem Regelwerk)
+PAT.imp.recog='Impuls: fünf Wellen, die Wellen 1, 3 und 5 laufen mit dem Trend, die Wellen 2 und 4 korrigieren dagegen (Buch S.38).';
+PAT.zig.recog='Zigzag: A und C sind fünfteilig, B ist dreiteilig und überschreitet den Start von A nicht, C endet unter dem Ende von A (Buch S.42).';
+PAT.fr.recog='Regular Flat: A und B sind dreiteilig, B nähert sich dem Start von A an, C ist ein Impuls und endet leicht unter dem Tief von A (Buch S.46).';
+PAT.fe.recog='Expanded Flat: A und B sind dreiteilig, B überschreitet den Start von A, C endet unterhalb des Tiefs von A (Buch S.46).';
+PAT.fru.recog='Running Flat: A und B sind dreiteilig, B überschießt den Start von A, C schafft kein neues Tief unterhalb von A (Buch S.46).';
+for(const k of ['trk','tre']){PAT[k].gen=violate=>genTri(k,violate);PAT[k].shape={piv:[0,9,18,27,36,45],fr:[abcF,abcF,abcF,abcF,abcF]}}
+PAT.trk.tri=PAT.tre.tri=PAT.dl.tri=PAT.db.tri=PAT.de.tri=true; // Dreiecke: nach „Prüfen“ werden Trendlinien eingezeichnet
+PAT.trk.recog='Kontrahierendes Dreieck: fünf dreiteilige Wellen A bis E, Welle A ist die längste und jede Welle ist kürzer als die vorangegangene (Buch S.50).';
+PAT.tre.recog='Expandierendes Dreieck: fünf dreiteilige Wellen A bis E, Welle A ist die kürzeste und jede Welle ist länger als die vorangegangene (Buch S.50).';
+PAT.dl.gen=v=>genDiag('dl',v);PAT.dl.shape={piv:[0,10,18,28,35,45],fr:[impF,abcF,impF,abcF,impF]}; // 5-3-5-3-5
+for(const k of ['db','de']){PAT[k].gen=v=>genDiag(k,v);PAT[k].shape={piv:[0,9,18,27,36,45],fr:[abcF,abcF,abcF,abcF,abcF]}} // 3-3-3-3-3
+PAT.dl.recog='Leading Diagonale (nur in Welle 1): fünf Wellen mit Überlappung von Welle 1 und 4, Welle 1 ist die längste, Welle 5 ist nie länger als Welle 3 (Regelwerk, Abschnitt Diagonale).';
+PAT.db.recog='Beendende Diagonale (nur in Welle 5 und C): fünf dreiteilige Wellen mit Überlappung von Welle 1 und 4, Welle 3 ist kürzer als Welle 1 und nie die kürzeste, Welle 5 ist nie länger als Welle 3 (Regelwerk, Abschnitt Diagonale).';
+PAT.de.recog='Expandierende Diagonale (äußerst selten, nur in Welle 1, 5 und C): fünf dreiteilige Wellen mit Überlappung von Welle 1 und 4, die Wellen werden länger, Welle 1 ist die kürzeste und Welle 5 die längste (Regelwerk, Abschnitt Diagonale).';
+PAT.dz.recog='Double Zigzag (W-X-Y): drei Korrekturwellen, bei denen W, X und Y jeweils selbst Korrekturmuster sind (z. B. W als Zigzag, X als Dreieck, Y als Regular Flat). W und Y laufen in dieselbe Richtung, X dagegen und unter 100 % von W zurück (Regelwerk, Abschnitt Komplexe Korrekturen und Welle X).';
+PAT.tz.recog='Dreifache Form (W-X-Y-X-Z): wie der Double Zigzag, aber mit einer zweiten X-Welle und einem dritten Korrekturmuster Z. W, Y und Z laufen in dieselbe Richtung, die beiden X dagegen und jeweils unter 100 % zurück (Regelwerk, Abschnitt Komplexe Korrekturen und Welle X).';
+PAT.dz.gen=v=>genCx('dz',v);PAT.dz.shape={piv:[0,15,25,45],fr:[abcF,abcF,abcF]};
+PAT.tz.gen=v=>genCx('tz',v);PAT.tz.shape={piv:[0,9,18,27,36,45],fr:[abcF,abcF,abcF,abcF,abcF]};
+const triF=()=>[0,1,.5,.85,.65,1]; // fünfteiliges Dreieck (Teil A-B-C-D-E), endet auf dem Teilziel
+// Muster der Teile wählen (nur Fehler finden): frei wählbar, nur W darf kein Dreieck sein; mit DRE-1 steht ein Dreieck in W
+function pickNames(P,violate){
+ const pk=a=>a[Math.floor(Math.random()*a.length)],nonTri=ARTEN.filter(a=>a!=='Dreieck');
+ return[violate==='DRE-1'?'Dreieck':pk(nonTri),pk(ARTEN),P.key==='tz'?(violate==='WZ-1'?'Dreieck':pk(nonTri)):pk(ARTEN)]; // W nie Dreieck (DRE-1), Z nie Dreieck (WZ-1), X und Y frei
+}
+function makeRound(P,violate,named){
+ const dir=Math.random()<.5?1:-1,B=600;let x,piv,lab,vw,alt;
+ if(P.key==='imp'){const v=genImp(violate),S=9;x=[];
+  for(let k=1;k<=5;k++){const a=v[k-1],b=v[k];
+   for(let s=0;s<S;s++){let y=a+(b-a)*s/S+(s?(Math.random()-.5)*Math.abs(b-a)*.28:0);
+    x.push(Math.min(Math.max(y,Math.min(a,b)),Math.max(a,b)));}}
+  x.push(v[5]);piv=[0,1,2,3,4,5].map(k=>k*S);
+ }else{const num=!P.parts||!violate||/^WX/.test(violate),v=P.gen(num?violate:null),q=P.shape;x=[];piv=q.piv;
+  const nl=q.piv.length-1,names=(named&&P.parts)?pickNames(P,violate):null;
+  for(let k=0;k<nl;k++){const pi=names?P.partLeg.indexOf(k):-1;x.push(...leg(v[k],v[k+1],q.piv[k+1]-q.piv[k],pi>=0&&names[pi]==='Dreieck'?triF():q.fr[k]()));}
+  x.push(v[nl]);
+  if(names){ // Beschriftung der Pivotpunkte mit dem Muster des Teils
+   lab=P.labels.map((l,k)=>{const pi=P.partLeg.indexOf(k-1);return pi>=0?l+' '+names[pi]:l});
+   if(violate==='DRE-1')vw='W';if(violate==='WZ-1')vw='Z';}}
+ return{P,dir,pr:x.map(y=>B+dir*y),piv,violate,vwave:violate?(vw||P.lastVW):undefined,alt,lab};
+}
+
+// ---- 3) Zeichnen: nur kleine Zahlen an den Extremen, keine Punkte.
+const W=720,H=340,X0=30,DX=660/45;
+// Ziehen von Punkten (PC und Handy). Wichtig fürs Handy: Das SVG-Element bleibt während des Ziehens bestehen
+// (nur sein Inhalt wird neu gezeichnet) und hält den Finger per Pointer-Capture fest. Früher wurde das ganze SVG ersetzt;
+// dann kam auf dem Handy das "Loslassen" nicht mehr an, und der alte Punkt "klebte" am Finger.
+let DRAG=null; // Aufräumfunktion der laufenden Ziehaktion
+function startDrag(svg,e,move,end){
+ if(DRAG)DRAG();
+ try{svg.setPointerCapture(e.pointerId)}catch(_){}
+ let on=true;
+ const stop=()=>{if(!on)return;on=false;DRAG=null;['pointermove','pointerup','pointercancel','lostpointercapture'].forEach((t,i)=>svg.removeEventListener(t,i?up:move))};
+ const up=()=>{if(!on)return;stop();end()};
+ svg.addEventListener('pointermove',move);['pointerup','pointercancel','lostpointercapture'].forEach(t=>svg.addEventListener(t,up));
+ DRAG=stop;
+}
+const redraw=(svg,html)=>{svg.innerHTML=html.slice(html.indexOf('>')+1,html.lastIndexOf('</svg>'))}; // nur den Inhalt tauschen
+const TOL=2; // erlaubte Abweichung beim Setzen eines Punktes, in Kerzen
+function draw(R,marks,showPiv,tl){ // tl: gesetzte Dreieckspunkte (0,A,B,C,D,E) für die Trendlinien, sonst null
+ const lo=Math.min(...R.pr),hi=Math.max(...R.pr),Y=p=>20+(hi-p)/(hi-lo)*300,X=i=>X0+i*DX;
+ let s='<svg id="svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Preischart">';
+ for(let g=0;g<7;g++)s+='<line x1="0" x2="'+W+'" y1="'+(20+g*50)+'" y2="'+(20+g*50)+'" stroke="var(--line)" stroke-width=".6"/>';
+ s+='<polyline fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round" points="'+R.pr.map((p,i)=>X(i)+','+Y(p)).join(' ')+'"/>';
+ if(tl&&tl.length===6){ // Trendlinien eines Dreiecks: A-C-E-Seite und B-D-Seite, gestrichelt, bis kurz hinter E verlängert
+  const end=tl[5]+1.5,ln=(a,b)=>{const x1=X(tl[a]),y1=Y(R.pr[tl[a]]),x2=X(tl[b]),y2=Y(R.pr[tl[b]]),xe=X(end);
+   return '<line x1="'+x1+'" y1="'+y1+'" x2="'+xe+'" y2="'+(y1+(y2-y1)/(x2-x1)*(xe-x1))+'" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="5 4" opacity=".55"/>'};
+  s+=ln(1,3)+ln(2,4);}
+ const list=showPiv?R.piv.map((i,k)=>[i,k]):marks.map((i,k)=>[i,k]);
+ list.forEach(([i,k])=>{const up=R.pr[i]>=(R.pr[i-1]??-1e9)&&R.pr[i]>=(R.pr[i+1]??-1e9);
+  s+='<text class="lab" x="'+X(i)+'" y="'+(Y(R.pr[i])+(up?-7:15))+'">'+(R.lab?R.lab[k]:R.P.labels[k])+'</text>';});
+ return s+'</svg>';
+}
+
+// ---- 4) Spiel
+const st={pts:0,streak:0};
+const $=q=>document.querySelector(q);
+function stats(){const lv=Math.floor(st.pts/50)+1;$('#lv').textContent=lv;$('#pt').textContent=st.pts;$('#sr').textContent=st.streak;$('#pb').style.width=(st.pts%50)*2+'%';}
+function home(){
+ $('#view').innerHTML='<p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div>';
+}
+// Schwierigkeitsstufen sind nur eine Empfehlung: Jeder darf alles frei wählen. Die empfohlene Stufe folgt dem Level (alle 50 Punkte).
+// Stufe 1: Impuls, Zigzag. Stufe 2: Flats, Dreiecke, Diagonalen. Stufe 3: Subwellen zählen. Stufe 4: Double Zigzag, Dreifache Form.
+const STUFEN=[[1,'Stufe 1 · Einsteiger',[['imp','Impuls'],['zig','Zigzag']]],
+ [2,'Stufe 2 · Fortgeschritten',[['fr','Regular Flat'],['fe','Expanded Flat'],['fru','Running Flat'],['trk','Kontrahierendes Dreieck'],['tre','Expandierendes Dreieck'],['dl','Leading Diagonale'],['db','Beendende Diagonale'],['de','Expandierende Diagonale']]],
+ [4,'Stufe 4 · Profi',[['dz','Double Zigzag'],['tz','Dreifache Form']]]];
+const recStage=()=>{const lv=Math.floor(st.pts/50)+1;return lv<2?1:lv<4?2:lv<6?3:4};
+const STUFENNAME={1:'Stufe 1 (Impuls, Zigzag)',2:'Stufe 2 (Flats, Dreiecke, Diagonalen)',3:'Stufe 3 (Subwellen zählen)',4:'Stufe 4 (Double Zigzag, Dreifache Form)'};
+// Musterwahl, gruppiert nach Stufe; die empfohlene Stufe ist markiert
+function pick(mode){
+ const rec=recStage();
+ $('#view').innerHTML='<div class="card"><h2>'+(mode==='count'?'Chart durchzählen':mode==='sub'?'Subwellen zählen':'Fehler finden')+'</h2><p><b>Muster wählen</b></p>'+
+  STUFEN.map(([n,t,items])=>'<p class="mut" style="margin:10px 0 0">'+t+(n===rec?' · <b>Empfohlen</b>':'')+'</p>'+items.map(([k,l])=>'<button class="p" onclick="go(\''+mode+'\',\''+k+'\')">'+l+'</button>').join('')).join('')+
+  '<p><button onclick="home()">Zurück</button></p></div>';
+}
+function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key):find(PAT[key])}
+// Hauptmenü-Button: erscheint, sobald ein Modus gestartet wird (pick, recognize, pickSub), und verschwindet im Hauptmenü
+['pick','recognize','pickSub'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
+{const h0=home;window.home=function(){$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
+$('#menu').onclick=()=>home();
+$('#home').onclick=()=>home();$('#home').onkeydown=e=>{if(e.key==='Enter')home()};
+
+// Modus 1: Chart durchzählen
+function count(P){
+ const R=makeRound(P,null),n=P.labels.length,m={sel:[],tips:0,failed:false,done:false};
+ const render=(fb)=>{
+  $('#view').innerHTML='<p class="mut">'+P.title+': Tippe nacheinander die Punkte '+P.labels.join(', ')+' auf den Chart. Gesetzte Punkte kannst du anfassen und verschieben. Nächster Punkt: <b>'+(m.sel.length<n?P.labels[m.sel.length]:'fertig')+'</b></p><div class="chart">'+draw(R,m.sel,false,m.tl&&P.tri?m.sel:null)+'</div>'+(m.tl&&P.tri?'<p class="mut">Gestrichelt: Trendlinien durch '+(P.waves[0]==='A'?'A, C (bis E) und durch B, D.':'die Enden der Wellen 1, 3 (bis 5) und der Wellen 2, 4.')+'</p>':'')+'<div>'+
+  '<button class="p" id="chk" '+(m.sel.length<n||m.done?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
+  // Punkte setzen und verschieben (Maus oder Finger): Antippen in der Nähe eines gesetzten Punktes greift ihn, sonst wird ein neuer Punkt gesetzt.
+  const svg=$('#svg'),xAt=ev=>{const r=$('#svg').getBoundingClientRect();return (ev.clientX-r.left)/r.width*W};
+  const idxOf=x=>Math.max(0,Math.min(45,Math.round((x-X0)/DX)));
+  svg.style.touchAction='none';
+  svg.onpointerdown=e=>{if(m.done)return;e.preventDefault();
+   const f=(xAt(e)-X0)/DX;let k=-1,best=1.2;
+   m.sel.forEach((i,j)=>{if(Math.abs(f-i)<=best){best=Math.abs(f-i);k=j}});
+   if(k>=0){ // gesetzten Punkt verschieben, er bleibt zwischen seinen Nachbarpunkten
+    const mv=ev=>{const lo=k>0?m.sel[k-1]+1:0,hi=k<m.sel.length-1?m.sel[k+1]-1:45,nw=Math.max(lo,Math.min(hi,idxOf(xAt(ev))));
+     if(nw!==m.sel[k]){m.sel[k]=nw;redraw(svg,draw(R,m.sel,false,m.tl&&P.tri?m.sel:null));}};
+    startDrag(svg,e,mv,()=>render());
+   }else if(m.sel.length<n){
+    const i=idxOf(xAt(e));
+    if(m.sel.length&&i<=m.sel[m.sel.length-1])return render('<span class="warn">Der Punkt muss rechts vom vorherigen liegen.</span>');
+    m.sel.push(i);render();
+   }};
+  $('#und').onclick=()=>{m.sel.pop();render()};$('#rst').onclick=()=>{m.sel=[];render()};
+  $('#chk').onclick=verify;
+ };
+ const fail=html=>{m.failed=true;if(st.streak)st.streak=0,stats();return html};
+ const verify=()=>{
+  m.tl=true; // Trendlinien (nur Dreiecke) erscheinen ab dem ersten Prüfen
+  // Platzierung und Richtung sind App-Vorgaben (keine Regelwerk-Regeln) und werden vor den Regeln geprüft.
+  // Jeder Wendepunkt muss am echten Extrem sitzen (Toleranz TOL Kerzen), sonst ergibt die Zählung keinen Sinn (z. B. A zu früh gesetzt).
+  const bad=m.sel.findIndex((i,k)=>k>0&&Math.abs(i-R.piv[k])>TOL);
+  if(bad===n-1)return render(fail('<p class="bad">Noch nicht ganz.</p><p>'+P.endMsg+'</p>'));
+  if(bad>0)return render(fail('<p class="bad">Noch nicht ganz.</p><p>Punkt '+P.labels[bad]+' sitzt nicht am relevanten Wendepunkt. Setze ihn an das Hoch bzw. Tief, wo die Bewegung wirklich dreht, nicht an eine kleinere Zwischenspitze.</p>'));
+  const v=norm(P,m.sel.map(i=>R.pr[i]));
+  if(P.struct&&!P.struct(v))return render(fail('<p class="bad">Noch nicht ganz.</p><p>'+P.structMsg+'</p>'));
+  const f=hardFails(P,v);
+  if(f.length){fail();return tipUI(f)}
+  m.done=true;const gain=Math.max(4,10-3*m.tips)-(m.failed?2:0);
+  if(!m.failed)st.streak++;st.pts+=gain;stats();
+  const w=warns(P,v).map(id=>'<p class="warn">'+(P.rules[id].lvl==='o'?'Hinweis':'Warnung')+' ('+tag(P,id)+'): '+P.rules[id].ex+'</p>').join('');
+  render('<p class="ok">Regelkonform! +'+gain+' Punkte</p><p class="mut">Die App prüft die Regeln. Die Wendepunkte müssen dafür an den echten Extremen sitzen.</p>'+w+P.info(v)+'<button class="p" id="nxt">Nächster Chart</button>');
+  $('#nxt').onclick=()=>count(P);
+ };
+ const tipUI=f=>{const r=P.rules[f[0]];
+  const lines=['Die Zählung ist noch nicht regelkonform.'];
+  if(m.tips>=1)lines.push('Tipp 1: '+r.hint);
+  if(m.tips>=2)lines.push('Tipp 2: Es geht um die Regel „'+r.name+'“.');
+  if(m.tips>=3)lines.push('Tipp 3: '+tag(P,f[0])+'. '+r.ex);
+  render('<p class="bad">Noch nicht ganz.</p>'+lines.map(t=>'<p>'+t+'</p>').join('')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':''));
+  const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipUI(f)};
+ };
+ render();
+}
+
+// Modus 2: Fehler finden
+function find(P){
+ const id=P.viol[Math.floor(Math.random()*P.viol.length)],R=makeRound(P,id,true),m={w:null,r:P.viol.length===1?id:null},rule=P.rules[id],wv=R.vwave||rule.wave;
+ const render=(fb)=>{
+  $('#view').innerHTML='<p class="mut">'+P.title+': Dieser Count enthält genau einen Regelverstoß. Wähle die fehlerhafte Welle und die verletzte Regel.</p><div class="chart">'+draw(R,[],true)+'</div>'+
+  '<div class="card"><b>Welche Welle?</b><br>'+P.waves.map(w=>'<button data-w="'+w+'" class="'+(m.w===w?'on':'')+'">Welle '+w+'</button>').join('')+
+  (P.viol.length>1&&m.w?'<br><b>Welche Regel?</b><br>'+P.viol.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'">'+P.rules[x].name+'</button>').join(''):'')+
+  '<br><button class="p" id="go" '+(m.w&&m.r&&!fb?'':'disabled')+'>Auswerten</button><button id="dk" '+(fb?'disabled':'')+'>Ich weiß nicht</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
+  if(fb)return;
+  document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{m.w=b.dataset.w;render()});
+  document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{m.r=b.dataset.r;render()});
+  $('#dk').onclick=()=>{render('<p class="mut">Kein Problem, hier die Auflösung (keine Punkte, deine Serie bleibt).</p><p>Gesucht war: Welle '+wv+', Regel „'+rule.name+'“ ('+tag(P,id)+'). '+rule.ex+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=()=>find(P);};
+  $('#go').onclick=()=>{const wOk=m.w===wv||!!(R.alt&&R.alt.includes(m.w)),rOk=m.r===id;
+   if(wOk&&rOk){st.streak++;st.pts+=10}else st.streak=0;stats();
+   render('<p class="'+(wOk&&rOk?'ok':'bad')+'">'+(wOk&&rOk?'Richtig! +10 Punkte':wOk?'Die Welle stimmt, die Regel nicht.':rOk?'Die Regel stimmt, die Welle nicht.':'Leider daneben.')+'</p><p>Gesucht war: Welle '+(R.alt?R.alt.join(' oder '):wv)+', Regel „'+rule.name+'“ ('+tag(P,id)+'). '+rule.ex+'</p><button class="p" id="nxt">Nächster Chart</button>');
+   $('#nxt').onclick=()=>find(P);};
+ };
+ render();
+}
+// Modus 3: Muster erkennen – zufälliges Muster, ohne Beschriftung im Chart
+function recognize(){
+ const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=PAT[keys[Math.floor(Math.random()*keys.length)]],R=makeRound(P,null),m={sel:null};
+ const render=(fb)=>{
+  $('#view').innerHTML='<p class="mut">Welches Muster zeigt dieser Chart? Schau dir die Teilbewegungen und die Lage der Wendepunkte an.</p><div class="chart">'+draw(R,[],!!fb,fb&&P.tri?R.piv:null)+'</div>'+(fb&&P.tri?'<p class="mut">Gestrichelt: die Trendlinien des Musters.</p>':'')+
+  '<div class="card"><b>Muster</b><br>'+keys.map(k=>'<button data-k="'+k+'" class="'+(m.sel===k?'on':'')+'" '+(fb?'disabled':'')+'>'+PAT[k].title+'</button>').join('')+
+  '</div><div class="dock">'+(fb?fb.v+'<button class="p" id="nxt">Nächster Chart</button>':'<button class="p" id="go" '+(m.sel?'':'disabled')+'>Antworten</button>')+'</div>'+(fb?'<div class="card" id="fb">'+fb.d+'</div>':'');
+  if(fb)return;
+  document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{m.sel=b.dataset.k;render()});
+  $('#go').onclick=()=>{const ok=m.sel===P.key;
+   if(ok){st.streak++;st.pts+=10}else st.streak=0;stats();
+   render({v:ok?'<p class="ok">Richtig! +10 Punkte</p>':'<p class="bad">Nicht ganz. Das war ein '+P.title+'.</p>',
+    d:'<p>'+P.recog+'</p>'+(ok?'':'<p class="mut">Deine Wahl war: '+PAT[m.sel].recog+'</p>')});
+   $('#nxt').onclick=recognize;};
+ };
+ render();
+}
+
+// Modus 4: Subwellen zählen. Längerer Chart; erst die Hauptpunkte, dann die Subwellen der Wellen einzeln.
+// Impuls: Subwellen von Welle 1, 3, 5 (je 5-teilig). Zigzag: A (5), B (3), C (5). Flats: A (3), B (3), C (5).
+// Fünfteilige Wellen sind selbst Impulse (W1-1, WA-1, WC-1): dafür gelten IMP-1 bis IMP-4. Dreiteilige Wellen: nur die App-Vorgabe zur Richtung,
+// denn B und A einer Flat dürfen laut Regelwerk jedes Korrekturmuster sein (WB-2, WA-2). Offen: Diagonalen in Welle 1/5 bzw. C kommen hier noch nicht vor.
+// Muster der Wellen 2 und 4 im Impuls: Welle 2 nie ein Dreieck (DRE-1, W2-1), Welle 4 anders als Welle 2 (W4-3, Alternation). Flat-Varianten zählen hier als eine Art.
+function pickAlt(violate){
+ const pk=a=>a[Math.floor(Math.random()*a.length)],A2=['Zigzag','Flat','Double Zigzag'],A4=A2.concat('Dreieck');
+ if(violate==='W4-3'){const x=pk(A2);return{2:x,4:x}}
+ if(violate==='DRE-1')return{2:'Dreieck',4:pk(A2)};
+ const w2=pk(A2);return{2:w2,4:pk(A4.filter(a=>a!==w2))};
+}
+function makeSubRound(P,plan,violate,named){
+ plan=plan||{};
+ const imp=P.key==='imp',dir=Math.random()<.5?1:-1,B=600;
+ const num=!P.parts||!violate||/^WX/.test(violate),names=(named&&P.parts)?pickNames(P,violate):null; // dz/tz: Muster der Teile (nur Fehler finden)
+ const v=imp?genImp(/^IMP-[123]$/.test(violate)?violate:null):P.gen(num?(violate||null):null);
+ const legNames=(imp&&named)?pickAlt(violate):null; // Impuls im Fehler-finden-Modus: Muster von Welle 2 und 4 (Alternation W4-3)
+ // Länge (Kerzen) je Welle und Teilstruktur je Muster
+ const LEN={imp:[20,10,28,12,30],zig:[28,16,32],fr:[22,22,34],fe:[22,22,34],fru:[22,22,34],trk:[16,16,16,16,16],tre:[16,16,16,16,16],dl:[22,12,22,12,24],db:[16,16,16,16,16],de:[16,16,16,16,16],dz:[30,26,30],tz:[18,16,18,16,18]};
+ const base=LEN[P.key],frs=imp?[impF,abcF,impF,abcF,impF]:P.shape.fr;
+ const len=base.map(l=>l+Math.round(rnd(-2,2))),mp=[0];len.forEach(l=>mp.push(mp[mp.length-1]+l));
+ const x=[],sp={},spAll={},tri={};
+ for(let k=1;k<=len.length;k++){
+  const pi=names?P.partLeg.indexOf(k-1):-1,isTri=pi>=0&&names[pi]==='Dreieck',sp0=plan[k];
+  const nm=legNames&&legNames[k],fr=sp0?(sp0.parts===3?abcF():sp0.viol?(()=>{const g=genImp(sp0.viol);return g.map(q=>q/g[5])})():impF()):nm?(nm==='Dreieck'?triF():abcF()):isTri?triF():frs[k-1]();
+  const o=leg(v[k-1],v[k],len[k-1],fr);x.push(...o);
+  spAll[k]=o.idx.slice(1,-1).map(i=>mp[k-1]+i).concat(mp[k]);tri[k]=isTri||nm==='Dreieck';
+  if(!imp||k%2===1)sp[k]=spAll[k];} // sp: Wellen, die in „Subwellen zählen“ gezählt werden
+ x.push(v[len.length]);
+const lab=legNames?P.labels.map((l,k)=>legNames[k]?l+' '+legNames[k]:l):names?P.labels.map((l,k)=>{const pi=P.partLeg.indexOf(k-1);return pi>=0?l+' '+names[pi]:l}):null;
+ return{dir,pr:x.map(y=>B+dir*y),mp,sp,spAll,tri,lab,vwave:violate?P.lastVW:undefined};
+}
+function drawS(R,pts,band){
+ const N=R.pr.length-1,DXs=660/N,lo=Math.min(...R.pr),hi=Math.max(...R.pr),Y=p=>46+(hi-p)/(hi-lo)*250,X=i=>X0+i*DXs; // mehr Rand, damit die äußeren Hauptlabels nicht abgeschnitten werden
+ let s='<svg id="svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Preischart">';
+ if(band)s+='<rect x="'+X(band[0])+'" y="0" width="'+(X(band[1])-X(band[0]))+'" height="'+H+'" fill="var(--line)" opacity=".35"/>';
+ for(let g=0;g<7;g++)s+='<line x1="0" x2="'+W+'" y1="'+(20+g*50)+'" y2="'+(20+g*50)+'" stroke="var(--line)" stroke-width=".6"/>';
+ s+='<polyline fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round" points="'+R.pr.map((p,i)=>X(i)+','+Y(p)).join(' ')+'"/>';
+ pts.forEach(q=>{const i=q.i,up=R.pr[i]>=(R.pr[i-1]??-1e9)&&R.pr[i]>=(R.pr[i+1]??-1e9);
+  s+='<text class="lab" '+(q.sub?'style="font-size:12px;opacity:.85" ':'')+'x="'+X(i)+'" y="'+(Y(R.pr[i])+(up?-6-(q.far?13:0):14+(q.far?13:0)))+'">'+q.l+'</text>';});
+ return s+'</svg>';
+}
+function pickSub(){pick('sub')} // gleiche Musterliste wie bei den anderen Modi
+function sub(key){
+ const P=PAT[key||'imp'],R=makeSubRound(P),N=R.pr.length-1,DXs=660/N,IM=PAT.imp;
+ const stages=[{labels:P.labels,lo:0,hi:N,truth:R.mp,t:'Zähle zuerst die Hauptwellen.'}];
+ Object.keys(R.sp).forEach(k=>{k=+k;const t=R.sp[k],five=t.length===5,nm=P.waves[k-1];
+  stages.push({w:k,nm,five,labels:five?['(1)','(2)','(3)','(4)','(5)']:['(a)','(b)','(c)'],lo:R.mp[k-1],hi:R.mp[k],truth:t,
+   t:'Zähle jetzt die Subwellen von Welle '+nm+' (grau hinterlegt). Sie besteht aus '+(five?'fünf':'drei')+' Wellen, setze auch '+(five?'(5)':'(c)')+' an das Ende der Welle (die Hauptbeschriftung steht etwas weiter außen).'});});
+ const m={s:0,sel:[],tips:0,failed:false,fixed:[],gain:0};
+ const fx=()=>m.fixed.map(q=>q.sub?q:{...q,far:m.s>0}); // Hauptbeschriftung rückt in den Subwellen-Schritten nach außen
+ const render=fb=>{
+  const g=stages[m.s],n=g.labels.length,idxOf=x=>Math.max(0,Math.min(N,Math.round((x-X0)/DXs)));
+  $('#view').innerHTML='<p class="mut">'+P.title+', Subwellen zählen, Schritt '+(m.s+1)+' von '+stages.length+'. '+g.t+' Nächster Punkt: <b>'+(m.sel.length<n?g.labels[m.sel.length]:'fertig')+'</b></p><div class="chart">'+
+   drawS(R,fx().concat(m.sel.map((i,k)=>({i,l:g.labels[k],sub:!!g.w}))),g.w?[g.lo,g.hi]:null)+'</div><div><button class="p" id="chk" '+(m.sel.length<n||m.done?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
+  const svg=$('#svg'),xAt=ev=>{const r=$('#svg').getBoundingClientRect();return (ev.clientX-r.left)/r.width*W};
+  svg.style.touchAction='none';
+  const top=g.w?Math.min(N,g.hi+TOL):N; // der letzte Subpunkt darf auf dem Hauptpunkt liegen
+  const bounds=k=>[k>0?m.sel[k-1]+1:(g.w?g.lo+1:0),k<m.sel.length-1?m.sel[k+1]-1:top];
+  svg.onpointerdown=e=>{if(m.done)return;e.preventDefault();
+   const r=svg.getBoundingClientRect(),sc=r.width/W,px=e.clientX-r.left,py=e.clientY-r.top;let k=-1,best=m.sel.length<n?16:1e9; // solange Punkte fehlen: nur greifen, wenn der Finger sehr nah (16 px) dran ist; sind alle gesetzt: immer der nächste Punkt
+   const labs=[...svg.querySelectorAll('text.lab')].slice(-m.sel.length||1e9); // die letzten Labels gehören zu den gerade gesetzten Punkten
+   if(m.sel.length)labs.forEach((t,j)=>{const x=+t.getAttribute('x')*sc,y=+t.getAttribute('y'),
+    d=Math.min(...[y-5,y+6,y-14].map(yy=>Math.hypot(x-px,yy*sc-py))); // Beschriftung, oder der Wendepunkt darunter bzw. darüber
+    if(d<best){best=d;k=j}});
+   if(k>=0){const mv=ev=>{const[lo,hi]=bounds(k),nw=Math.max(lo,Math.min(hi,idxOf(xAt(ev))));
+     if(nw!==m.sel[k]){m.sel[k]=nw;redraw(svg,drawS(R,fx().concat(m.sel.map((i,q)=>({i,l:g.labels[q],sub:!!g.w}))),g.w?[g.lo,g.hi]:null));}};
+    startDrag(svg,e,mv,()=>render());
+   }else if(m.sel.length<n){const i=idxOf(xAt(e)),lo=m.sel.length?m.sel[m.sel.length-1]+1:(g.w?g.lo+1:0);
+    if(i<lo||i>top)return render('<span class="warn">'+(g.w?'Der Punkt muss innerhalb der grauen Welle und rechts vom vorherigen liegen.':'Der Punkt muss rechts vom vorherigen liegen.')+'</span>');
+    m.sel.push(i);render();}};
+  $('#und').onclick=()=>{m.sel.pop();render()};$('#rst').onclick=()=>{m.sel=[];render()};
+  $('#chk').onclick=verify;
+ };
+ const fail=()=>{m.failed=true;if(st.streak)st.streak=0,stats()};
+ const msg=h=>{fail();render('<p class="bad">Noch nicht ganz.</p>'+h)};
+ const tipUI=f=>{const r=IM.rules[f[0]],pre='In den Subwellen von Welle '+stages[m.s].nm+': ';
+  const lines=['Die Zählung ist noch nicht regelkonform.'];
+  if(m.tips>=1)lines.push('Tipp 1: '+pre+r.hint);
+  if(m.tips>=2)lines.push('Tipp 2: Es geht um die Regel „'+r.name+'“.');
+  if(m.tips>=3)lines.push('Tipp 3: '+tag(IM,f[0])+'. '+r.ex);
+  render('<p class="bad">Noch nicht ganz.</p>'+lines.map(t=>'<p>'+t+'</p>').join('')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':''));
+  const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipUI(f)};
+ };
+ const tipMain=f=>{const r=P.rules[f[0]];
+  const lines=['Die Zählung ist noch nicht regelkonform.'];
+  if(m.tips>=1)lines.push('Tipp 1: '+r.hint);
+  if(m.tips>=2)lines.push('Tipp 2: Es geht um die Regel „'+r.name+'“.');
+  if(m.tips>=3)lines.push('Tipp 3: '+tag(P,f[0])+'. '+r.ex);
+  render('<p class="bad">Noch nicht ganz.</p>'+lines.map(t=>'<p>'+t+'</p>').join('')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':''));
+  const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipMain(f)};
+ };
+ const verify=()=>{
+  const g=stages[m.s],n=g.labels.length,main=!g.w;
+  // Platzierung ist eine App-Vorgabe: jeder Punkt muss am echten Wendepunkt sitzen (Toleranz TOL Kerzen)
+  const bad=m.sel.findIndex((i,k)=>(main?k>0:true)&&Math.abs(i-g.truth[k])>TOL);
+  if(bad>=0){
+   if(main&&bad===n-1)return msg('<p>'+P.endMsg+'</p>');
+   return msg('<p>Punkt '+g.labels[bad]+' sitzt nicht am relevanten Wendepunkt. Setze ihn an das Hoch bzw. Tief, wo die Bewegung wirklich dreht, nicht an eine kleinere Zwischenspitze.</p>');}
+  let v,f=[],w='';
+  if(main){v=norm(P,m.sel.map(i=>R.pr[i]));
+   if(P.struct&&!P.struct(v))return msg('<p>'+P.structMsg+'</p>');
+   f=hardFails(P,v);if(f.length){fail();return tipMain(f)}
+   w=warns(P,v).map(id=>'<p class="warn">'+(P.rules[id].lvl==='o'?'Hinweis':'Warnung')+' ('+tag(P,id)+'): '+P.rules[id].ex+'</p>').join('')+P.info(v);
+  }else{
+   const pts=[g.lo].concat(m.sel),sg=Math.sign(R.pr[g.hi]-R.pr[g.lo]);v=pts.map(i=>sg*(R.pr[i]-R.pr[pts[0]])); // in Richtung der Welle gemessen
+   // Diagonale möglich (Impuls Welle 1/5, Zigzag-/Flat-C): Überlappung IMP-3 ist dort kein Fehler, die Diagonalen-Regeln prüft diese Stufe noch nicht
+   const diag=(key==='imp'?(g.w===1||g.w===5):key==='dl'?true:P.waves[g.w-1]==='C'),olap=!IM.rules['IMP-3'].ok(v);
+   if(g.five){f=hardFails(IM,v).filter(id=>!(diag&&id==='IMP-3'));if(f.length){fail();return tipUI(f)}
+    if(diag&&olap)w+='<p class="mut">Welle '+g.nm+' überlappt sich: Das wäre nur als Diagonale zulässig (Ending Diagonale in C bzw. Diagonale in Welle 1 oder 5). Die Diagonalen-Regeln prüft diese Stufe noch nicht.</p>';
+    w+=warns(IM,v).map(id=>'<p class="warn">'+(IM.rules[id].lvl==='o'?'Hinweis':'Warnung')+' ('+tag(IM,id)+'): '+IM.rules[id].ex+'</p>').join('');}
+   else if(!(v[1]>v[0]&&v[2]<v[1]&&v[3]>v[2]))return msg('<p>Eine dreiteilige Welle läuft a in Richtung der Welle, b dagegen und c wieder in Richtung der Welle. Prüfe die Richtung deiner Punkte.</p>');
+  }
+  m.done=true;const gain=Math.max(2,5-2*m.tips);m.gain+=gain;st.pts+=gain;stats();
+  const last=m.s===stages.length-1;
+  const done=(main?'Hauptwellen':'Subwellen von Welle '+g.nm)+' regelkonform! +'+gain+' Punkte';
+  if(last&&!m.failed){st.streak++;stats();}
+  m.fixed=m.fixed.concat(m.sel.map((i,k)=>({i,l:g.labels[k],sub:!main})));
+  render('<p class="ok">'+done+'</p>'+w+(last?'<p class="mut">Runde geschafft: '+m.gain+' Punkte.</p>':'')+'<button class="p" id="nxt">'+(last?'Nächster Chart':'Weiter')+'</button>');
+  $('#nxt').onclick=()=>{if(last)return sub(P.key);m.s++;m.sel=[];m.tips=0;m.done=false;render();};
+ };
+ render();
+}
+
+// Modus 5 (Fehler finden für Impuls, Zigzag und Flats): Alle Haupt- und Subpunkte sind beschriftet, genau ein Verstoß steckt im Count.
+// Der Fehler liegt entweder auf Hauptebene (Regeln des Musters) oder in der Teilstruktur einer Welle: falsche Teilzahl (5 statt 3 oder umgekehrt)
+// oder eine fünfteilige Welle verletzt IMP-1 bis IMP-3 in ihren Subwellen. Nach der Wahl der Welle zeigt die App nur die Regeln, die diese Welle betreffen.
+const SUBOK=Object.keys(PAT); // alle Muster haben einen Subwellen-Aufbau
+function findSub(key){
+ const P=PAT[key],IM=PAT.imp,sub5=['IMP-1','IMP-2','IMP-3'],imp=key==='imp';
+ const SR={}; // alle möglichen Regeln: Hauptebene unter der Regel-ID, Teilstruktur mit Präfix „s:“
+ P.viol.forEach(id=>SR[id]=P.rules[id]);
+ if(key==='imp'){ // Alternation und Dreieck in Welle 2 (nur Impuls)
+  SR['W4-3']={where:'Regelwerk, Abschnitt Welle 4',name:'Welle 2 und Welle 4 bilden dasselbe Korrekturmuster aus',hint:'Vergleiche die Muster, die an Welle 2 und Welle 4 stehen.',ex:'Alternation: Welle 4 muss ein anderes Korrekturmuster ausbilden als Welle 2 derselben Wellenebene.'};
+  SR['DRE-1']={page:50,name:'Dreieck in Welle 2',hint:'Schau, welches Muster an Welle 2 steht. Gibt es ein Muster, das dort nie vorkommt?',ex:'Dreiecke treten niemals in Welle 2, C und W auf.'};}
+ sub5.forEach(id=>SR['s:'+id]={...IM.rules[id],name:'Subwellen: '+IM.rules[id].name});
+ Object.assign(SR,{
+  's:IMP-4':{page:38,name:'Eine Impulswelle (1, 3 oder 5) ist nicht fünfteilig',hint:'Zähle die Subwellen der Wellen 1, 3 und 5.',ex:'Welle 1, 3 und 5 verlaufen in Trendrichtung und sind impulsiv (5-teilig).'},
+  's:ZZ-1':{page:42,name:'Welle A oder C ist nicht fünfteilig',hint:'Zähle die Subwellen von A und C.',ex:'Die Wellen A und C werden impulsiv fünfteilig gebildet.'},
+  's:ZZ-2':{page:42,name:'Welle B ist nicht dreiteilig',hint:'Zähle die Subwellen von Welle B.',ex:'Welle B besteht aus 3 Subwellen.'},
+  's:FL-A':{page:46,name:'Welle A ist nicht dreiteilig',hint:'Zähle die Subwellen von Welle A.',ex:'Bei jeder Flat ist Welle A dreiteilig.'},
+  's:WB-2':{where:'Regelwerk, Abschnitt Welle B',name:'Welle B ist nicht dreiteilig',hint:'Zähle die Subwellen von Welle B.',ex:'In Flats ist Welle B dreiteilig korrektiv.'},
+  's:DRE-4':{page:50,name:'Eine Dreieckswelle ist nicht dreiteilig',hint:'Zähle die Subwellen jeder Welle des Dreiecks.',ex:'Ein Dreieck hat 5 Wellen (A-B-C-D-E), die jeweils dreiteilig ausgebildet werden.'},
+  's:DL-2':{where:'Regelwerk, Abschnitt Diagonale',name:'Teilstruktur passt nicht zu 5-3-5-3-5 oder 3-3-3-3-3',hint:'Zähle die Subwellen aller fünf Wellen und vergleiche sie mit den erlaubten Mustern.',ex:'Die Leading Diagonale ist fünfteilig und bildet ein 5-3-5-3-5- oder ein 3-3-3-3-3-Muster.'},
+  's:DB-2':{where:'Regelwerk, Abschnitt Diagonale',name:'Eine Welle der Diagonale ist nicht dreiteilig',hint:'Zähle die Subwellen aller fünf Wellen.',ex:'Die Beendende Diagonale bildet ein 3-3-3-3-3-Muster.'},
+  's:DE-2':{where:'Regelwerk, Abschnitt Diagonale',name:'Eine Welle der Diagonale ist nicht dreiteilig',hint:'Zähle die Subwellen aller fünf Wellen.',ex:'Bei der Expandierenden Diagonale muss stets ein 3-3-3-3-3-Muster vorliegen.'},
+  's:WC-2':{where:'Regelwerk, Abschnitt Welle C',name:'Welle C ist nicht fünfteilig',hint:'Zähle die Subwellen von Welle C.',ex:'In Flats ist Welle C ein klassischer Fünfteiler (oder eine Ending Diagonale).'}});
+ // Optionen: {id, wave, plan}; plan = Umbau der Teilstruktur einer Welle (nur bei Subwellen-Fehlern)
+ const opts=[],dyn=id=>key==='trk'||key==='tre'||id==='DE-3'; // bei diesen Regeln hängt die fehlerhafte Welle von der Runde ab
+ const mainOpts=P.viol.map(id=>({id,wave:dyn(id)?'*':P.rules[id].wave,main:true}));
+ if(key==='imp')mainOpts.push({id:'W4-3',wave:'4',alt:['2','4'],main:true},{id:'DRE-1',wave:'2',main:true});
+ // Überlappung (IMP-3) ist nur dort ein Fehler, wo keine Diagonale möglich ist: Impuls Welle 3 (W3-1), Zigzag-A (ZZ-1). In Welle 1, 5 und C kann es eine Diagonale sein.
+ const ok5=(id,k)=>id!=='IMP-3'||(imp&&k===3)||(key==='zig'&&k===1);
+ const add=(id,k,plan)=>opts.push({id,wave:P.waves[k-1],k,plan});
+ if(imp){for(const k of [1,3,5]){add('s:IMP-4',k,{parts:3});sub5.filter(id=>ok5(id,k)).forEach(id=>add('s:'+id,k,{parts:5,viol:id}))}}
+ else if(key==='zig'){for(const k of [1,3]){add('s:ZZ-1',k,{parts:3});sub5.filter(id=>ok5(id,k)).forEach(id=>add('s:'+id,k,{parts:5,viol:id}))}add('s:ZZ-2',2,{parts:5})}
+ else if(key==='fr'||key==='fe'||key==='fru'){add('s:FL-A',1,{parts:5});add('s:WB-2',2,{parts:5});add('s:WC-2',3,{parts:3});sub5.filter(id=>ok5(id,3)).forEach(id=>add('s:'+id,3,{parts:5,viol:id}))}
+ else if(key==='trk'||key==='tre'){for(let k=1;k<=5;k++)add('s:DRE-4',k,{parts:5})} // jede Dreieckswelle ist dreiteilig
+ else if(key==='dl'){for(let k=1;k<=5;k++)add('s:DL-2',k,{parts:k%2?3:5})} // 5-3-5-3-5 oder 3-3-3-3-3: eine abweichende Welle bricht das Muster
+ else if(key==='db')for(let k=1;k<=5;k++)add('s:DB-2',k,{parts:5})
+ else if(key==='de')for(let k=1;k<=5;k++)add('s:DE-2',k,{parts:5})
+ // dz und tz: nur Hauptebene (Dehnung von X, Dreieck in W); die Muster der Teile stehen im Chart
+ const all=mainOpts.concat(opts).concat(key==='imp'?[{id:'W4-3',wave:'2'}]:[]),pickFrom=a=>a[Math.floor(Math.random()*a.length)];
+ const o=(!opts.length||Math.random()<.4)?pickFrom(mainOpts):pickFrom(opts),id=o.id;
+ const R=o.main?makeSubRound(P,{},id,true):makeSubRound(P,{[o.k]:o.plan},null,true),m={w:null,r:null},wv=o.main?(R.vwave||o.wave):o.wave,alt=o.alt||null; // alt: gleichwertige Wellen (Alternation: 2 oder 4)
+ // Beschriftung: alle Hauptpunkte (weiter außen) und alle Subpunkte jeder Welle, einschließlich des letzten ((5) bzw. (c))
+ const pts=R.mp.map((i,q)=>({i,l:R.lab?R.lab[q]:P.labels[q],far:true}));
+ Object.keys(R.spAll).forEach(q=>{const t=R.spAll[q],lab=t.length===5?(R.tri[q]?['(a)','(b)','(c)','(d)','(e)']:['(1)','(2)','(3)','(4)','(5)']):['(a)','(b)','(c)'];t.forEach((i,j)=>pts.push({i,l:lab[j],sub:true}))});
+ const solution=()=>'Gesucht war: Welle '+(alt?alt.join(' oder '):wv)+', Regel „'+SR[id].name+'“ ('+tag({rules:SR},id)+'). '+SR[id].ex;
+ const render=fb=>{
+  const rl=m.w?[...new Set(all.filter(x=>x.wave===m.w||x.wave==='*').map(x=>x.id))]:[];
+  $('#view').innerHTML='<p class="mut">'+P.title+': Dieser Count enthält genau einen Regelverstoß, auf Hauptebene oder in den Subwellen. Wähle die fehlerhafte Welle und die verletzte Regel.</p><div class="chart">'+drawS(R,pts,null)+'</div>'+
+   '<div class="card"><b>Welche Welle?</b><br>'+P.waves.map(w=>'<button data-w="'+w+'" class="'+(m.w===w?'on':'')+'">Welle '+w+'</button>').join('')+
+   (m.w?'<br><b>Welche Regel?</b> <span class="mut">(Regeln zu Welle '+m.w+' und ihren Subwellen)</span><br>'+(rl.length?rl.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'">'+SR[x].name+'</button>').join(''):'<span class="mut">Zu dieser Welle gibt es in diesem Muster keinen Regelverstoß.</span>'):'<br><span class="mut">Klicke zuerst die Welle an, in der du den Fehler vermutest. Danach siehst du die Regeln zur Auswahl.</span>')+
+   '<br><button class="p" id="go" '+(m.w&&m.r&&!fb?'':'disabled')+'>Auswerten</button><button id="dk" '+(fb?'disabled':'')+'>Ich weiß nicht</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
+  if(fb)return;
+  document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{m.w=b.dataset.w;if(!all.some(x=>(x.wave===m.w||x.wave==='*')&&x.id===m.r))m.r=null;render()});
+  document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{m.r=b.dataset.r;render()});
+  $('#dk').onclick=()=>{render('<p class="mut">Kein Problem, hier die Auflösung (keine Punkte, deine Serie bleibt).</p><p>'+solution()+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=()=>findSub(key);};
+  $('#go').onclick=()=>{const wOk=m.w===wv||!!(alt&&alt.includes(m.w)),rOk=m.r===id,ok=wOk&&rOk;
+   if(ok){st.streak++;st.pts+=10}else st.streak=0;stats();
+   render('<p class="'+(ok?'ok':'bad')+'">'+(ok?'Richtig! +10 Punkte':wOk?'Die Welle stimmt, die Regel nicht.':rOk?'Die Regel stimmt, die Welle nicht.':'Leider daneben.')+'</p><p>'+solution()+'</p><button class="p" id="nxt">Nächster Chart</button>');
+   $('#nxt').onclick=()=>findSub(key);};
+ };
+ render();
+}
+stats();home();
+</script>
+</body>
+</html>
