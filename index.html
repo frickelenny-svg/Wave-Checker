@@ -431,12 +431,22 @@ function draw(R,marks,showPiv,tl){ // tl: gesetzte Dreieckspunkte (0,A,B,C,D,E) 
 }
 
 // ---- 4) Spiel
-const st={pts:0,streak:0};
+// Fortschritt (Punkte, Serie) bleibt lokal im Browser gespeichert, ohne Konto. Das Level ergibt sich aus den Punkten.
+// Erlaubt der Browser kein Speichern (z. B. privates Fenster), läuft die App ohne Speichern normal weiter (try/catch).
+const SAVE='waveChecker.progress';
+const st=(()=>{try{const s=JSON.parse(localStorage.getItem(SAVE));
+ if(s&&Number.isFinite(s.pts)&&Number.isFinite(s.streak))return{pts:Math.max(0,s.pts),streak:Math.max(0,s.streak)}}catch(_){}
+ return{pts:0,streak:0}})();
+const saveProgress=()=>{try{localStorage.setItem(SAVE,JSON.stringify({pts:st.pts,streak:st.streak}))}catch(_){}};
 const $=q=>document.querySelector(q);
-function stats(){const lv=Math.floor(st.pts/50)+1;$('#lv').textContent=lv;$('#pt').textContent=st.pts;$('#sr').textContent=st.streak;$('#pb').style.width=(st.pts%50)*2+'%';}
+function stats(){saveProgress();const lv=Math.floor(st.pts/50)+1;$('#lv').textContent=lv;$('#pt').textContent=st.pts;$('#sr').textContent=st.streak;$('#pb').style.width=(st.pts%50)*2+'%';}
 function home(){
- $('#view').innerHTML='<p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div>';
+ $('#view').innerHTML='<p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div><p id="rs" style="text-align:center;margin-top:28px">'+RSBTN+'</p>';
 }
+// Fortschritt zurücksetzen: unauffälliger Button, Sicherheitsabfrage direkt auf der Seite (kein Browser-Popup)
+const RSBTN='<button class="mut" style="border-color:var(--line);font-size:.85rem" onclick="resetAsk()">Fortschritt zurücksetzen</button>';
+function resetAsk(){$('#rs').innerHTML='<span class="mut">Punkte, Level und Serie wirklich auf 0 setzen? Das lässt sich nicht rückgängig machen.</span><br><button onclick="resetDo()">Ja, zurücksetzen</button><button class="p" onclick="$(\'#rs\').innerHTML=RSBTN">Abbrechen</button>'}
+function resetDo(){st.pts=0;st.streak=0;stats();$('#rs').innerHTML='<span class="mut">Fortschritt zurückgesetzt.</span>'}
 // Schwierigkeitsstufen sind nur eine Empfehlung: Jeder darf alles frei wählen. Die empfohlene Stufe folgt dem Level (alle 50 Punkte).
 // Stufe 1: Impuls, Zigzag. Stufe 2: Flats, Dreiecke, Diagonalen. Stufe 3: Subwellen zählen. Stufe 4: Double Zigzag, Dreifache Form.
 const STUFEN=[[1,'Stufe 1 · Einsteiger',[['imp','Impuls'],['zig','Zigzag']]],
