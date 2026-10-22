@@ -967,11 +967,13 @@ const dLoad=()=>{try{return JSON.parse(localStorage.getItem(DKEY))||{}}catch(_){
 const dSave=o=>{try{localStorage.setItem(DKEY,JSON.stringify(o))}catch(_){}};
 const dStreak=(o,today)=>o.last===today||o.last===addDays(today,-1)?o.streak||0:0; // zählt nur, wenn gestern oder heute gelöst
 const tipTxt=n=>n===1?'1 Tipp':n+' Tipps';
+// Nummer mit Datum, z. B. „1 · 22.10.26“ (angezeigt als „#1 · 22.10.26“, auch im Teilen-Text)
+const dLabel=s=>dayNo(s)+' · '+s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(2,4);
 const dAtt=d=>d.solved?d.tries+1:d.tries; // Versuche insgesamt
 function daily(){
  const today=berlinDate(),o=dLoad();
  if(!o.day||o.day.date!==today)o.day={date:today,tries:0,tips:0,done:false};
- const {P,R}=dailyRound(today),no=dayNo(today);
+ const {P,R}=dailyRound(today),no=dLabel(today);
  if(o.day.done)return dailyResult(o,P,R,no);
  const D={P,R,no,tries:o.day.tries,tips:o.day.tips,
   save(){o.day.tries=D.tries;o.day.tips=D.tips;dSave(o)}, // Fehlversuche bleiben auch nach dem Neuladen gezählt
@@ -1007,7 +1009,7 @@ function countdown(day){clearInterval(CD);
  tick();CD=setInterval(tick,1000);}
 // Karte ganz oben im Hauptmenü
 function dailyCard(){const today=berlinDate(),o=dLoad(),d=o.day&&o.day.date===today?o.day:null,s=dStreak(o,today);
- return '<div class="card daily"><h2>Tagesaufgabe #'+dayNo(today)+'</h2><p class="mut">Jeden Tag ein Chart, für alle gleich: Zählweise wählen, Punkte setzen, Muster bestimmen. 3 Versuche.</p><p>'+
+ return '<div class="card daily"><h2>Tagesaufgabe #'+dLabel(today)+'</h2><p class="mut">Jeden Tag ein Chart, für alle gleich: Zählweise wählen, Punkte setzen, Muster bestimmen. 3 Versuche.</p><p>'+
   (d&&d.done?(d.solved?'<span class="ok">Heute gelöst ✅</span>':'<span class="bad">Heute nicht gelöst</span>'):'<b>Heute noch offen</b>'+(d&&d.tries?' · '+d.tries+' von 3 Versuchen verbraucht':''))+
   ' · Tages-Serie: '+s+(s===1?' Tag':' Tage')+'</p><button class="p" onclick="daily()">'+(d&&d.done?'Ergebnis ansehen':'Jetzt spielen')+'</button></div>'}
 $('#learn').onclick=()=>learn();
