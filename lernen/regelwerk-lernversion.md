@@ -185,6 +185,7 @@ Diagonalen sind fünfteilige Bewegungen mit dem Trend, aber anders gebaut als de
 
 - Verbindest du die Hochs von 1, 3 und 5 und die Tiefs von 2 und 4 mit Trendlinien, entsteht die typische Diagonalform. Welle 5 kann die obere Trendlinie durchbrechen oder sie gar nicht erreichen.
 - Die Fibonacci-Niveaus der Diagonalen unterscheiden sich von denen des Impulses.
+- Regel: Die Diagonale **kommt voran**: Welle 3 endet über dem Ende von Welle 1, und Welle 5 endet über dem Ende von Welle 3 (im Abwärtstrend: jeweils darunter).
 - Bei kontrahierenden Diagonalen (Leading und Beendende) werden die Wellen immer kürzer: Welle 1 ist länger als Welle 3, Welle 3 länger als Welle 5. Bei der Beendenden Diagonale ist das nicht ganz so streng.
 
 **Leading Diagonale**
@@ -224,6 +225,7 @@ Komplexe Korrekturen hängen mehrere Korrekturmuster aneinander, verbunden durch
 
 - **Double Zigzag (W-X-Y):** W, X und Y sind jeweils ein Korrekturmuster. Jede dieser Wellen kann ein anderes Muster bilden und muss kein Zigzag sein, zum Beispiel W als Zigzag, X als Dreieck, Y als Regular Flat. Dasselbe Muster darf auch mehrfach vorkommen, etwa W und Y beide als Zigzag.
 - **Dreifache Form (W-X-Y-X-Z):** die Verlängerung von W-X-Y. Eine zweite X-Welle hängt ein drittes Korrekturmuster an, die Z-Welle. Auch hier dürfen Muster mehrfach vorkommen. W-X-Y-X-Z kann in Welle 2 und Welle 4 vorkommen.
+- Warnsignal bei der Dreifachen Form: Y **sollte unter dem Ende von W** enden und Z **unter dem Ende von Y** (bei steigenden Kursen: jeweils darüber). In seltenen Fällen bilden Y und Z kein neues Tief.
 - Die Regeln für W, X, Y und Z gelten in beiden Formen gleich:
 
 **Welle W**

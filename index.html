@@ -243,10 +243,11 @@ CXR.dz['DRE-1']=DRE1;CXR.tz['DRE-1']=DRE1;
 // Welle Z bildet kein Dreieck aus (WZ-1, Entscheidung Lenny 20.10.2026). Geprüft wie DRE-1 über die Beschriftung der Teile.
 CXR.tz['WZ-1']={page:null,where:'Regelwerk, Abschnitt Welle Z',hard:1,wave:'Z',name:'Dreieck in Welle Z',hint:'Schau, welches Muster in Welle Z steht. Gibt es ein Muster, das dort nicht vorkommen darf?',
  ex:'Welle Z darf kein Dreieck ausbilden.',ok:()=>true};
-// Fortschritt (KOM-4, Lenny 21.10.2026): Y endet unter W, Z unter Y. Der Generator (genCx) verwirft Charts, die das nicht erfüllen.
-CXR.tz['KOM-4']={page:null,where:'Regelwerk, Abschnitt Komplexe Korrekturen',hard:1,wave:'Y',name:'Die Dreifache Form kommt nicht voran',
+// Fortschritt (KOM-4): Y sollte unter W enden, Z unter Y. Seit 22.10.2026 nur harte Orientierung (Lenny: in seltenen Fällen
+// bilden Y und Z kein neues Tief), also Warnung statt Fehler. Der Generator (genCx) erzeugt solche Charts selten (ca. 5 %).
+CXR.tz['KOM-4']={page:null,where:'Regelwerk, Abschnitt Komplexe Korrekturen',hard:0,wave:'Y',name:'Die Dreifache Form kommt nicht voran',
  hint:'Vergleiche die Enden der Wellen W, Y und Z: Endet jede tiefer als die davor?',
- ex:'Bei W-X-Y-X-Z endet Welle Y unter dem Ende der Welle W und Welle Z unter dem Ende der Welle Y (bei steigenden Preisen spiegelbildlich).',
+ ex:'Harte Orientierung: Bei W-X-Y-X-Z sollte Welle Y unter dem Ende der Welle W und Welle Z unter dem Ende der Welle Y enden (bei steigenden Preisen spiegelbildlich). In seltenen Fällen bilden Y und Z kein neues Tief. Das ist eine Warnung, kein sicherer Fehler.',
  ok:u=>u[3]<u[1]&&u[5]<u[3]};
 const ARTEN=['Zigzag','Regular Flat','Expanded Flat','Running Flat','Dreieck']; // mögliche Muster der Teile; dasselbe Muster darf mehrfach vorkommen (KOM-1 laut Klarstellung von Lenny)
 // Muster der Teile prüfen: liefert die verletzten Regel-IDs
@@ -334,12 +335,13 @@ function genDiag(kind,violate){
  }
 }
 function genCx(kind,violate){
- const P=PAT[kind],tz=kind==='tz';
+ const P=PAT[kind],tz=kind==='tz',rare=tz&&!violate&&Math.random()<.05; // selten: Y oder Z ohne neues Tief (KOM-4 ist nur Warnung)
  for(let n=0;n<6000;n++){
   const LW=rnd(.8,1.6)*100,u1=-LW,u2=u1+(violate==="WX-2"?rnd(1.1,1.5):rnd(.4,.85))*LW,LY=LW*rnd(.6,1.8),u3=u2-LY,v=[0,u1,u2,u3];
   if(tz){const u4=u3+(violate==="WX-2b"?rnd(1.1,1.5):rnd(.4,.85))*LY;v.push(u4,u4-LW*rnd(.5,1.5));}
   if(!P.struct(v))continue;
   const f=violate?hardFails(P,v):check(P,v);
+  if(rare){if(f.length===1&&f[0]==='KOM-4')return v;continue}
   if(violate?(f.length===1&&f[0]===violate):f.length===0)return v;
  }
 }
