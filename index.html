@@ -19,7 +19,7 @@ h2{font-size:1.15rem;margin:0 0 6px}
 .stats b{color:var(--ink)}
 .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:16px}
 .bar i{display:block;height:100%;background:var(--up);transition:width .3s}
-.dock{position:sticky;bottom:0;z-index:5;background:var(--bg);border-top:1px solid var(--line);padding:10px 0;margin:0 0 12px}.dock p{margin:0 0 8px}#menu{margin-bottom:10px}
+.dock{position:sticky;bottom:0;z-index:5;background:var(--bg);border-top:1px solid var(--line);padding:10px 0;margin:0 0 12px}.dock p{margin:0 0 8px}#menu,#tolearn{margin-bottom:10px;padding:8px 10px;font-size:.92rem} /* passen am Handy (ab 360 px) nebeneinander */
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
 button{font:inherit;cursor:pointer;border:1px solid var(--ink);background:transparent;color:var(--ink);border-radius:8px;padding:8px 14px;margin:4px 6px 4px 0}
 button.p{background:var(--btn);color:var(--btnt);border-color:var(--btn)}
@@ -49,7 +49,7 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 <header><h1 id="home" tabindex="0">Wave Checker</h1>
 <div class="hr"><div class="stats"><span>Level <b id="lv">1</b></span><span>Punkte <b id="pt">0</b></span><span>Serie <b id="sr">0</b></span></div><button class="p" id="learn">Elliott-Wellen lernen</button></div></header>
 <div class="bar"><i id="pb" style="width:0"></i></div>
-<button id="menu" hidden>← Hauptmenü</button>
+<button id="menu" hidden>← Hauptmenü</button><button id="tolearn" hidden>← Zurück zum Regelwerk</button>
 <div id="view"></div>
 </main>
 <script>
@@ -876,7 +876,7 @@ const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'
 function mdToHtml(md){
  const L=md.replace(/\r/g,'').split('\n'),out=[],toc=[];let i=0,chap=null,title='';
  const ueben=()=>{const e=chap&&UEBEN.find(([p])=>chap.toLowerCase().startsWith(p));
-  if(e)out.push('<p class="ueben">'+e[1].map(k=>'<button class="p" data-ueben="'+k+'">Jetzt üben'+(e[1].length>1?': '+PAT[k].title:'')+'</button>').join('')+'</p>')};
+  if(e)out.push('<p class="ueben">'+e[1].map(k=>'<button class="p" data-ueben="'+k+'" data-kap="lk-'+toc.length+'">Jetzt üben'+(e[1].length>1?': '+PAT[k].title:'')+'</button>').join('')+'</p>')};
  const isBlock=l=>/^(#{1,3} |\||!\[|- |\d+\. )/.test(l);
  while(i<L.length){const l=L[i];
   if(!l.trim()){i++;continue}
@@ -902,12 +902,12 @@ function mdToHtml(md){
  ueben();
  return{html:out.join(''),toc,title};
 }
-async function learn(){
- if(LEARN)return window.scrollTo(0,0); // schon auf der Lernseite
+async function learn(kap){ // kap: Kapitel (lk-…), zu dem gesprungen wird
+ if(LEARN){const k=kap&&$('#'+kap);return k?k.scrollIntoView():window.scrollTo(0,0)} // schon auf der Lernseite
  const v=$('#view'),f=document.createDocumentFragment();
- LEARN={f,menu:$('#menu').hidden,y:window.scrollY};
+ LEARN={f,menu:$('#menu').hidden,tolearn:$('#tolearn').hidden,y:window.scrollY};
  while(v.firstChild)f.appendChild(v.firstChild); // laufenden Modus samt Zustand aufheben, nicht neu starten
- $('#menu').hidden=true;v.innerHTML='<p class="mut">Lädt …</p>';window.scrollTo(0,0);
+ $('#menu').hidden=$('#tolearn').hidden=true;v.innerHTML='<p class="mut">Lädt …</p>';window.scrollTo(0,0);
  let md;
  try{const r=await fetch(LMD,{cache:'no-cache'});if(!r.ok)throw new Error(r.status);md=await r.text()}
  catch(_){if(LEARN)v.innerHTML='<div class="card"><p class="bad">Die Lernseite konnte nicht geladen werden.</p><button class="p" onclick="learnBack()">← Zurück</button></div>';return}
@@ -918,20 +918,23 @@ async function learn(){
   '<p><button onclick="learnBack()">← Zurück</button></p></div>';
  v.querySelectorAll('[data-j]').forEach(a=>a.onclick=e=>{e.preventDefault();$('#lk-'+a.dataset.j).scrollIntoView({behavior:'smooth'})});
  v.querySelectorAll('.learn figure img').forEach(im=>im.onclick=()=>zoom(im));
- v.querySelectorAll('[data-ueben]').forEach(b=>b.onclick=()=>{LEARN=null;$('#menu').hidden=false;window.scrollTo(0,0);count(PAT[b.dataset.ueben])});
+ const k=kap&&$('#'+kap);if(k)k.scrollIntoView(); // direkt zum Kapitel des Musters, von dem man kam
+ v.querySelectorAll('[data-ueben]').forEach(b=>b.onclick=()=>{LEARN=null;$('#menu').hidden=false;$('#tolearn').hidden=false;$('#tolearn').dataset.kap=b.dataset.kap;window.scrollTo(0,0);count(PAT[b.dataset.ueben])});
 }
 // Zurück dorthin, wo man vorher war (gemerkte Ansicht wieder einsetzen)
 function learnBack(){const s=LEARN;LEARN=null;closeZoom();
  if(!s)return home();
- const v=$('#view');v.innerHTML='';v.appendChild(s.f);$('#menu').hidden=s.menu;window.scrollTo(0,s.y);}
+ const v=$('#view');v.innerHTML='';v.appendChild(s.f);$('#menu').hidden=s.menu;$('#tolearn').hidden=s.tolearn;window.scrollTo(0,s.y);}
 // Bild vergrößern: Vollbild mit Bildunterschrift, Tippen oder Escape schließt
 function zoom(im){const fc=im.parentNode.querySelector('figcaption'),d=document.createElement('div');d.className='lb';d.id='lb';
  d.innerHTML='<img src="'+esc(im.getAttribute('src'))+'" alt="'+esc(im.alt)+'">'+(fc?'<p>'+fc.innerHTML+'</p>':'')+'<p>Tippen zum Schließen</p>';
  d.onclick=closeZoom;document.body.appendChild(d);}
 function closeZoom(){const d=$('#lb');if(d)d.remove()}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeZoom()});
-$('#learn').onclick=learn;
-{const h1=window.home;window.home=function(){LEARN=null;return h1.apply(this,arguments)}} // Hauptmenü verlässt die Lernseite endgültig
+$('#learn').onclick=()=>learn();
+// „← Zurück zum Regelwerk“: nur sichtbar, wenn man über „Jetzt üben“ in „Chart durchzählen“ gekommen ist
+$('#tolearn').onclick=()=>learn($('#tolearn').dataset.kap);
+{const h1=window.home;window.home=function(){LEARN=null;$('#tolearn').hidden=true;return h1.apply(this,arguments)}} // Hauptmenü verlässt Lernseite und „Jetzt üben“ endgültig
 stats();home();
 </script>
 </body>
