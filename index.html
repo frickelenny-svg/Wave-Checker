@@ -31,12 +31,23 @@ button:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
 .chart{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .lab{font:600 11px "Bricolage Grotesque",system-ui,sans-serif;fill:var(--ink);text-anchor:middle}
+.hr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}#learn{margin:0}
+/* Lernbereich: Text aus lernen/regelwerk-lernversion.md, am Handy ohne seitliches Scrollen */
+.learn{overflow-wrap:break-word}.learn h1{font-size:1.4rem;margin:12px 0 8px}.learn h2{margin:32px 0 8px;padding-top:12px;border-top:1px solid var(--line);scroll-margin-top:12px}
+.learn ul,.learn ol{padding-left:22px}.learn li{margin:4px 0}
+.learn table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.92rem}
+.learn th,.learn td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;hyphens:auto;-webkit-hyphens:auto}.learn th{background:var(--card)}
+.learn figure{margin:18px 0}.learn figure img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:8px;cursor:zoom-in}
+.learn figcaption{font-size:14px;line-height:1.4;color:var(--mut);margin-top:6px} /* TradingView-Hinweis: immer direkt unter dem Bild, mindestens 13 px */
+.toc ol{margin:6px 0 0}.toc a{color:var(--ink)}.ueben{margin:14px 0 0}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;cursor:zoom-out}
+.lb img{max-width:100%;max-height:80vh;height:auto}.lb p{color:#fff;font-size:14px;margin:8px 0 0;text-align:center;max-width:760px}
 </style>
 </head>
 <body>
 <main>
 <header><h1 id="home" tabindex="0">Wave Checker</h1>
-<div class="stats"><span>Level <b id="lv">1</b></span><span>Punkte <b id="pt">0</b></span><span>Serie <b id="sr">0</b></span></div></header>
+<div class="hr"><div class="stats"><span>Level <b id="lv">1</b></span><span>Punkte <b id="pt">0</b></span><span>Serie <b id="sr">0</b></span></div><button class="p" id="learn">Elliott-Wellen lernen</button></div></header>
 <div class="bar"><i id="pb" style="width:0"></i></div>
 <button id="menu" hidden>← Hauptmenü</button>
 <div id="view"></div>
@@ -852,6 +863,75 @@ function findSub(key){
  };
  render();
 }
+// ---- 5) Lernbereich: zeigt lernen/regelwerk-lernversion.md (die menschenlesbare Fassung des Regelwerks) 1:1 als Seite.
+// Die Markdown-Datei ist die Quelle: Text nur dort ändern, die Seite liest sie bei jedem Öffnen neu.
+// Unterstützt wird genau das, was die Datei nutzt: Überschriften, Absätze, fett/kursiv, Listen, Tabellen,
+// Bilder mit kursiver Bildunterschrift in der Zeile darunter.
+const LMD='lernen/regelwerk-lernversion.md';
+// „Jetzt üben“ am Ende eines Kapitels: Anfang der Kapitelüberschrift (klein geschrieben) → Muster für „Chart durchzählen“
+const UEBEN=[['der impuls',['imp']],['das zigzag',['zig']],['die flats',['fr','fe','fru']],['dreiecke',['trk','tre']],['diagonalen',['dl','db','de']],['komplexe korrekturen',['dz','tz']]];
+let LEARN=null; // gemerkte Ansicht (DOM-Knoten, Hauptmenü-Button, Scrollposition), zu der „Zurück“ führt
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>');
+function mdToHtml(md){
+ const L=md.replace(/\r/g,'').split('\n'),out=[],toc=[];let i=0,chap=null,title='';
+ const ueben=()=>{const e=chap&&UEBEN.find(([p])=>chap.toLowerCase().startsWith(p));
+  if(e)out.push('<p class="ueben">'+e[1].map(k=>'<button class="p" data-ueben="'+k+'">Jetzt üben'+(e[1].length>1?': '+PAT[k].title:'')+'</button>').join('')+'</p>')};
+ const isBlock=l=>/^(#{1,3} |\||!\[|- |\d+\. )/.test(l);
+ while(i<L.length){const l=L[i];
+  if(!l.trim()){i++;continue}
+  const h=l.match(/^(#{1,3}) (.*)/);
+  if(h){i++;
+   if(h[1].length===2){ueben();chap=h[2];toc.push(h[2]);out.push('<h2 id="lk-'+toc.length+'">'+inl(h[2])+'</h2>')}
+   else if(h[1].length===1)title='<h1>'+inl(h[2])+'</h1>'; // Titel steht über dem Inhaltsverzeichnis
+   else out.push('<h3>'+inl(h[2])+'</h3>');
+   continue}
+  if(l.startsWith('|')){const rows=[],cells=r=>r.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+   while(i<L.length&&L[i].startsWith('|'))rows.push(L[i++]);
+   out.push('<table><thead><tr>'+cells(rows[0]).map(c=>'<th>'+inl(c)+'</th>').join('')+'</tr></thead><tbody>'+
+    rows.slice(2).map(r=>'<tr>'+cells(r).map(c=>'<td>'+inl(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>');continue}
+  const im=l.match(/^!\[(.*?)\]\((.*?)\)\s*$/);
+  if(im){i++;while(i<L.length&&!L[i].trim())i++;
+   const c=i<L.length&&L[i].match(/^\*(.+)\*\s*$/);if(c)i++; // Bildunterschrift (z. B. „Chart erstellt mit TradingView“) gehört direkt unter das Bild
+   out.push('<figure><img src="lernen/'+esc(im[2])+'" alt="'+esc(im[1])+'" loading="lazy">'+(c?'<figcaption>'+inl(c[1])+'</figcaption>':'')+'</figure>');continue}
+  if(/^- /.test(l)||/^\d+\. /.test(l)){const ol=/^\d/.test(l),re=ol?/^\d+\. /:/^- /,it=[];
+   while(i<L.length&&re.test(L[i]))it.push(L[i++].replace(re,''));
+   out.push('<'+(ol?'ol':'ul')+'>'+it.map(x=>'<li>'+inl(x)+'</li>').join('')+'</'+(ol?'ol':'ul')+'>');continue}
+  const p=[];do p.push(L[i++]);while(i<L.length&&L[i].trim()&&!isBlock(L[i]));out.push('<p>'+inl(p.join(' '))+'</p>');
+ }
+ ueben();
+ return{html:out.join(''),toc,title};
+}
+async function learn(){
+ if(LEARN)return window.scrollTo(0,0); // schon auf der Lernseite
+ const v=$('#view'),f=document.createDocumentFragment();
+ LEARN={f,menu:$('#menu').hidden,y:window.scrollY};
+ while(v.firstChild)f.appendChild(v.firstChild); // laufenden Modus samt Zustand aufheben, nicht neu starten
+ $('#menu').hidden=true;v.innerHTML='<p class="mut">Lädt …</p>';window.scrollTo(0,0);
+ let md;
+ try{const r=await fetch(LMD,{cache:'no-cache'});if(!r.ok)throw new Error(r.status);md=await r.text()}
+ catch(_){if(LEARN)v.innerHTML='<div class="card"><p class="bad">Die Lernseite konnte nicht geladen werden.</p><button class="p" onclick="learnBack()">← Zurück</button></div>';return}
+ if(!LEARN)return; // inzwischen woandershin gewechselt
+ const {html,toc,title}=mdToHtml(md);
+ v.innerHTML='<div class="learn"><button onclick="learnBack()">← Zurück</button>'+title+'<nav class="card toc"><b>Inhalt</b><ol>'+
+  toc.map((t,j)=>'<li><a href="#lk-'+(j+1)+'" data-j="'+(j+1)+'">'+inl(t)+'</a></li>').join('')+'</ol></nav>'+html+
+  '<p><button onclick="learnBack()">← Zurück</button></p></div>';
+ v.querySelectorAll('[data-j]').forEach(a=>a.onclick=e=>{e.preventDefault();$('#lk-'+a.dataset.j).scrollIntoView({behavior:'smooth'})});
+ v.querySelectorAll('.learn figure img').forEach(im=>im.onclick=()=>zoom(im));
+ v.querySelectorAll('[data-ueben]').forEach(b=>b.onclick=()=>{LEARN=null;$('#menu').hidden=false;window.scrollTo(0,0);count(PAT[b.dataset.ueben])});
+}
+// Zurück dorthin, wo man vorher war (gemerkte Ansicht wieder einsetzen)
+function learnBack(){const s=LEARN;LEARN=null;closeZoom();
+ if(!s)return home();
+ const v=$('#view');v.innerHTML='';v.appendChild(s.f);$('#menu').hidden=s.menu;window.scrollTo(0,s.y);}
+// Bild vergrößern: Vollbild mit Bildunterschrift, Tippen oder Escape schließt
+function zoom(im){const fc=im.parentNode.querySelector('figcaption'),d=document.createElement('div');d.className='lb';d.id='lb';
+ d.innerHTML='<img src="'+esc(im.getAttribute('src'))+'" alt="'+esc(im.alt)+'">'+(fc?'<p>'+fc.innerHTML+'</p>':'')+'<p>Tippen zum Schließen</p>';
+ d.onclick=closeZoom;document.body.appendChild(d);}
+function closeZoom(){const d=$('#lb');if(d)d.remove()}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeZoom()});
+$('#learn').onclick=learn;
+{const h1=window.home;window.home=function(){LEARN=null;return h1.apply(this,arguments)}} // Hauptmenü verlässt die Lernseite endgültig
 stats();home();
 </script>
 </body>
