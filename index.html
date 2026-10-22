@@ -31,6 +31,7 @@ button:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
 .chart{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .lab{font:600 11px "Bricolage Grotesque",system-ui,sans-serif;fill:var(--ink);text-anchor:middle}
+.daily{border:2px solid var(--up)}
 .hr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}#learn{margin:0}
 /* Lernbereich: Text aus lernen/regelwerk-lernversion.md, am Handy ohne seitliches Scrollen */
 .learn{overflow-wrap:break-word}.learn h1{font-size:1.4rem;margin:12px 0 8px}.learn h2{margin:32px 0 8px;padding-top:12px;border-top:1px solid var(--line);scroll-margin-top:12px}
@@ -460,7 +461,7 @@ const saveProgress=()=>{try{localStorage.setItem(SAVE,JSON.stringify({pts:st.pts
 const $=q=>document.querySelector(q);
 function stats(){saveProgress();const lv=Math.floor(st.pts/50)+1;$('#lv').textContent=lv;$('#pt').textContent=st.pts;$('#sr').textContent=st.streak;$('#pb').style.width=(st.pts%50)*2+'%';}
 function home(){
- $('#view').innerHTML='<p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist: normal per Auswahl oder schwer durch eigenes Zählen.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div><p id="rs" style="text-align:center;margin-top:28px">'+RSBTN+'</p>';
+ $('#view').innerHTML=dailyCard()+'<p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist: normal per Auswahl oder schwer durch eigenes Zählen.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div><p id="rs" style="text-align:center;margin-top:28px">'+RSBTN+'</p>';
 }
 // Fortschritt zurücksetzen: unauffälliger Button, Sicherheitsabfrage direkt auf der Seite (kein Browser-Popup)
 const RSBTN='<button class="mut" style="border-color:var(--line);font-size:.85rem" onclick="resetAsk()">Fortschritt zurücksetzen</button>';
@@ -482,7 +483,7 @@ function pick(mode){
 }
 function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key):find(PAT[key])}
 // Hauptmenü-Button: erscheint, sobald ein Modus gestartet wird (pick, recognize, pickSub), und verschwindet im Hauptmenü
-['pick','recognize','pickSub'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
+['pick','recognize','pickSub','daily'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
 {const h0=home;window.home=function(){$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
 $('#menu').onclick=()=>home();
 $('#home').onclick=()=>home();$('#home').onkeydown=e=>{if(e.key==='Enter')home()};
@@ -622,14 +623,14 @@ function fitPts(Q,R,idx){
 }
 const fitWhy=(Q,r,P)=>r.kind==='subs'?'Die Teilwellen passen nicht: Hier sind sie '+fmtSub(P.subs[0])+' aufgebaut, beim Muster „'+Q.title+'“ '+Q.subs.map(fmtSub).join(' oder ')+'.':
  r.kind==='struct'?'Die Richtung der Wellen passt nicht zum Muster „'+Q.title+'“.':'Verletzte Regel beim Muster „'+Q.title+'“: '+r.f.map(id=>'„'+Q.rules[id].name+'“ ('+tag(Q,id)+')').join(', ')+'.';
-function recogHard(){
- const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=PAT[keys[Math.floor(Math.random()*keys.length)]],R=makeRound(P,null),
-  m={z:null,sel:[],tips:0,failed:false,done:false};
+function recogHard(D){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, siehe Abschnitt 6), sonst zufällig
+ const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=D?D.P:PAT[keys[Math.floor(Math.random()*keys.length)]],R=D?D.R:makeRound(P,null),
+  m={z:null,sel:[],tips:D?D.tips:0,failed:D?D.tries>0:false,done:false};
  const Z=()=>ZW[m.z],pic=()=>draw({...R,P:{labels:Z()?Z().labels:[]}},m.sel,false,null); // nackter Chart, Beschriftung nur an gesetzten Punkten
- const fail=html=>{m.failed=true;if(st.streak)st.streak=0,stats();return html};
+ const fail=html=>{m.failed=true;if(st.streak)st.streak=0,stats();if(D){D.tries++;D.save()}return html}; // Tagesaufgabe: jeder Fehlversuch zählt
  const render=(fb)=>{
   const z=Z(),n=z?z.labels.length:0;
-  $('#view').innerHTML='<p class="mut">Schwer: Zähle den Chart selbst. '+(z?'Zählweise '+z.name+': Tippe nacheinander die Punkte '+z.labels.join(', ')+' auf den Chart. Gesetzte Punkte kannst du anfassen und verschieben. Nächster Punkt: <b>'+(m.sel.length<n?z.labels[m.sel.length]:'fertig')+'</b>':'Wähle zuerst die Zählweise.')+'</p>'+
+  $('#view').innerHTML='<p class="mut">'+(D?'<b>Tagesaufgabe #'+D.no+' · Versuch '+Math.min(3,D.tries+1)+' von 3.</b> ':'Schwer: Zähle den Chart selbst. ')+(z?'Zählweise '+z.name+': Tippe nacheinander die Punkte '+z.labels.join(', ')+' auf den Chart. Gesetzte Punkte kannst du anfassen und verschieben. Nächster Punkt: <b>'+(m.sel.length<n?z.labels[m.sel.length]:'fertig')+'</b>':'Wähle zuerst die Zählweise.')+'</p>'+
    '<div class="chart">'+pic()+'</div><div class="card"><b>Zählweise</b><br>'+ZW.map((w,i)=>'<button data-z="'+i+'" class="'+(m.z===i?'on':'')+'" '+(m.done?'disabled':'')+'>'+w.name+' · '+w.hint+'</button>').join('')+'</div>'+
    (z?'<div><button class="p" id="chk" '+(m.sel.length<n||m.done?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div>':'')+
    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
@@ -639,7 +640,7 @@ function recogHard(){
   if(!z)return;
   bindPoints(m,n,pic,render);
   $('#und').onclick=()=>{m.sel.pop();render()};$('#rst').onclick=()=>{m.sel=[];render()};
-  $('#chk').onclick=verify;
+  $('#chk').onclick=()=>{verify();if(D&&D.tries>=3&&!m.done)D.finish({solved:false,tips:m.tips})}; // 3. Fehlversuch beendet die Tagesaufgabe
  };
  const verify=()=>{
   const z=Z(),n=z.labels.length;
@@ -669,19 +670,20 @@ function recogHard(){
    if(m.tips>=2)lines.push('Tipp 2: Es geht um die Regel „'+x.name+'“.');
    if(m.tips>=3)lines.push('Tipp 3: '+tag(Q,id)+'. '+x.ex);}
   render('<p class="bad">Noch nicht ganz.</p>'+lines.map(t=>'<p>'+t+'</p>').join('')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':''));
-  const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipUI({Q,r})};
+  const t=$('#tip');if(t)t.onclick=()=>{m.tips++;if(D){D.tips=m.tips;D.save()}tipUI({Q,r})}; // Tagesaufgabe: Tipps werden vermerkt
  };
  // Bonusfrage: Welches Muster genau? Gibt es in der Zählweise nur ein Muster, ist es eindeutig: Bonus ohne Frage.
  // Ein falscher Bonus kostet keine Serie, die Zählung selbst war ja richtig.
  const bonus=head=>{const z=Z();
-  if(z.pats.length===1){st.pts+=10;stats();return end(head+'<p class="ok">Bonus +10: Die Zählweise '+z.name+' gehört nur zum Muster „'+PAT[z.pats[0]].title+'“.</p>')}
+  if(z.pats.length===1){st.pts+=10;stats();return end(head+'<p class="ok">Bonus +10: Die Zählweise '+z.name+' gehört nur zum Muster „'+PAT[z.pats[0]].title+'“.</p>',true)}
   render(head+'<p><b>Bonusfrage (+10): Welches Muster genau?</b></p>'+z.pats.map(k=>'<button data-b="'+k+'">'+PAT[k].title+'</button>').join(''));
   document.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{const Q=PAT[b.dataset.b],ok=m.ok.includes(Q);
    if(ok){st.pts+=10;stats()}
-   end(head+(Q===P?'<p class="ok">Bonus richtig! +10 Punkte</p>':ok?'<p class="ok">Bonus richtig, auch regelkonform! +10 Punkte</p><p>'+diffMsg(P,Q)+'</p>':'<p class="bad">Bonus leider falsch.</p><p>'+fitWhy(Q,fitPts(Q,R,m.sel),P)+'</p>'));});
+   end(head+(Q===P?'<p class="ok">Bonus richtig! +10 Punkte</p>':ok?'<p class="ok">Bonus richtig, auch regelkonform! +10 Punkte</p><p>'+diffMsg(P,Q)+'</p>':'<p class="bad">Bonus leider falsch.</p><p>'+fitWhy(Q,fitPts(Q,R,m.sel),P)+'</p>'),ok);});
  };
  // Erst am Ende verraten, welches Muster generiert wurde (sonst wäre die Bonusfrage vorweggenommen)
- const end=html=>{render(html+'<p>Generiert wurde: <b>'+P.title+'</b>. '+P.recog+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=recogHard};
+ const end=(html,bonusOk)=>{if(D)return D.finish({solved:true,bonus:bonusOk,tips:m.tips});
+  render(html+'<p>Generiert wurde: <b>'+P.title+'</b>. '+P.recog+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=()=>recogHard()};
  render();
 }
 
@@ -939,6 +941,75 @@ function zoom(im){const fc=im.parentNode.querySelector('figcaption'),d=document.
  d.onclick=closeZoom;document.body.appendChild(d);}
 function closeZoom(){const d=$('#lb');if(d)d.remove()}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeZoom()});
+// ---- 6) Tagesaufgabe (wie Wordle): jeden Tag eine Aufgabe im Modus „Muster erkennen – Schwer“, für alle gleich.
+// Tageswechsel um Mitternacht deutscher Zeit. Muster und Chart kommen aus einem Zufallsgenerator mit dem Datum als
+// Startwert, darum sieht jeder am selben Tag denselben Chart. Der normale Zufall der anderen Modi bleibt unverändert.
+const DAY0='2026-10-22'; // Tagesaufgabe #1
+const berlinDate=(d=new Date())=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'}).format(d); // „JJJJ-MM-TT“
+const addDays=(s,n)=>new Date(Date.parse(s+'T00:00:00Z')+n*864e5).toISOString().slice(0,10);
+const dayNo=s=>Math.round((Date.parse(s+'T00:00:00Z')-Date.parse(DAY0+'T00:00:00Z'))/864e5)+1;
+// Zufallsgenerator mit Startwert (mulberry32), Startwert = Hash des Textes: gleicher Text → gleiche Zahlenfolge
+function seeded(text){let h=1779033703^text.length;
+ for(let i=0;i<text.length;i++){h=Math.imul(h^text.charCodeAt(i),3432918353);h=h<<13|h>>>19}
+ let a=h>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const DW={imp:2.5,zig:2.5,dz:2.5}; // Gewichte der Musterauswahl, alle anderen Muster 1
+// Muster des Tages s. Nie zweimal hintereinander dasselbe, darum wird ab Tag #1 Tag für Tag durchgerechnet.
+function dailyKey(s){let prev=null,k=null;
+ for(let d=DAY0;d<=s;d=addDays(d,1)){const r=seeded('muster '+d),c=Object.keys(PAT).filter(x=>!PAT[x].noRecog&&x!==prev),
+  tot=c.reduce((t,x)=>t+(DW[x]||1),0);let v=r()*tot;k=c.find(x=>(v-=DW[x]||1)<0)||c[c.length-1];prev=k}
+ return k}
+// Chart des Tages: Math.random wird nur während des Erzeugens durch den Generator mit Startwert ersetzt
+function dailyRound(s){const P=PAT[dailyKey(s)],r0=Math.random;Math.random=seeded('chart '+s);
+ try{return{P,R:makeRound(P,null)}}finally{Math.random=r0}}
+// Speicherung lokal im Browser: {last: letzter gelöster Tag, streak: Tages-Serie, day: {date, tries (Fehlversuche), tips, done, solved, bonus}}
+const DKEY='waveChecker.daily';
+const dLoad=()=>{try{return JSON.parse(localStorage.getItem(DKEY))||{}}catch(_){return{}}};
+const dSave=o=>{try{localStorage.setItem(DKEY,JSON.stringify(o))}catch(_){}};
+const dStreak=(o,today)=>o.last===today||o.last===addDays(today,-1)?o.streak||0:0; // zählt nur, wenn gestern oder heute gelöst
+const tipTxt=n=>n===1?'1 Tipp':n+' Tipps';
+const dAtt=d=>d.solved?d.tries+1:d.tries; // Versuche insgesamt
+function daily(){
+ const today=berlinDate(),o=dLoad();
+ if(!o.day||o.day.date!==today)o.day={date:today,tries:0,tips:0,done:false};
+ const {P,R}=dailyRound(today),no=dayNo(today);
+ if(o.day.done)return dailyResult(o,P,R,no);
+ const D={P,R,no,tries:o.day.tries,tips:o.day.tips,
+  save(){o.day.tries=D.tries;o.day.tips=D.tips;dSave(o)}, // Fehlversuche bleiben auch nach dem Neuladen gezählt
+  finish(r){Object.assign(o.day,{done:true,solved:r.solved,bonus:!!r.bonus,tries:D.tries,tips:r.tips});
+   if(r.solved){o.streak=o.last===addDays(today,-1)?(o.streak||0)+1:1;o.last=today}else o.streak=0;
+   dSave(o);dailyResult(o,P,R,no)}};
+ recogHard(D);
+}
+// Ergebnis: Lösung im Chart, Teilen, Countdown bis zur nächsten Aufgabe
+function dailyResult(o,P,R,no){const d=o.day,s=dStreak(o,d.date);
+ $('#view').innerHTML='<div class="card daily"><h2>Tagesaufgabe #'+no+'</h2><p class="'+(d.solved?'ok':'bad')+'">'+(d.solved?'Gelöst im '+dAtt(d)+'. Versuch ✅':'Heute nicht gelöst ('+dAtt(d)+' Versuche)')+'</p>'+
+  '<p>'+(d.solved?'Bonusfrage: '+(d.bonus?'richtig':'falsch')+' · ':'')+tipTxt(d.tips)+' · Tages-Serie: '+s+(s===1?' Tag':' Tage')+'</p>'+
+  '<p><button class="p" id="share">Ergebnis teilen</button></p><p id="shareMsg" class="mut"></p><p>Nächste Aufgabe in <b id="cd">…</b></p></div>'+
+  '<p class="mut">Die Lösung im Chart:</p><div class="chart">'+draw(R,[],true,P.tri?R.piv:null)+'</div><p>Generiert wurde: <b>'+P.title+'</b>. '+P.recog+'</p>';
+ $('#share').onclick=()=>shareResult(o,no);countdown(d.date);}
+// Teilen-Text verrät das Muster nicht
+function shareText(o,no){const d=o.day,s=dStreak(o,d.date);
+ return 'Wave Checker Tagesaufgabe #'+no+'\n'+(d.solved?'✅ im '+dAtt(d)+'. Versuch · Bonus '+(d.bonus?'✅':'❌'):'❌ nicht gelöst')+' · '+tipTxt(d.tips)+
+  '\n🔥 Serie: '+s+(s===1?' Tag':' Tage')+'\n'+location.origin+'/'}
+async function shareResult(o,no){const t=shareText(o,no),msg=$('#shareMsg');
+ try{if(navigator.share&&matchMedia('(pointer:coarse)').matches){await navigator.share({text:t});return} // Handy: Teilen-Menü
+  await navigator.clipboard.writeText(t);msg.textContent='Kopiert! Du kannst das Ergebnis jetzt einfügen.'}
+ catch(e){if(e&&e.name==='AbortError')return; // Teilen-Menü abgebrochen
+  msg.innerHTML='Kopieren hat nicht geklappt. Markiere den Text und kopiere ihn selbst:<br><textarea rows="4" style="width:100%">'+esc(t)+'</textarea>'}}
+// Countdown bis Mitternacht deutscher Zeit (an den zwei Tagen der Zeitumstellung um eine Stunde ungenau)
+let CD=null;
+function countdown(day){clearInterval(CD);
+ const f=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}),p2=n=>String(n).padStart(2,'0');
+ const tick=()=>{const el=$('#cd');if(!el)return clearInterval(CD);
+  if(berlinDate()!==day){clearInterval(CD);el.parentNode.innerHTML='<button class="p" onclick="daily()">Neue Tagesaufgabe spielen</button>';return}
+  const t=Object.fromEntries(f.formatToParts(new Date()).map(x=>[x.type,+x.value])),left=86400-(t.hour*3600+t.minute*60+t.second);
+  el.textContent=p2(Math.floor(left/3600))+':'+p2(Math.floor(left%3600/60))+':'+p2(left%60);};
+ tick();CD=setInterval(tick,1000);}
+// Karte ganz oben im Hauptmenü
+function dailyCard(){const today=berlinDate(),o=dLoad(),d=o.day&&o.day.date===today?o.day:null,s=dStreak(o,today);
+ return '<div class="card daily"><h2>Tagesaufgabe #'+dayNo(today)+'</h2><p class="mut">Jeden Tag ein Chart, für alle gleich: Zählweise wählen, Punkte setzen, Muster bestimmen. 3 Versuche.</p><p>'+
+  (d&&d.done?(d.solved?'<span class="ok">Heute gelöst ✅</span>':'<span class="bad">Heute nicht gelöst</span>'):'<b>Heute noch offen</b>'+(d&&d.tries?' · '+d.tries+' von 3 Versuchen verbraucht':''))+
+  ' · Tages-Serie: '+s+(s===1?' Tag':' Tage')+'</p><button class="p" onclick="daily()">'+(d&&d.done?'Ergebnis ansehen':'Jetzt spielen')+'</button></div>'}
 $('#learn').onclick=()=>learn();
 // „← Zurück zum Regelwerk“: nur sichtbar, wenn man über „Jetzt üben“ in „Chart durchzählen“ gekommen ist
 $('#tolearn').onclick=()=>learn($('#tolearn').dataset.kap);
