@@ -226,6 +226,7 @@ Komplexe Korrekturen hängen mehrere Korrekturmuster aneinander, verbunden durch
 - **Double Zigzag (W-X-Y):** W, X und Y sind jeweils ein Korrekturmuster. Jede dieser Wellen kann ein anderes Muster bilden und muss kein Zigzag sein, zum Beispiel W als Zigzag, X als Dreieck, Y als Regular Flat. Dasselbe Muster darf auch mehrfach vorkommen, etwa W und Y beide als Zigzag.
 - **Dreifache Form (W-X-Y-X-Z):** die Verlängerung von W-X-Y. Eine zweite X-Welle hängt ein drittes Korrekturmuster an, die Z-Welle. Auch hier dürfen Muster mehrfach vorkommen. W-X-Y-X-Z kann in Welle 2 und Welle 4 vorkommen.
 - Warnsignal bei der Dreifachen Form: Y **sollte unter dem Ende von W** enden und Z **unter dem Ende von Y** (bei steigenden Kursen: jeweils darüber). In seltenen Fällen bilden Y und Z kein neues Tief.
+- Regel bei der Dreifachen Form: Y und Z dürfen **nicht beide versagen**. Mindestens eine der beiden Wellen muss ein neues Tief bilden (Y unter dem Ende von W oder Z unter dem Ende von Y).
 - Die Regeln für W, X, Y und Z gelten in beiden Formen gleich:
 
 **Welle W**

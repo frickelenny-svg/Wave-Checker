@@ -249,6 +249,12 @@ CXR.tz['KOM-4']={page:null,where:'Regelwerk, Abschnitt Komplexe Korrekturen',har
  hint:'Vergleiche die Enden der Wellen W, Y und Z: Endet jede tiefer als die davor?',
  ex:'Harte Orientierung: Bei W-X-Y-X-Z sollte Welle Y unter dem Ende der Welle W und Welle Z unter dem Ende der Welle Y enden (bei steigenden Preisen spiegelbildlich). In seltenen Fällen bilden Y und Z kein neues Tief. Das ist eine Warnung, kein sicherer Fehler.',
  ok:u=>u[3]<u[1]&&u[5]<u[3]};
+// KOM-5 (Lenny 22.10.2026): Y und Z dürfen nicht beide versagen, mindestens eine bildet ein neues Tief. Harte Regel.
+// genCx verwirft solche Charts automatisch (check enthält KOM-5); der seltene KOM-4-Fall hat daher nur eine versagende Welle.
+CXR.tz['KOM-5']={page:null,where:'Regelwerk, Abschnitt Komplexe Korrekturen',hard:1,wave:'Z',name:'Y und Z bilden beide kein neues Tief',
+ hint:'Vergleiche die Enden der Wellen W, Y und Z: Schafft mindestens eine der Wellen Y und Z ein neues Tief?',
+ ex:'Bei W-X-Y-X-Z dürfen Y und Z nicht beide versagen: Mindestens eine muss ein neues Tief bilden (Y unter dem Ende von W oder Z unter dem Ende von Y, bei steigenden Preisen spiegelbildlich).',
+ ok:u=>u[3]<u[1]||u[5]<u[3]};
 const ARTEN=['Zigzag','Regular Flat','Expanded Flat','Running Flat','Dreieck']; // mögliche Muster der Teile; dasselbe Muster darf mehrfach vorkommen (KOM-1 laut Klarstellung von Lenny)
 // Muster der Teile prüfen: liefert die verletzten Regel-IDs
 
