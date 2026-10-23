@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Wave Checker – Elliott-Wellen trainieren</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap">
+<script>/* gewähltes Design (hell/dunkel) sofort setzen, damit nichts aufblitzt */try{const t=localStorage.getItem("waveChecker.theme");if(t)document.documentElement.dataset.theme=t}catch(_){}</script>
 <style>
 /* ===== Design laut DESIGN.md (Palette K „Blau & Weiß hell“). Farben NUR hier ändern. ===== */
 :root{
@@ -38,7 +39,7 @@ main:has(.home) header{padding:0 16px}@media(min-width:900px){main:has(.home) he
 @media(max-width:600px){.pts{display:none}} /* Spielrunden: Level und Serie genügen (DESIGN.md 6) */
 .pill b{font-weight:700}.pill.s{background:var(--accent-soft);color:var(--accent-text)}
 button.pill{background:var(--surface);border:1px solid var(--line);min-height:40px}
-button.pill svg{width:18px;height:18px}
+button.pill svg{width:18px;height:18px}#theme{width:40px;padding:0;justify-content:center}
 h2{font-size:1.25rem;font-weight:700;margin:0 0 6px;line-height:1.25}
 .bar{height:4px;background:var(--accent-soft);border-radius:2px;overflow:hidden;margin-bottom:14px}
 .bar i{display:block;height:100%;background:var(--accent);transition:width .3s}
@@ -152,7 +153,7 @@ button.isl:hover{border-color:var(--accent)}
 <body>
 <main>
 <header><div class="hl0"><button id="menu" class="pill" hidden>← Hauptmenü</button><button id="tolearn" class="pill" hidden>← Zurück zum Regelwerk</button><button id="home" class="logo" aria-label="Wave Checker, zum Hauptmenü"><svg viewBox="0 0 30 20" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,16 8,6 12,12 19,3 22,9 28,4"/></svg>Wave Checker</button></div>
-<div class="hr"><button class="pill" id="learn"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/></svg>Elliott-Wellen lernen</button><span class="pill">Level <b id="lv">1</b></span><span class="pill pts">Punkte <b id="pt">0</b></span><span class="pill s">Serie <b id="sr">0</b></span></div></header>
+<div class="hr"><button class="pill" id="theme" aria-label="Design wechseln"></button><button class="pill" id="learn"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/></svg>Elliott-Wellen lernen</button><span class="pill">Level <b id="lv">1</b></span><span class="pill pts">Punkte <b id="pt">0</b></span><span class="pill s">Serie <b id="sr">0</b></span></div></header>
 <div class="bar"><i id="pb" style="width:0"></i></div>
 <div id="view"></div>
 </main>
@@ -1539,6 +1540,13 @@ function ranks(fromLearn){rankCheck();const o=rLoad(),ex=o.ex||{},qc=qLoad().cat
  document.querySelectorAll('[data-share]').forEach(b=>b.onclick=()=>{const s=b.dataset.share,c=RCATS[+s],lv=(o.rank||{})[c];
   shareOut(s==='m'?'Ich bin Elliott-Meister im Wave Checker 🏆 '+location.origin+'/':'Ich bin '+RNAME[lv]+' '+RIN[c]+' im Wave Checker '+REMO[lv]+' '+location.origin+'/',$('#shareMsg'))});
  window.scrollTo(0,0);}
+// Hell/Dunkel umschalten (Knopf oben in der Kopfzeile). Ohne Wahl gilt die Systemeinstellung; die Wahl bleibt im Browser gespeichert.
+const isDark=()=>document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+function themeBtn(){const d=isDark(),b=$('#theme');
+ b.innerHTML=d?ico('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'):ico('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>');
+ b.setAttribute('aria-label',d?'Zu hellem Design wechseln':'Zu dunklem Design wechseln');b.title=b.getAttribute('aria-label');}
+$('#theme').onclick=()=>{const t=isDark()?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('waveChecker.theme',t)}catch(_){}themeBtn()};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',themeBtn);themeBtn();
 $('#learn').onclick=()=>learn();
 // „← Zurück zum Regelwerk“: nur sichtbar, wenn man über „Jetzt üben“ in „Chart durchzählen“ gekommen ist
 $('#tolearn').onclick=()=>learn($('#tolearn').dataset.kap);
