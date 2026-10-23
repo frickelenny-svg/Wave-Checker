@@ -9,7 +9,7 @@
 <style>
 /* ===== Design laut DESIGN.md (Palette K „Blau & Weiß hell“). Farben NUR hier ändern. ===== */
 :root{
- --bg:#EAF1FF;--surface:#FFFFFF;--text:#0B1B3A;--muted:#44557A;--accent:#1E5EFF;--accent-dark:#1238C9;--accent-text:#1E5EFF;
+ --bg:#EAF1FF;--surface:#FFFFFF;--text:#0B1B3A;--muted:#44557A;--accent:#1E5EFF;--accent-dark:#1238C9;--accent-text:#1E5EFF;--surface-hover:#F3F7FF;--daily-hover:#1238C9;
  --line:rgba(30,94,255,.35);--line-soft:rgba(30,94,255,.20);--chip:rgba(11,27,58,.07);--accent-soft:rgba(30,94,255,.12);
  --ok:#0E8A5F;--bad:#C2410C;--shadow:0 10px 30px rgba(30,60,140,.12);
  /* Regelstufen */
@@ -20,8 +20,8 @@
  --ink:var(--text);--mut:var(--muted);--card:var(--surface);--up:var(--ok);--dn:var(--bad);--warn:var(--warn-text);
  padding-top:env(safe-area-inset-top,0px)}
 /* Dunkelmodus (Lenny, 24.10.2026): folgt der Systemeinstellung, gleiche Rollen wie oben, Kontrast mind. 4,5:1 */
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A1430;--surface:#121F45;--text:#E8EEFF;--muted:#AAB7D8;--accent:#2F63FF;--accent-dark:#4A78FF;--accent-text:#8FB0FF;--line:rgba(143,176,255,.38);--line-soft:rgba(143,176,255,.22);--chip:rgba(232,238,255,.09);--accent-soft:rgba(143,176,255,.16);--ok:#3DCB95;--bad:#FF8A5C;--shadow:0 10px 30px rgba(0,0,0,.35);--warn-bg:#4A2810;--warn-text:#FFC08A;--warn-line:rgba(255,160,90,.4);--faust-bg:rgba(232,238,255,.1);--faust-line:rgba(232,238,255,.18);--r1t:#E3A56C;--r2t:#C9D2E0;--r3t:#EBCB5E;--r4t:#8FDCEA;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0A1430;--surface:#121F45;--text:#E8EEFF;--muted:#AAB7D8;--accent:#2F63FF;--accent-dark:#4A78FF;--accent-text:#8FB0FF;--line:rgba(143,176,255,.38);--line-soft:rgba(143,176,255,.22);--chip:rgba(232,238,255,.09);--accent-soft:rgba(143,176,255,.16);--ok:#3DCB95;--bad:#FF8A5C;--shadow:0 10px 30px rgba(0,0,0,.35);--warn-bg:#4A2810;--warn-text:#FFC08A;--warn-line:rgba(255,160,90,.4);--faust-bg:rgba(232,238,255,.1);--faust-line:rgba(232,238,255,.18);--r1t:#E3A56C;--r2t:#C9D2E0;--r3t:#EBCB5E;--r4t:#8FDCEA;color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A1430;--surface:#121F45;--text:#E8EEFF;--muted:#AAB7D8;--accent:#2F63FF;--accent-dark:#4A78FF;--accent-text:#8FB0FF;--surface-hover:#1A2B5C;--daily-hover:#2452E8;--line:rgba(143,176,255,.38);--line-soft:rgba(143,176,255,.22);--chip:rgba(232,238,255,.09);--accent-soft:rgba(143,176,255,.16);--ok:#3DCB95;--bad:#FF8A5C;--shadow:0 10px 30px rgba(0,0,0,.35);--warn-bg:#4A2810;--warn-text:#FFC08A;--warn-line:rgba(255,160,90,.4);--faust-bg:rgba(232,238,255,.1);--faust-line:rgba(232,238,255,.18);--r1t:#E3A56C;--r2t:#C9D2E0;--r3t:#EBCB5E;--r4t:#8FDCEA;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0A1430;--surface:#121F45;--text:#E8EEFF;--muted:#AAB7D8;--accent:#2F63FF;--accent-dark:#4A78FF;--accent-text:#8FB0FF;--surface-hover:#1A2B5C;--daily-hover:#2452E8;--line:rgba(143,176,255,.38);--line-soft:rgba(143,176,255,.22);--chip:rgba(232,238,255,.09);--accent-soft:rgba(143,176,255,.16);--ok:#3DCB95;--bad:#FF8A5C;--shadow:0 10px 30px rgba(0,0,0,.35);--warn-bg:#4A2810;--warn-text:#FFC08A;--warn-line:rgba(255,160,90,.4);--faust-bg:rgba(232,238,255,.1);--faust-line:rgba(232,238,255,.18);--r1t:#E3A56C;--r2t:#C9D2E0;--r3t:#EBCB5E;--r4t:#8FDCEA;color-scheme:dark}
 *{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--text);font:400 15px/1.5 "DM Sans",system-ui,sans-serif;overflow-x:clip}
 h1,h2,h3,.logo,.lead,.isl b{font-family:"Bricolage Grotesque",system-ui,sans-serif}
@@ -139,6 +139,18 @@ button.isl:hover{border-color:var(--accent)}
 .hb .isl{border-bottom:0;border-radius:30px 30px 0 0;width:min(92%,420px);padding-bottom:16px}
 .hl .isl:nth-child(1){--w:96%}.hl .isl:nth-child(2){--w:82%;margin-top:6px}.hl .isl:nth-child(3){--w:90%}.hl .isl:nth-child(4){--w:86%;margin-top:4px}
 .hrr .isl:nth-child(1){--w:90%;margin-top:14px}.hrr .isl:nth-child(2){--w:97%}.hrr .isl:nth-child(3){--w:84%;margin-top:4px}.hrr .isl:nth-child(4){--w:93%}
+/* Startseite lebendig: Inseln und Tagesaufgabe reagieren auf Maus und Tastatur (größer, Farbe, Schatten) */
+@media(hover:hover){
+ .isl,.hc .daily{transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease,border-color .18s ease}
+ .isl .ico svg{transition:transform .18s ease}.isl b{transition:color .18s ease}
+ .hl .isl{transform-origin:left center}.hrr .isl{transform-origin:right center}.hb .isl{transform-origin:center bottom}
+ .isl:hover{transform:scale(1.04);background:var(--surface-hover);border-color:var(--accent);box-shadow:0 14px 36px rgba(30,60,140,.24)}
+ .isl:hover b{color:var(--accent-text)}.isl:hover .ico svg{transform:scale(1.15)}
+ .hc .daily:hover{transform:scale(1.02);background:var(--daily-hover);border-color:var(--daily-hover);box-shadow:0 16px 40px rgba(30,60,140,.3)}
+ .daily button:hover{background:rgba(255,255,255,.18);border-color:#fff}.daily button.p:hover{background:#EAF1FF;color:var(--daily-hover)}
+}
+.isl:focus-visible,.isl:focus-within{border-color:var(--accent);background:var(--surface-hover)}
+@media(prefers-reduced-motion:reduce){.isl,.hc .daily,.isl .ico svg{transition:none!important;transform:none!important}}
 .desk{display:none!important}
 .hreset{grid-column:1/-1;text-align:center;margin:0;position:relative;z-index:1}
 @media(min-width:700px){.lead{font-size:48px}.isl b{font-size:17px}.isl .d{font-size:14px}.home{column-gap:24px}}
