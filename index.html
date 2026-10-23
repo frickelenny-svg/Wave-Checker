@@ -32,6 +32,12 @@ button:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
 svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .lab{font:600 11px "Bricolage Grotesque",system-ui,sans-serif;fill:var(--ink);text-anchor:middle}
 .daily{border:2px solid var(--up)}
+/* Kalender der Tagesaufgaben */
+.calh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.calh button{margin:0;padding:4px 14px;font-size:1.1rem}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal span{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;font-size:.9rem;line-height:1.1}
+.cal .wd{aspect-ratio:auto;font-size:.8rem;font-weight:600;color:var(--mut)}.cal i{font-style:normal;font-size:.8rem;font-weight:700}
+.cs{background:var(--up);color:var(--bg)}.cf{background:var(--dn);color:var(--bg)}.cn,.co{border:1px solid var(--line)}.cx{opacity:.35}.ct{outline:2px solid var(--ink);outline-offset:1px}
+.leg{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-left:8px}
 .badge{display:inline-block;font-size:.85rem;font-weight:700;padding:2px 10px;border-radius:999px;vertical-align:middle;background:var(--line);color:var(--ink)}
 .badge.r1{background:#C08A55;color:#2B1A0C}.badge.r2{background:#C3CCD3;color:#1F2A30}.badge.r3{background:#E3B84A;color:#2E2205}.badge.r4{background:#9BD8E3;color:#0F2E35} /* Bronze, Silber, Gold, Platin */
 #toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;pointer-events:none;z-index:60;background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:10px;font-weight:600;max-width:calc(100% - 32px);text-align:center;transition:.3s}#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
@@ -488,7 +494,7 @@ function pick(mode){
 }
 function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key):find(PAT[key])}
 // Hauptmenü-Button: erscheint, sobald ein Modus gestartet wird (pick, recognize, pickSub), und verschwindet im Hauptmenü
-['pick','recognize','pickSub','daily','ranks'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
+['pick','recognize','pickSub','daily','ranks','dailyCal'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
 {const h0=home;window.home=function(){$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
 $('#menu').onclick=()=>home();
 $('#home').onclick=()=>home();$('#home').onkeydown=e=>{if(e.key==='Enter')home()};
@@ -1003,7 +1009,7 @@ function daily(){
  if(o.day.done)return dailyResult(o,P,R,no);
  const D={P,R,no,tries:o.day.tries,tips:o.day.tips,
   save(){o.day.tries=D.tries;o.day.tips=D.tips;dSave(o)}, // Fehlversuche bleiben auch nach dem Neuladen gezählt
-  finish(r){Object.assign(o.day,{done:true,solved:r.solved,bonus:!!r.bonus,tries:D.tries,tips:r.tips});
+  finish(r){Object.assign(o.day,{done:true,solved:r.solved,bonus:!!r.bonus,tries:D.tries,tips:r.tips});o.hist=o.hist||{};o.hist[today]=r.solved?'s':'f'; // Verlauf für den Kalender
    if(r.solved){o.streak=o.last===addDays(today,-1)?(o.streak||0)+1:1;o.last=today}else o.streak=0;
    dSave(o);dailyResult(o,P,R,no)}};
  recogHard(D);
@@ -1013,8 +1019,8 @@ function dailyResult(o,P,R,no){const d=o.day,s=dStreak(o,d.date);
  $('#view').innerHTML='<div class="card daily"><h2>Tagesaufgabe #'+no+'</h2><p class="'+(d.solved?'ok':'bad')+'">'+(d.solved?'Gelöst im '+dAtt(d)+'. Versuch ✅':'Heute nicht gelöst ('+dAtt(d)+' Versuche)')+'</p>'+
   '<p>'+(d.solved?'Bonusfrage: '+(d.bonus?'richtig':'falsch')+' · ':'')+tipTxt(d.tips)+' · Tages-Serie: '+s+(s===1?' Tag':' Tage')+'</p>'+
   '<p><button class="p" id="share">Ergebnis teilen</button></p><p id="shareMsg" class="mut"></p><p>Nächste Aufgabe in <b id="cd">…</b></p></div>'+
-  '<p class="mut">Die Lösung im Chart:</p><div class="chart">'+draw(R,[],true,P.tri?R.piv:null)+'</div><p>Generiert wurde: <b>'+P.title+'</b>. '+P.recog+'</p>';
- $('#share').onclick=()=>shareResult(o,no);countdown(d.date);}
+  '<p class="mut">Die Lösung im Chart:</p><div class="chart">'+draw(R,[],true,P.tri?R.piv:null)+'</div><p>Generiert wurde: <b>'+P.title+'</b>. '+P.recog+'</p><div class="card" id="cal"></div>';
+  $('#share').onclick=()=>shareResult(o,no);countdown(d.date);calendar($('#cal'));}
 // Teilen-Text verrät das Muster nicht
 function shareText(o,no){const d=o.day,s=dStreak(o,d.date);
  return 'Wave Checker Tagesaufgabe #'+no+'\n'+(d.solved?'✅ im '+dAtt(d)+'. Versuch · Bonus '+(d.bonus?'✅':'❌'):'❌ nicht gelöst')+' · '+tipTxt(d.tips)+
@@ -1039,7 +1045,25 @@ function countdown(day){clearInterval(CD);
 function dailyCard(){const today=berlinDate(),o=dLoad(),d=o.day&&o.day.date===today?o.day:null,s=dStreak(o,today);
  return '<div class="card daily"><h2>Tagesaufgabe #'+dLabel(today)+'</h2><p class="mut">Jeden Tag ein Chart, für alle gleich: Zählweise wählen, Punkte setzen, Muster bestimmen. 3 Versuche.</p><p>'+
   (d&&d.done?(d.solved?'<span class="ok">Heute gelöst ✅</span>':'<span class="bad">Heute nicht gelöst</span>'):'<b>Heute noch offen</b>'+(d&&d.tries?' · '+d.tries+' von 3 Versuchen verbraucht':''))+
-  ' · Tages-Serie: '+s+(s===1?' Tag':' Tage')+'</p><button class="p" onclick="daily()">'+(d&&d.done?'Ergebnis ansehen':'Jetzt spielen')+'</button></div>'}
+  ' · Tages-Serie: '+s+(s===1?' Tag':' Tage')+'</p><button class="p" onclick="daily()">'+(d&&d.done?'Ergebnis ansehen':'Jetzt spielen')+'</button><button onclick="dailyCal()">Kalender</button></div>'}
+// Kalender der Tagesaufgaben: ein Monat, Wochen von Montag bis Sonntag, je Tag gelöst / nicht gelöst / nicht gespielt.
+// Verlauf in o.hist {Datum: 's'|'f'}; der heutige Tag kommt auch aus o.day (für Ergebnisse von vor dem Kalender).
+const MONATE=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],WTAGE=['Mo','Di','Mi','Do','Fr','Sa','So'];
+function dHist(o){const h={...(o.hist||{})};if(o.day&&o.day.done&&!h[o.day.date])h[o.day.date]=o.day.solved?'s':'f';
+ if(o.last&&!h[o.last])h[o.last]='s';return h}
+function calendar(el,y,m){const today=berlinDate(),h=dHist(dLoad());if(y===undefined){y=+today.slice(0,4);m=+today.slice(5,7)-1}
+ const p2=n=>String(n).padStart(2,'0'),first=(new Date(Date.UTC(y,m,1)).getUTCDay()+6)%7,days=new Date(Date.UTC(y,m+1,0)).getUTCDate(); // first: 0 = Montag
+ const ym=y*12+m,min=+DAY0.slice(0,4)*12+ +DAY0.slice(5,7)-1,max=+today.slice(0,4)*12+ +today.slice(5,7)-1;let ok=0,bad=0,cells='';
+ for(let i=0;i<first;i++)cells+='<span></span>';
+ for(let d=1;d<=days;d++){const s=y+'-'+p2(m+1)+'-'+p2(d),wd=WTAGE[(first+d-1)%7],v=h[s];let c,t;
+  if(s<DAY0){c='cx';t='vor dem Start der Tagesaufgabe'}else if(s>today){c='cx';t='kommt noch'}
+  else if(v==='s'){c='cs';t='gelöst';ok++}else if(v==='f'){c='cf';t='nicht gelöst';bad++}else if(s===today){c='co';t='heute, noch offen'}else{c='cn';t='nicht gespielt'}
+  cells+='<span class="'+c+(s===today?' ct':'')+'" title="'+wd+', '+p2(d)+'.'+p2(m+1)+'.'+y+': '+t+'">'+d+(v==='s'?'<i>✓</i>':v==='f'?'<i>✗</i>':'')+'</span>';}
+ el.innerHTML='<div class="calh"><button data-cm="-1" '+(ym<=min?'disabled':'')+' aria-label="Vormonat">‹</button><b>'+MONATE[m]+' '+y+'</b><button data-cm="1" '+(ym>=max?'disabled':'')+' aria-label="Nächster Monat">›</button></div>'+
+  '<div class="cal">'+WTAGE.map(w=>'<span class="wd">'+w+'</span>').join('')+cells+'</div>'+
+  '<p class="mut">'+ok+' gelöst · '+bad+' nicht gelöst in diesem Monat. <span class="leg cs"></span> gelöst <span class="leg cf"></span> nicht gelöst <span class="leg cn"></span> nicht gespielt</p>';
+ el.querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>{const n=ym+ +b.dataset.cm;calendar(el,Math.floor(n/12),n%12)});}
+function dailyCal(){$('#view').innerHTML='<h2>Kalender der Tagesaufgaben</h2><div class="card" id="cal"></div><p><button class="p" onclick="daily()">Zur Tagesaufgabe</button></p>';calendar($('#cal'));window.scrollTo(0,0)}
 // ---- 7) Lern-Quiz zum Regelwerk (im Lernbereich). Fragen: quiz/fragen.json, Quelle ausschließlich die Lernversion.
 // Runden mit 5 Fragen aus einer Kategorie oder gemischt. Pro Kategorie gespeichert: beantwortet, richtig, letzte 10
 // Ergebnisse (Grundlage für spätere Ränge). Falsch beantwortete Fragen kommen bevorzugt wieder, bis sie zweimal richtig waren.
