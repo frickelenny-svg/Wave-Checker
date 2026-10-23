@@ -32,6 +32,7 @@ button:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
 svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .lab{font:600 11px "Bricolage Grotesque",system-ui,sans-serif;fill:var(--ink);text-anchor:middle}
 .daily{border:2px solid var(--up)}
+.qa{display:block;width:100%;text-align:left;margin:8px 0}.qa:disabled{opacity:1;cursor:default}.qok{border:2px solid var(--up);color:var(--up);font-weight:600}.qbad{border:2px solid var(--dn);color:var(--dn)} /* Quiz-Antworten */
 .hr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}#learn{margin:0}
 /* Lernbereich: Text aus lernen/regelwerk-lernversion.md, am Handy ohne seitliches Scrollen */
 .learn{overflow-wrap:break-word}.learn h1{font-size:1.4rem;margin:12px 0 8px}.learn h2{margin:32px 0 8px;padding-top:12px;border-top:1px solid var(--line);scroll-margin-top:12px}
@@ -880,13 +881,17 @@ function findSub(key){
 const LMD='lernen/regelwerk-lernversion.md';
 // „Jetzt üben“ am Ende eines Kapitels: Anfang der Kapitelüberschrift (klein geschrieben) → Muster für „Chart durchzählen“
 const UEBEN=[['der impuls',['imp']],['das zigzag',['zig']],['die flats',['fr','fe','fru']],['dreiecke',['trk','tre']],['diagonalen',['dl','db','de']],['komplexe korrekturen',['dz','tz']]];
+// „Kapitel abfragen“: Anfang der Kapitelüberschrift → Quiz-Kategorie in quiz/fragen.json (gilt auch umgekehrt für „Kapitel lesen“)
+const QUIZKAP=[['grundbegriffe','Grundbegriffe & Fibonacci'],['der impuls','Impuls'],['das zigzag','Zigzag'],['die flats','Flats'],['dreiecke','Dreiecke'],['diagonalen','Diagonalen'],['komplexe korrekturen','Komplexe Korrekturen']];
 let LEARN=null; // gemerkte Ansicht (DOM-Knoten, Hauptmenü-Button, Scrollposition), zu der „Zurück“ führt
+let PEEK=null;  // Quiz-Ansicht, zu der „← Zurück zum Quiz“ führt, während man im Regelwerk nachliest
 const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>');
 function mdToHtml(md){
  const L=md.replace(/\r/g,'').split('\n'),out=[],toc=[];let i=0,chap=null,title='';
- const ueben=()=>{const e=chap&&UEBEN.find(([p])=>chap.toLowerCase().startsWith(p));
-  if(e)out.push('<p class="ueben">'+e[1].map(k=>'<button class="p" data-ueben="'+k+'" data-kap="lk-'+toc.length+'">Jetzt üben'+(e[1].length>1?': '+PAT[k].title:'')+'</button>').join('')+'</p>')};
+ const ueben=()=>{const e=chap&&UEBEN.find(([p])=>chap.toLowerCase().startsWith(p)),q=chap&&QUIZKAP.find(([p])=>chap.toLowerCase().startsWith(p));
+  if(e||q)out.push('<p class="ueben">'+(e?e[1].map(k=>'<button class="p" data-ueben="'+k+'" data-kap="lk-'+toc.length+'">Jetzt üben'+(e[1].length>1?': '+PAT[k].title:'')+'</button>').join(''):'')+
+   (q?'<button data-quiz="'+esc(q[1])+'">Kapitel abfragen</button>':'')+'</p>')};
  const isBlock=l=>/^(#{1,3} |\||!\[|- |\d+\. )/.test(l);
  while(i<L.length){const l=L[i];
   if(!l.trim()){i++;continue}
@@ -912,27 +917,43 @@ function mdToHtml(md){
  ueben();
  return{html:out.join(''),toc,title};
 }
-async function learn(kap){ // kap: Kapitel (lk-…), zu dem gesprungen wird
- if(LEARN){const k=kap&&$('#'+kap);return k?k.scrollIntoView():window.scrollTo(0,0)} // schon auf der Lernseite
- const v=$('#view'),f=document.createDocumentFragment();
+// Lernbereich betreten: die aktuelle Ansicht (z. B. ein laufender Modus) wird samt Zustand aufgehoben, nicht neu gestartet
+function enterLearn(){const v=$('#view'),f=document.createDocumentFragment();
  LEARN={f,menu:$('#menu').hidden,tolearn:$('#tolearn').hidden,y:window.scrollY};
- while(v.firstChild)f.appendChild(v.firstChild); // laufenden Modus samt Zustand aufheben, nicht neu starten
- $('#menu').hidden=$('#tolearn').hidden=true;v.innerHTML='<p class="mut">Lädt …</p>';window.scrollTo(0,0);
+ while(v.firstChild)f.appendChild(v.firstChild);}
+// kap: Kapitel-ID (lk-…) oder Abschnitt wie in quiz/fragen.json („Kapitel › Unterabschnitt“), zu dem gesprungen wird
+async function learn(kap){
+ if(LEARN&&$('.learn'))return jumpTo(kap); // Lernseite ist schon offen
+ if(!LEARN)enterLearn();
+ await showLearn(kap);
+}
+async function showLearn(kap){const v=$('#view');
+ $('#menu').hidden=$('#tolearn').hidden=true;closeZoom();v.innerHTML='<p class="mut">Lädt …</p>';window.scrollTo(0,0);
  let md;
  try{const r=await fetch(LMD,{cache:'no-cache'});if(!r.ok)throw new Error(r.status);md=await r.text()}
  catch(_){if(LEARN)v.innerHTML='<div class="card"><p class="bad">Die Lernseite konnte nicht geladen werden.</p><button class="p" onclick="learnBack()">← Zurück</button></div>';return}
  if(!LEARN)return; // inzwischen woandershin gewechselt
- const {html,toc,title}=mdToHtml(md);
- v.innerHTML='<div class="learn"><button onclick="learnBack()">← Zurück</button>'+title+'<nav class="card toc"><b>Inhalt</b><ol>'+
-  toc.map((t,j)=>'<li><a href="#lk-'+(j+1)+'" data-j="'+(j+1)+'">'+inl(t)+'</a></li>').join('')+'</ol></nav>'+html+
-  '<p><button onclick="learnBack()">← Zurück</button></p></div>';
+ const {html,toc,title}=mdToHtml(md),back='<button onclick="learnBack()">'+(PEEK?'← Zurück zum Quiz':'← Zurück')+'</button>';
+ v.innerHTML='<div class="learn">'+back+(PEEK?'':'<button class="p" onclick="quizMenu()">Quiz</button>')+title+'<nav class="card toc"><b>Inhalt</b><ol>'+
+  toc.map((t,j)=>'<li><a href="#lk-'+(j+1)+'" data-j="'+(j+1)+'">'+inl(t)+'</a></li>').join('')+'</ol></nav>'+html+'<p>'+back+'</p></div>';
  v.querySelectorAll('[data-j]').forEach(a=>a.onclick=e=>{e.preventDefault();$('#lk-'+a.dataset.j).scrollIntoView({behavior:'smooth'})});
  v.querySelectorAll('.learn figure img').forEach(im=>im.onclick=()=>zoom(im));
- const k=kap&&$('#'+kap);if(k)k.scrollIntoView(); // direkt zum Kapitel des Musters, von dem man kam
- v.querySelectorAll('[data-ueben]').forEach(b=>b.onclick=()=>{LEARN=null;$('#menu').hidden=false;$('#tolearn').hidden=false;$('#tolearn').dataset.kap=b.dataset.kap;window.scrollTo(0,0);count(PAT[b.dataset.ueben])});
+ jumpTo(kap); // z. B. direkt zum Kapitel des Musters, von dem man kam
+ v.querySelectorAll('[data-ueben]').forEach(b=>b.onclick=()=>{LEARN=PEEK=null;$('#menu').hidden=false;$('#tolearn').hidden=false;$('#tolearn').dataset.kap=b.dataset.kap;window.scrollTo(0,0);count(PAT[b.dataset.ueben])});
+ v.querySelectorAll('[data-quiz]').forEach(b=>b.onclick=()=>quizStart(b.dataset.quiz,true)); // „Kapitel abfragen“: ohne Lese-Hinweis
 }
+function jumpTo(kap){let el=kap&&document.getElementById(kap);
+ if(kap&&!el){const [c,sub]=kap.split(' › '),lc=c.toLowerCase();
+  el=[...document.querySelectorAll('.learn h2')].find(h=>h.textContent===c||h.textContent.toLowerCase().startsWith(lc));
+  if(el&&sub)for(let n=el.nextElementSibling;n&&n.tagName!=='H2';n=n.nextElementSibling)if(n.textContent.trim().startsWith(sub)){el=n;break}}
+ el?el.scrollIntoView():window.scrollTo(0,0);}
+// Aus dem Quiz kurz im Regelwerk nachlesen: Quiz-Ansicht aufheben, „← Zurück zum Quiz“ setzt sie wieder ein
+function peek(kap){const v=$('#view'),f=document.createDocumentFragment();while(v.firstChild)f.appendChild(v.firstChild);
+ PEEK={f,y:window.scrollY};showLearn(kap);}
 // Zurück dorthin, wo man vorher war (gemerkte Ansicht wieder einsetzen)
-function learnBack(){const s=LEARN;LEARN=null;closeZoom();
+function learnBack(){closeZoom();
+ if(PEEK){const p=PEEK;PEEK=null;const v=$('#view');v.innerHTML='';v.appendChild(p.f);window.scrollTo(0,p.y);return}
+ const s=LEARN;LEARN=null;
  if(!s)return home();
  const v=$('#view');v.innerHTML='';v.appendChild(s.f);$('#menu').hidden=s.menu;$('#tolearn').hidden=s.tolearn;window.scrollTo(0,s.y);}
 // Bild vergrößern: Vollbild mit Bildunterschrift, Tippen oder Escape schließt
@@ -1012,10 +1033,66 @@ function dailyCard(){const today=berlinDate(),o=dLoad(),d=o.day&&o.day.date===to
  return '<div class="card daily"><h2>Tagesaufgabe #'+dLabel(today)+'</h2><p class="mut">Jeden Tag ein Chart, für alle gleich: Zählweise wählen, Punkte setzen, Muster bestimmen. 3 Versuche.</p><p>'+
   (d&&d.done?(d.solved?'<span class="ok">Heute gelöst ✅</span>':'<span class="bad">Heute nicht gelöst</span>'):'<b>Heute noch offen</b>'+(d&&d.tries?' · '+d.tries+' von 3 Versuchen verbraucht':''))+
   ' · Tages-Serie: '+s+(s===1?' Tag':' Tage')+'</p><button class="p" onclick="daily()">'+(d&&d.done?'Ergebnis ansehen':'Jetzt spielen')+'</button></div>'}
+// ---- 7) Lern-Quiz zum Regelwerk (im Lernbereich). Fragen: quiz/fragen.json, Quelle ausschließlich die Lernversion.
+// Runden mit 5 Fragen aus einer Kategorie oder gemischt. Pro Kategorie gespeichert: beantwortet, richtig, letzte 10
+// Ergebnisse (Grundlage für spätere Ränge). Falsch beantwortete Fragen kommen bevorzugt wieder, bis sie zweimal richtig waren.
+const QKEY='waveChecker.quiz',QPTS=5; // Punkte je richtiger Antwort (gleiches Punktekonto wie die Spielmodi)
+let QZ=null; // geladene Fragen
+const qLoad=()=>{try{return JSON.parse(localStorage.getItem(QKEY))||{}}catch(_){return{}}}; // {cats:{Kategorie:{answered,correct,last:[1,0,…]}}, rep:{id:noch nötige richtige Antworten}, seen:{Kategorie:true}}
+const qSave=o=>{try{localStorage.setItem(QKEY,JSON.stringify(o))}catch(_){}};
+const QBEI={'Grundbegriffe & Fibonacci':'Bei den Grundbegriffen','Impuls':'Beim Impuls','Zigzag':'Beim Zigzag','Flats':'Bei den Flats','Dreiecke':'Bei Dreiecken','Diagonalen':'Bei Diagonalen','Komplexe Korrekturen':'Bei komplexen Korrekturen'};
+const qChap=cat=>(QUIZKAP.find(x=>x[1]===cat)||[])[0]; // Kapitel der Lernseite zu einer Kategorie
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+// Quiz läuft im Lernbereich: Lernbereich betreten (falls nötig) und Fragen laden
+async function qReady(){PEEK=null;closeZoom();if(!LEARN)enterLearn();$('#menu').hidden=$('#tolearn').hidden=true;window.scrollTo(0,0);
+ try{if(!QZ){const r=await fetch('quiz/fragen.json',{cache:'no-cache'});if(!r.ok)throw new Error(r.status);QZ=await r.json()}return true}
+ catch(_){$('#view').innerHTML='<div class="card"><p class="bad">Das Quiz konnte nicht geladen werden.</p><button onclick="showLearn()">← Zum Regelwerk</button></div>';return false}}
+async function quizMenu(){if(!await qReady())return;
+ const c=qLoad().cats||{},cats=[...new Set(QZ.map(q=>q.kategorie))];
+ $('#view').innerHTML='<div class="card"><h2>Quiz zum Regelwerk</h2><p class="mut">Runden mit 5 Fragen. Wähle ein Kapitel oder „Gemischt“.</p>'+
+  cats.map(k=>{const s=c[k];return '<p><button class="p" data-qc="'+esc(k)+'">'+esc(k)+'</button> <span class="mut">'+(s&&s.answered?s.correct+' von '+s.answered+' richtig':'noch nicht gespielt')+'</span></p>'}).join('')+
+  '<p><button class="p" data-qc="">Gemischt</button></p><p><button onclick="showLearn()">← Zum Regelwerk</button></p></div>';
+ document.querySelectorAll('[data-qc]').forEach(b=>b.onclick=()=>quizStart(b.dataset.qc||null));}
+// direct: von „Kapitel abfragen“ (man kommt gerade aus dem Kapitel), dann ohne Lese-Hinweis
+async function quizStart(cat,direct){if(!await qReady())return;
+ if(cat&&!direct&&!(qLoad().seen||{})[cat]){ // vor dem ersten Quiz einer Kategorie
+  $('#view').innerHTML='<div class="card"><h2>'+esc(cat)+'</h2><p>Lies zuerst das Kapitel, dann festigst du es im Quiz.</p><button class="p" id="qkap">Kapitel lesen</button><button class="p" id="qlos">Quiz starten</button><p><button onclick="quizMenu()">← Andere Kategorie</button></p></div>';
+  $('#qkap').onclick=()=>peek(qChap(cat));$('#qlos').onclick=()=>quizRound(cat);return}
+ quizRound(cat);}
+function quizRound(cat){const o=qLoad(),rep=o.rep||{};o.seen=o.seen||{};if(cat)o.seen[cat]=true;qSave(o);
+ const pool=QZ.filter(q=>!cat||q.kategorie===cat),due=shuffle(pool.filter(q=>rep[q.id])).slice(0,3); // Wiederholung: höchstens 3 je Runde
+ const qs=shuffle([...due,...shuffle(pool.filter(q=>!due.includes(q)))].slice(0,5));
+ quizAsk({cat,qs,i:0,res:[]});}
+function quizAsk(R){const q=R.qs[R.i],ord=q.typ==='mc'?shuffle(q.antworten.map((_,j)=>j)):q.antworten.map((_,j)=>j);let sel=null; // Multiple Choice: Antworten gemischt
+ const render=fb=>{const done=fb!==undefined;
+  $('#view').innerHTML='<p class="mut">Quiz · '+(R.cat?esc(R.cat):'Gemischt')+' · Frage '+(R.i+1)+' von '+R.qs.length+'</p><div class="card"><p><b>'+esc(q.frage)+'</b></p>'+
+   ord.map(j=>'<button class="qa'+(done?(j===q.richtig?' qok':j===sel?' qbad':''):sel===j?' on':'')+'" data-a="'+j+'" '+(done?'disabled':'')+'>'+esc(q.antworten[j])+'</button>').join('')+'</div>'+
+   (done?'<div class="card">'+fb+'</div>':'')+
+   '<div class="dock">'+(done?'<button class="p" id="qn">'+(R.i<R.qs.length-1?'Weiter':'Runde auswerten')+'</button>':'<button class="p" id="qg" '+(sel===null?'disabled':'')+'>Antworten</button>')+'</div>';
+  if(done){$('#qr').onclick=e=>{e.preventDefault();peek(q.abschnitt)};$('#qn').onclick=()=>{R.i++;R.i<R.qs.length?quizAsk(R):quizEnd(R)};return}
+  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{sel=+b.dataset.a;render()});
+  $('#qg').onclick=()=>{const ok=sel===q.richtig,o=qLoad();o.cats=o.cats||{};o.rep=o.rep||{};
+   const c=o.cats[q.kategorie]=o.cats[q.kategorie]||{answered:0,correct:0,last:[]};
+   c.answered++;if(ok)c.correct++;c.last=c.last.concat(ok?1:0).slice(-10);
+   if(!ok)o.rep[q.id]=2;else if(o.rep[q.id]&&!--o.rep[q.id])delete o.rep[q.id]; // bis zweimal richtig beantwortet
+   qSave(o);if(ok){st.streak++;st.pts+=QPTS}else st.streak=0;stats();R.res.push({q,ok});
+   render((ok?'<p class="ok">Richtig! +'+QPTS+' Punkte</p>':'<p class="bad">Leider falsch.</p><p>'+(q.typ==='rf'?'Die Aussage ist <b>'+esc(q.antworten[q.richtig]).toLowerCase()+'</b>.':'Richtig ist: <b>'+esc(q.antworten[q.richtig])+'</b>')+'</p>')+
+    '<p>'+esc(q.erklaerung)+'</p><p><a href="#" id="qr">Im Regelwerk nachlesen</a></p>');};
+ };
+ render();window.scrollTo(0,0);}
+// Rundenende. Schwäche: 2 Fehler einer Kategorie in dieser Runde oder unter 60 % in den letzten 10 Antworten (ab 5 Antworten)
+function quizEnd(R){const o=qLoad(),n=R.res.filter(x=>x.ok).length,wrong={};
+ R.res.forEach(x=>{if(!x.ok)wrong[x.q.kategorie]=(wrong[x.q.kategorie]||0)+1});
+ const weak=[...new Set(R.res.map(x=>x.q.kategorie))].find(k=>{const l=((o.cats||{})[k]||{}).last||[];return (wrong[k]||0)>=2||(l.length>=5&&l.reduce((a,b)=>a+b,0)/l.length<.6)});
+ $('#view').innerHTML='<div class="card"><h2>Runde geschafft</h2><p class="'+(n>=4?'ok':'')+'">'+n+' von '+R.res.length+' richtig · +'+n*QPTS+' Punkte</p></div>'+
+  (weak?'<div class="card daily"><p><b>'+(QBEI[weak]||'Bei '+esc(weak))+' hakt es noch.</b> Lies das Kapitel nochmal, dann probier es erneut.</p><button class="p" id="qk">Zum Kapitel</button><button class="p" id="qw">Wiederholungsrunde</button></div>':'')+
+  '<p><button class="p" id="qnr">Neue Runde</button><button onclick="quizMenu()">Andere Kategorie</button><button onclick="showLearn()">← Zum Regelwerk</button></p>';
+ if(weak){$('#qk').onclick=()=>peek(qChap(weak));$('#qw').onclick=()=>quizRound(weak)}
+ $('#qnr').onclick=()=>quizRound(R.cat);window.scrollTo(0,0);}
 $('#learn').onclick=()=>learn();
 // „← Zurück zum Regelwerk“: nur sichtbar, wenn man über „Jetzt üben“ in „Chart durchzählen“ gekommen ist
 $('#tolearn').onclick=()=>learn($('#tolearn').dataset.kap);
-{const h1=window.home;window.home=function(){LEARN=null;$('#tolearn').hidden=true;return h1.apply(this,arguments)}} // Hauptmenü verlässt Lernseite und „Jetzt üben“ endgültig
+{const h1=window.home;window.home=function(){LEARN=PEEK=null;$('#tolearn').hidden=true;return h1.apply(this,arguments)}} // Hauptmenü verlässt Lernseite und „Jetzt üben“ endgültig
 stats();home();
 </script>
 </body>
