@@ -472,7 +472,7 @@ const saveProgress=()=>{try{localStorage.setItem(SAVE,JSON.stringify({pts:st.pts
 const $=q=>document.querySelector(q);
 function stats(){saveProgress();const lv=Math.floor(st.pts/50)+1;$('#lv').textContent=lv;$('#pt').textContent=st.pts;$('#sr').textContent=st.streak;$('#pb').style.width=(st.pts%50)*2+'%';}
 function home(){
- $('#view').innerHTML=dailyCard()+'<p><button onclick="ranks()">Meine Ränge</button></p><p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist: normal per Auswahl oder schwer durch eigenes Zählen.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div><p id="rs" style="text-align:center;margin-top:28px">'+RSBTN+'</p>';
+ $('#view').innerHTML=dailyCard()+'<p><button onclick="ranks()">Meine Ränge</button></p><p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist: normal per Auswahl oder schwer durch eigenes Zählen.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div><div class="card"><h2>Wie geht es weiter?</h2><p class="mut">Der Chart bricht ab. Plane die fehlenden Wellen regelkonform: erst den Charakter, dann die Subwellen. Punkte gibt es für regelkonformes Planen, nicht fürs Raten.</p><button class="p" onclick="progn(\'imp\')">Impuls</button><button class="p" onclick="progn(\'zig\')">Zigzag</button></div><p id="rs" style="text-align:center;margin-top:28px">'+RSBTN+'</p>';
 }
 // Fortschritt zurücksetzen: unauffälliger Button, Sicherheitsabfrage direkt auf der Seite (kein Browser-Popup)
 const RSBTN='<button class="mut" style="border-color:var(--line);font-size:.85rem" onclick="resetAsk()">Fortschritt zurücksetzen</button>';
@@ -494,7 +494,7 @@ function pick(mode){
 }
 function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key):find(PAT[key])}
 // Hauptmenü-Button: erscheint, sobald ein Modus gestartet wird (pick, recognize, pickSub), und verschwindet im Hauptmenü
-['pick','recognize','pickSub','daily','ranks','dailyCal'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
+['pick','recognize','pickSub','daily','ranks','dailyCal','progn'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
 {const h0=home;window.home=function(){$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
 $('#menu').onclick=()=>home();
 $('#home').onclick=()=>home();$('#home').onkeydown=e=>{if(e.key==='Enter')home()};
@@ -823,6 +823,124 @@ function sub(key){
  render();
 }
 
+// Modus 6: „Wie geht es weiter?“ (Prognose-Training). Der Chart ist nach einer Welle abgeschnitten, der Rest wird regelkonform
+// geplant: je fehlende Welle erst der Charakter (impulsiv 5 / korrektiv 3), dann ihre Subwellen-Punkte in der grauen Zukunftszone.
+// Geprüft wird nur nach dem Regelwerk: Charakter (IMP-4, W2-1/W4-1 bzw. ZZ-1/ZZ-2), harte Regeln des Musters für die ganze Zählung,
+// Impulsregeln für fünfteilige Subwellen, nur die Richtung für dreiteilige (wie „Subwellen zählen“).
+// Bewusst noch nicht: Welle 5 oder C als Diagonale, Welle 4 als Dreieck.
+const PG={imp:{cuts:[2,3,4],five:[1,0,1,0,1]},zig:{cuts:[2],five:[1,0,1]}}; // five: 1 = Welle impulsiv (fünfteilig)
+const PGH=400; // Höhe des Charts in diesem Modus (mehr Platz nach oben und unten zum Planen)
+function progn(key){
+ const P=PAT[key],IM=PAT.imp,R=makeSubRound(P),cut=PG[key].cuts[Math.floor(Math.random()*PG[key].cuts.length)],c0=R.mp[cut],ZE=2*c0,N=R.pr.length-1;
+ const waves=[];for(let k=cut+1;k<=P.waves.length;k++)waves.push(k); // fehlende Hauptwellen (1 = erste Welle)
+ // Preisbereich: sichtbarer Teil mit viel Rand zum Planen, dazu der echte Verlauf (für den Vergleich)
+ const vis=R.pr.slice(0,c0+1),vlo=Math.min(...vis),vhi=Math.max(...vis),rg=vhi-vlo,lo=Math.min(vlo-.6*rg,...R.pr),hi=Math.max(vhi+.6*rg,...R.pr);
+ const DXp=660/ZE,X=j=>X0+j*DXp,Y=p=>30+(hi-p)/(hi-lo)*(PGH-60),Pof=y=>hi-(y-30)/(PGH-60)*(hi-lo); // Zukunftszone so breit wie der sichtbare Teil
+ const m={ch:{},pts:[],tips:0,failed:false,done:false,chErr:false,shown:false,zones:[],noted:false};
+ const segs=()=>{let o=0;return waves.filter(k=>m.ch[k]).map(k=>{const n=m.ch[k],g={k,n,pts:m.pts.slice(o,o+n)};o+=n;return g})};
+ const cur=()=>{for(const g of segs())if(g.pts.length<g.n)return{k:g.k,n:g.n,have:g.pts.length};const k=waves.find(k=>!m.ch[k]);return k?{k,needChar:true}:null};
+ const subL=(n,j)=>n===5?'('+(j+1)+')':'('+'abc'[j]+')';
+ const mainP=()=>R.mp.slice(0,cut+1).map(i=>R.pr[i]).concat(segs().map(g=>g.pts[g.n-1].p)); // Hauptpunkte: echt + gezeichnet
+ const pic=()=>{let s='<svg id="svg" viewBox="0 0 '+W+' '+PGH+'" role="img" aria-label="Preischart mit Zukunftszone">';
+  s+='<rect x="'+X(c0)+'" y="0" width="'+(X(ZE)-X(c0))+'" height="'+PGH+'" fill="var(--line)" opacity=".35"/>';
+  for(let g=0;g<8;g++)s+='<line x1="0" x2="'+W+'" y1="'+(20+g*50)+'" y2="'+(20+g*50)+'" stroke="var(--line)" stroke-width=".6"/>';
+  m.zones.forEach(z=>{const y1=Y(Math.max(z.a,z.b)),y2=Y(Math.min(z.a,z.b)); // verbotene Zone: hier wäre die Zählung ungültig
+   s+='<rect x="'+X(z.x1)+'" y="'+y1+'" width="'+Math.max(4,X(z.x2)-X(z.x1))+'" height="'+(y2-y1)+'" fill="var(--dn)" opacity=".18"/><text class="lab" style="fill:var(--dn);font-size:12px;text-anchor:start" x="'+(X(z.x1)+4)+'" y="'+(z.top?y1+15:y2-6)+'">'+z.t+'</text>'});
+  s+='<polyline fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round" points="'+vis.map((p,i)=>X(i)+','+Y(p)).join(' ')+'"/>';
+  if(m.shown){const sx=j=>c0+(j-c0)*(ZE-c0)/(N-c0); // echter Rest, zeitlich auf die Zone angepasst
+   s+='<polyline fill="none" stroke="var(--mut)" stroke-width="1.4" stroke-linejoin="round" points="'+R.pr.slice(c0).map((p,i)=>X(sx(c0+i))+','+Y(p)).join(' ')+'"/>';
+   for(let k=cut+1;k<R.mp.length;k++){const i=R.mp[k];
+    s+='<text class="lab" style="fill:var(--mut)" x="'+X(sx(i))+'" y="'+(Y(R.pr[i])+(R.pr[i]>=R.pr[R.mp[k-1]]?-8:16))+'">'+P.labels[k]+'</text>'}}
+  for(let k=0;k<=cut;k++){const i=R.mp[k],p=R.pr[i],upk=k===0?p<=R.pr[R.mp[1]]?false:true:p>=R.pr[R.mp[k-1]];
+   s+='<text class="lab" x="'+X(i)+'" y="'+(Y(p)+(upk?-8:16))+'">'+P.labels[k]+'</text>'}
+  const all=[{x:c0,p:R.pr[c0]}].concat(m.pts);
+  if(m.pts.length)s+='<polyline fill="none" stroke="var(--up)" stroke-width="2" stroke-dasharray="6 4" points="'+all.map(q=>X(q.x)+','+Y(q.p)).join(' ')+'"/>';
+  let j=0;segs().forEach(g=>g.pts.forEach((q,t)=>{j++;const prv=all[j-1],nx=all[j+1],up=q.p>=prv.p&&(!nx||q.p>=nx.p)||(!nx&&q.p>=prv.p);
+   s+='<circle cx="'+X(q.x)+'" cy="'+Y(q.p)+'" r="4" fill="var(--up)"/><text class="lab" style="font-size:12px" x="'+X(q.x)+'" y="'+(Y(q.p)+(up?-8:17))+'">'+subL(g.n,t)+'</text>';
+   if(t===g.n-1)s+='<text class="lab" x="'+X(q.x)+'" y="'+(Y(q.p)+(up?-22:31))+'">'+P.labels[g.k]+'</text>';})); // letzter Subpunkt = Ende der Hauptwelle (zwei Beschriftungen)
+  return s+'</svg>';};
+ const render=fb=>{const cu=cur(),wn=k=>P.waves[k-1];
+  $('#view').innerHTML='<p class="mut">'+P.title+': Wie geht es weiter? Plane die fehlenden Wellen in der grauen Zone. '+
+   (m.done?'':cu?(cu.needChar?'<b>Welche Art hat Welle '+wn(cu.k)+'?</b>':'Welle '+wn(cu.k)+': Nächster Punkt <b>'+subL(cu.n,cu.have)+(cu.have===cu.n-1?' = '+wn(cu.k):'')+'</b>. Punkte kannst du anfassen und verschieben.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
+   '<div class="chart">'+pic()+'</div>'+
+   (cu&&cu.needChar&&!m.done?'<div class="card"><b>Charakter von Welle '+wn(cu.k)+'</b><br><button class="p" data-ch="5">Impulsiv (5 Wellen)</button><button class="p" data-ch="3">Korrektiv (3 Wellen)</button></div>':'')+
+   '<div>'+(m.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
+    '<button class="p" id="chk" '+(cu?'disabled':'')+'>Prüfen</button><button id="und">Zurück</button><button id="rst">Neu setzen</button>')+'</div>'+
+   '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
+  if(m.done){$('#real').onclick=()=>{m.shown=true;render(fb+'<p class="mut">Grau: der tatsächliche Verlauf, zeitlich an die Zone angepasst. Nur zum Vergleich: Punkte gibt es für regelkonformes Planen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(key);return}
+  document.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{m.ch[cu.k]=+b.dataset.ch;render()});
+  $('#und').onclick=()=>{const g=segs().pop();if(!g)return;if(g.pts.length)m.pts.pop();else delete m.ch[g.k];m.zones=[];render()};
+  $('#rst').onclick=()=>{m.ch={};m.pts=[];m.zones=[];render()};
+  $('#chk').onclick=verify;
+  const svg=$('#svg');svg.style.touchAction='none';
+  svg.onpointerdown=e=>{e.preventDefault();
+   const b=svg.getBoundingClientRect(),sc=b.width/W,px=(e.clientX-b.left)/sc,py=(e.clientY-b.top)/sc,c=cur(),xc=(px-X0)/DXp,last=m.pts.length?m.pts[m.pts.length-1].x:c0;
+   // Am Handy liegen die Punkte eng: Ein Tipp rechts vom letzten Punkt setzt immer einen neuen Punkt (solange einer fehlt),
+   // ein Tipp links davon greift den nächstgelegenen Punkt zum Verschieben.
+   let k=-1,best=1e9;
+   if(!(c&&!c.needChar&&xc>last+.3))m.pts.forEach((q,j)=>{const d=Math.hypot(X(q.x)-px,Y(q.p)-py);if(d<best){best=d;k=j}});
+   if(k>=0){const mv=ev=>{const r=svg.getBoundingClientRect(),s2=r.width/W,x=((ev.clientX-r.left)/s2-X0)/DXp,y=(ev.clientY-r.top)/s2;
+     const lo2=(k?m.pts[k-1].x:c0)+.3,hi2=k<m.pts.length-1?m.pts[k+1].x-.3:ZE; // Punkte bleiben zeitlich in Reihenfolge
+     m.pts[k]={x:Math.max(lo2,Math.min(hi2,x)),p:Pof(Math.max(20,Math.min(PGH-20,y)))};redraw(svg,pic());};
+    m.zones=[];startDrag(svg,e,mv,()=>render());
+   }else if(c&&!c.needChar){const x=(px-X0)/DXp,last=m.pts.length?m.pts[m.pts.length-1].x:c0;
+    if(x<=last+.3||x>ZE)return render('<span class="warn">Setze den Punkt in die graue Zone, rechts vom vorherigen Punkt.</span>');
+    m.pts.push({x,p:Pof(py)});m.zones=[];render();}};
+ };
+ const fail=()=>{m.failed=true;if(st.streak)st.streak=0,stats()};
+ const note=()=>{if(m.noted)return'';m.noted=true;return'<p class="mut">Diagonalen und Dreiecke als Teilwellen kommen in einer späteren Stufe.</p>'};
+ // Welche Bereiche wären für die gezeichneten Wellen ungültig? (nur harte Regeln: IMP-3, IMP-2, ZZ-3)
+ const zones=(v,mp,gs)=>{const s=P.sign(mp),p0=mp[0],z=[],span=k=>{const g=gs.find(x=>x.k===k);if(!g)return null;const st=k-1>cut?gs.find(x=>x.k===k-1).pts.slice(-1)[0].x:c0;return[st,g.pts[g.n-1].x,g]};
+  const band=(price,beyond,x1,x2,t)=>{const top=s*beyond>0;z.push({a:price,b:top?hi:lo,x1,x2,t,top})}; // beyond: Richtung (im normierten Maß), in die es ungültig wird
+  const t='Hier wäre die Zählung ungültig';
+  if(key==='imp'){const w4=span(4);if(w4)band(mp[1],-1,w4[0],w4[1],t); // IMP-3: Welle 4 nicht ins Gebiet von Welle 1
+   const w5=span(5);if(w5&&L(v,3)<L(v,1))band(p0+s*(v[4]+L(v,3)),1,w5[0],w5[1],t);} // IMP-2: Welle 5 nicht länger als Welle 3
+  else{const wc=span(3);if(wc){const g=wc[2],x1=g.n>1?g.pts[g.n-2].x:wc[0];band(mp[1],1,x1,wc[1],'Ende von C hier ungültig')}} // ZZ-3
+  return z};
+ // Faustregeln und Warnsignale für die gezeichneten Wellen (nur Hinweise, kein Fehler)
+ const hints=(v,gs)=>{const out=[];let inR=true,pc=x=>pct(x);
+  const fr=(ok,txt)=>{if(!ok){inR=false;out.push('<p class="mut">'+txt+'</p>')}};
+  gs.forEach(g=>{const k=g.k;
+   if(key==='imp'&&k===3){const r=L(v,3)/L(v,1);if(r<1.236)out.push('<p class="warn">Warnsignal: Welle 3 erreicht nur '+pc(r)+' von Welle 1, sie sollte mindestens 123,6 % erreichen.</p>');
+    fr(r>=1.618-.02&&r<=2.618+.02,'Welle 3 erreicht '+pc(r)+' von Welle 1. Am häufigsten sind 161,8 % bis 261,8 % (Faustregel).')}
+   if(key==='imp'&&k===4){const r=L(v,4)/L(v,3);fr(r>=.382-.02&&r<=.5+.02,'Welle 4 läuft '+pc(r)+' von Welle 3 zurück. Am häufigsten sind 38,2 % oder 50 % (Faustregel).')}
+   if(key==='imp'&&k===5){const r=L(v,5)/Math.abs(v[3]-v[0]);if(r<.382)out.push('<p class="warn">Warnsignal: Welle 5 erreicht nur '+pc(r)+' (gemessen über Start von Welle 1 bis Ende von Welle 3), sie sollte mindestens 38,2 % erreichen.</p>');
+    fr(r>=.618-.02&&r<=2.618+.02,'Welle 5 erreicht '+pc(r)+' (gemessen über Start von Welle 1 bis Ende von Welle 3). Am häufigsten sind 61,8 % bis 261,8 % (Faustregel).')}
+   if(key==='zig'&&k===3){const r=L(v,3)/L(v,1);fr(r>=.618-.02&&r<=1.618+.02,'Welle C erreicht '+pc(r)+' von Welle A. Üblich sind 61,8 % bis 161,8 %, am häufigsten 100 % (Faustregel).')}});
+  return{html:out.join(''),inR}};
+ // Planungs-Hinweis für Regeln, die erst mit der ganzen Zählung prüfbar sind (IMP-2)
+ const plan=v=>key==='imp'&&waves.includes(5)&&L(v,3)<L(v,1)?'<p>Weil Welle 3 kürzer als Welle 1 ist, darf Welle 5 nicht länger als Welle 3 werden (Welle 3 ist nie die kürzeste).</p>':'';
+ const tipUI=x=>{const lines=['Die Planung ist noch nicht regelkonform.'],w=x.g?P.waves[x.g.k-1]:'';let r,id,src,extra='';
+  if(x.kind==='char'){const five=PG[key].five[x.g.k-1];
+   if(m.tips>=1)lines.push('Tipp 1: '+(key==='imp'?'Welle '+w+(five?' verläuft in Trendrichtung.':' läuft gegen den Trend.'):'Welle C verläuft wie Welle A in Richtung der Korrektur.')+' Welchen Charakter hat sie?');
+   if(m.tips>=2)lines.push('Tipp 2: '+(key==='imp'?'Welle 1, 3 und 5 sind impulsiv (fünfteilig), Welle 2 und 4 korrektiv (dreiteilig).':'Beim Zigzag sind A und C impulsiv fünfteilig, B ist dreiteilig.'));
+   if(m.tips>=3)lines.push('Tipp 3: '+(key==='imp'?'Buch S.38':'Buch S.42')+'. Welle '+w+' ist '+(five?'impulsiv (5 Wellen).':'korrektiv (3 Wellen).'));
+   extra='<button class="p" id="redo">Welle '+w+' neu zeichnen</button>';
+  }else{const IMr=x.kind==='sub';r=(IMr?IM:P).rules[x.id];
+   if(m.tips>=1)lines.push('Tipp 1: '+(IMr?'In den Subwellen von Welle '+w+': ':'')+r.hint);
+   if(m.tips>=2)lines.push('Tipp 2: Es geht um die Regel „'+r.name+'“.');
+   if(m.tips>=3)lines.push('Tipp 3: '+tag(IMr?IM:P,x.id)+'. '+r.ex);}
+  render('<p class="bad">Noch nicht ganz.</p>'+lines.map(t=>'<p>'+t+'</p>').join('')+(x.plan||'')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':'')+extra+note());
+  const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipUI(x)};
+  const rd=$('#redo');if(rd)rd.onclick=()=>{const gs=segs(),i=gs.findIndex(g=>g.k===x.g.k),keep=gs.slice(0,i).reduce((a,g)=>a+g.n,0); // diese und alle späteren Wellen neu
+   gs.slice(i).forEach(g=>delete m.ch[g.k]);m.pts=m.pts.slice(0,keep);m.zones=[];render()};
+ };
+ const verify=()=>{const gs=segs(),mp=mainP(),v=norm(P,mp);
+  m.zones=zones(v,mp,gs);
+  const wc=gs.find(g=>g.n!==(PG[key].five[g.k-1]?5:3)); // 1) Charakter der Wellen
+  if(wc){m.chErr=true;fail();m.zones=[];return tipUI({kind:'char',g:wc})}
+  if(P.struct&&!P.struct(v)){fail();return render('<p class="bad">Noch nicht ganz.</p><p>'+P.structMsg+'</p>'+note())} // 2) Hauptwellen
+  const f=hardFails(P,v);if(f.length){fail();return tipUI({kind:'main',id:f[0],plan:plan(v)})}
+  for(const g of gs){const p0=mp[g.k-1],ps=[p0].concat(g.pts.map(q=>q.p)),sg=Math.sign(ps[ps.length-1]-p0)||1,u=ps.map(p=>sg*(p-p0)); // 3) Subwellen, in Richtung der Welle gemessen
+   if(g.n===5){const ff=hardFails(IM,u);if(ff.length){fail();return tipUI({kind:'sub',g,id:ff[0]})}}
+   else if(!(u[1]>u[0]&&u[2]<u[1]&&u[3]>u[2])){fail();return render('<p class="bad">Noch nicht ganz.</p><p>Welle '+P.waves[g.k-1]+' ist dreiteilig: (a) läuft in Richtung der Welle, (b) dagegen und (c) wieder in Richtung der Welle. Prüfe die Richtung deiner Punkte.</p>'+note())}}
+  const h=hints(v,gs),gain=Math.max(4,10-3*m.tips)-(m.failed?2:0),bF=h.inR?5:0,bC=m.chErr?0:5;
+  m.done=true;if(!m.failed)st.streak++;st.pts+=gain+bF+bC;stats();exSolved(key,m.tips); // zählt für die Ränge
+  render('<p class="ok">Regelkonform! +'+gain+' Punkte</p>'+(bF?'<p class="ok">Bonus +5: Alle gezeichneten Wellen liegen in den Faustregel-Bereichen.</p>':'')+(bC?'<p class="ok">Bonus +5: Charakter aller Wellen beim ersten Versuch richtig.</p>':'')+
+   h.html+plan(v)+(m.zones.length?'<p class="mut">Rot: Bereiche, in denen die Zählung ungültig wäre.</p>':'')+note());
+ };
+ render();
+}
 // Modus 5 (Fehler finden für Impuls, Zigzag und Flats): Alle Haupt- und Subpunkte sind beschriftet, genau ein Verstoß steckt im Count.
 // Der Fehler liegt entweder auf Hauptebene (Regeln des Musters) oder in der Teilstruktur einer Welle: falsche Teilzahl (5 statt 3 oder umgekehrt)
 // oder eine fünfteilige Welle verletzt IMP-1 bis IMP-3 in ihren Subwellen. Nach der Wahl der Welle zeigt die App nur die Regeln, die diese Welle betreffen.
@@ -902,7 +1020,7 @@ function mdToHtml(md){
  const L=md.replace(/\r/g,'').split('\n'),out=[],toc=[];let i=0,chap=null,title='';
  const ueben=()=>{const e=chap&&UEBEN.find(([p])=>chap.toLowerCase().startsWith(p)),q=chap&&QUIZKAP.find(([p])=>chap.toLowerCase().startsWith(p));
   if(e||q)out.push('<p class="ueben">'+(e?e[1].map(k=>'<button class="p" data-ueben="'+k+'" data-kap="lk-'+toc.length+'">Jetzt üben'+(e[1].length>1?': '+PAT[k].title:'')+'</button>').join(''):'')+
-   (q?'<button data-quiz="'+esc(q[1])+'">Kapitel abfragen</button>':'')+'</p>')};
+   (e&&PG[e[1][0]]?'<button class="p" data-progn="'+e[1][0]+'" data-kap="lk-'+toc.length+'">Prognose üben</button>':'')+(q?'<button data-quiz="'+esc(q[1])+'">Kapitel abfragen</button>':'')+'</p>')};
  const isBlock=l=>/^(#{1,3} |\||!\[|- |\d+\. )/.test(l);
  while(i<L.length){const l=L[i];
   if(!l.trim()){i++;continue}
@@ -951,7 +1069,8 @@ async function showLearn(kap){const v=$('#view');
  v.querySelectorAll('.learn figure img').forEach(im=>im.onclick=()=>zoom(im));
  jumpTo(kap); // z. B. direkt zum Kapitel des Musters, von dem man kam
  v.querySelectorAll('[data-ueben]').forEach(b=>b.onclick=()=>{LEARN=PEEK=null;$('#menu').hidden=false;$('#tolearn').hidden=false;$('#tolearn').dataset.kap=b.dataset.kap;window.scrollTo(0,0);count(PAT[b.dataset.ueben])});
- v.querySelectorAll('[data-quiz]').forEach(b=>b.onclick=()=>quizStart(b.dataset.quiz,true)); // „Kapitel abfragen“: ohne Lese-Hinweis
+ v.querySelectorAll('[data-quiz]').forEach(b=>b.onclick=()=>quizStart(b.dataset.quiz,true));
+ v.querySelectorAll('[data-progn]').forEach(b=>b.onclick=()=>{LEARN=PEEK=null;$('#menu').hidden=false;$('#tolearn').hidden=false;$('#tolearn').dataset.kap=b.dataset.kap;window.scrollTo(0,0);progn(b.dataset.progn)}); // „Kapitel abfragen“: ohne Lese-Hinweis
 }
 function jumpTo(kap){let el=kap&&document.getElementById(kap);
  if(kap&&!el){const [c,sub]=kap.split(' › '),lc=c.toLowerCase();
