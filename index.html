@@ -1005,12 +1005,16 @@ function blitz(opt){
   m.minDur=Math.min(m.minDur,m.dur);
   setTimeout(()=>{if(!alive())return;if(++m.i<BZN)show();else end()},1000); // Rückmeldung höchstens 1 Sekunde
  };
- const end=()=>{const o=bzLoad();o.best=o.best||{};const b=o.best[opt.id],acc=m.ok/BZN,avg=m.times.reduce((a,c)=>a+c,0)/m.times.length,isBest=!b||m.pts>b.pts;
-  if(isBest){o.best[opt.id]={pts:m.pts,acc,minDur:m.minDur};bzSave(o);if(b)toast('Neue Bestleistung: '+m.pts+' Punkte! 🎉')}
+ // Bestleistung: zuerst die Zahl der richtigen Antworten, bei gleicher Zahl entscheiden die Punkte (also das Tempo)
+ const end=()=>{const o=bzLoad();o.best=o.best||{};const b=o.best[opt.id],acc=m.ok/BZN,avg=m.times.reduce((a,c)=>a+c,0)/m.times.length,
+   bOk=b?(b.ok!==undefined?b.ok:Math.round(b.acc*BZN)):0,more=!b||m.ok>bOk,faster=b&&m.ok===bOk&&m.pts>b.pts,isBest=more||faster;
+  const bestTxt=!b?'Deine erste Bestleistung in „'+esc(opt.name)+'“.':more?'🎉 Neue Bestleistung: '+m.ok+' von '+BZN+' richtig (vorher '+bOk+').':
+   faster?'🎉 Neue Bestleistung: gleich viele richtig, aber schneller ('+m.pts+' statt '+b.pts+' Punkte).':'Bestleistung „'+esc(opt.name)+'“: '+bOk+' von '+BZN+' richtig, '+b.pts+' Punkte.';
+  if(isBest){o.best[opt.id]={ok:m.ok,pts:m.pts,acc,minDur:m.minDur};bzSave(o);if(b)toast(bestTxt)}
   const kap=k=>(UEBEN.find(e=>e[1].includes(k))||[])[0],list=Object.entries(m.conf).sort((a,c)=>c[1].n-a[1].n);
   $('#view').innerHTML='<div class="card"><h2>Blitz-Runde geschafft</h2><p class="'+(acc>=.8?'ok':'')+'">'+m.ok+' von '+BZN+' richtig ('+Math.round(acc*100)+' %) · +'+m.pts+' Punkte</p>'+
    '<p>Durchschnittliche Antwortzeit: '+avg.toFixed(1).replace('.',',')+' s · Kürzeste Anzeigedauer: '+String(m.minDur).replace('.',',')+' s</p>'+
-   '<p class="mut">'+(isBest?(b?'🎉 Neue Bestleistung!':'Deine erste Bestleistung in „'+esc(opt.name)+'“.'):'Bestleistung „'+esc(opt.name)+'“: '+b.pts+' Punkte.')+'</p></div>'+
+   '<p class="'+(isBest&&b?'ok':'mut')+'">'+bestTxt+'</p></div>'+
    (list.length?'<div class="card"><b>Verwechselt</b>'+list.map(([c,v])=>'<p>'+c+': '+v.n+'× '+(kap(v.k)?'<a href="#" class="qlink" data-kap="'+kap(v.k)+'">Kapitel lesen →</a>':'')+'</p>').join('')+'</div>':'')+
    '<p><button class="p" id="bzagain">Neue Runde</button><button onclick="home()">Hauptmenü</button></p>';
   document.querySelectorAll('[data-kap]').forEach(a=>a.onclick=e=>{e.preventDefault();learn(a.dataset.kap)});
@@ -1018,7 +1022,7 @@ function blitz(opt){
  window.scrollTo(0,0);show();
 }
 // Karte im Hauptmenü mit den Bestleistungen
-function bzCard(){const b=bzLoad().best||{},t=k=>b[k]?b[k].pts+' Punkte':'noch keine';
+function bzCard(){const b=bzLoad().best||{},t=k=>b[k]?(b[k].ok!==undefined?b[k].ok:Math.round(b[k].acc*BZN))+'/'+BZN+' richtig, '+b[k].pts+' Punkte':'noch keine';
  return '<div class="card"><h2>Blitz-Erkennen</h2><p class="mut">20 Charts, jeder nur kurz sichtbar. Erkenne das Muster so schnell wie möglich. Das Tempo passt sich deinem Können an.</p>'+
   '<button class="p" onclick="blitz(\'easy\')">Einsteiger</button><button class="p" onclick="blitz(\'all\')">Alle Muster</button>'+
   '<p class="mut">Bestleistung: Einsteiger '+t('einsteiger')+' · Alle Muster '+t('alle')+'</p></div>'}
