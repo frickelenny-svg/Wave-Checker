@@ -8,7 +8,7 @@
 <style>
 /* ===== Design laut DESIGN.md (Palette K „Blau & Weiß hell“). Farben NUR hier ändern. ===== */
 :root{
- --bg:#EAF1FF;--surface:#FFFFFF;--text:#0B1B3A;--muted:#44557A;--accent:#1E5EFF;--accent-dark:#1238C9;
+ --bg:#EAF1FF;--surface:#FFFFFF;--text:#0B1B3A;--muted:#44557A;--accent:#1E5EFF;--accent-dark:#1238C9;--accent-text:#1E5EFF;
  --line:rgba(30,94,255,.35);--line-soft:rgba(30,94,255,.20);--chip:rgba(11,27,58,.07);--accent-soft:rgba(30,94,255,.12);
  --ok:#0E8A5F;--bad:#C2410C;--shadow:0 10px 30px rgba(30,60,140,.12);
  /* Regelstufen */
@@ -18,6 +18,9 @@
  /* ältere Namen, die im Code noch vorkommen, zeigen auf die neuen Farben */
  --ink:var(--text);--mut:var(--muted);--card:var(--surface);--up:var(--ok);--dn:var(--bad);--warn:var(--warn-text);
  padding-top:env(safe-area-inset-top,0px)}
+/* Dunkelmodus (Lenny, 24.10.2026): folgt der Systemeinstellung, gleiche Rollen wie oben, Kontrast mind. 4,5:1 */
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A1430;--surface:#121F45;--text:#E8EEFF;--muted:#AAB7D8;--accent:#2F63FF;--accent-dark:#4A78FF;--accent-text:#8FB0FF;--line:rgba(143,176,255,.38);--line-soft:rgba(143,176,255,.22);--chip:rgba(232,238,255,.09);--accent-soft:rgba(143,176,255,.16);--ok:#3DCB95;--bad:#FF8A5C;--shadow:0 10px 30px rgba(0,0,0,.35);--warn-bg:#4A2810;--warn-text:#FFC08A;--warn-line:rgba(255,160,90,.4);--faust-bg:rgba(232,238,255,.1);--faust-line:rgba(232,238,255,.18);--r1t:#E3A56C;--r2t:#C9D2E0;--r3t:#EBCB5E;--r4t:#8FDCEA;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0A1430;--surface:#121F45;--text:#E8EEFF;--muted:#AAB7D8;--accent:#2F63FF;--accent-dark:#4A78FF;--accent-text:#8FB0FF;--line:rgba(143,176,255,.38);--line-soft:rgba(143,176,255,.22);--chip:rgba(232,238,255,.09);--accent-soft:rgba(143,176,255,.16);--ok:#3DCB95;--bad:#FF8A5C;--shadow:0 10px 30px rgba(0,0,0,.35);--warn-bg:#4A2810;--warn-text:#FFC08A;--warn-line:rgba(255,160,90,.4);--faust-bg:rgba(232,238,255,.1);--faust-line:rgba(232,238,255,.18);--r1t:#E3A56C;--r2t:#C9D2E0;--r3t:#EBCB5E;--r4t:#8FDCEA;color-scheme:dark}
 *{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--text);font:400 15px/1.5 "DM Sans",system-ui,sans-serif;overflow-x:clip}
 h1,h2,h3,.logo,.lead,.isl b{font-family:"Bricolage Grotesque",system-ui,sans-serif}
@@ -33,7 +36,7 @@ main:has(.home) header{padding:0 16px}@media(min-width:900px){main:has(.home) he
 #menu:not([hidden])~.logo{display:none}
 .pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 12px;font-size:.88rem;font-weight:500;background:var(--chip);color:var(--text);margin:0}
 @media(max-width:600px){.pts{display:none}} /* Spielrunden: Level und Serie genügen (DESIGN.md 6) */
-.pill b{font-weight:700}.pill.s{background:var(--accent-soft);color:var(--accent-dark)}
+.pill b{font-weight:700}.pill.s{background:var(--accent-soft);color:var(--accent-text)}
 button.pill{background:var(--surface);border:1px solid var(--line);min-height:40px}
 button.pill svg{width:18px;height:18px}
 h2{font-size:1.25rem;font-weight:700;margin:0 0 6px;line-height:1.25}
@@ -44,15 +47,15 @@ button{font:inherit;font-weight:500;cursor:pointer;border:1px solid var(--line);
 button:hover{border-color:var(--accent)}
 button.p{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
 button.p:hover,button.p:active{background:var(--accent-dark);border-color:var(--accent-dark)}
-button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-dark);font-weight:700}
+button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-text);font-weight:700}
 button:disabled{opacity:.45;cursor:not-allowed}
 button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-a{color:var(--accent)}
+a{color:var(--accent-text)}
 .mut{color:var(--muted);font-size:.9rem}
 .ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}.warn{color:var(--warn-text)}
 p.ok::before,.qok::before{content:"✓ "}p.bad::before,.qbad::before{content:"✗ "} /* Richtig/Falsch nie nur über Farbe */
 /* Spielrunden: Modus-Zeile, Aufgabe, weiße Chart-Fläche */
-.kick{margin:2px 0;color:var(--accent);font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.kick{margin:2px 0;color:var(--accent-text);font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .task{font-size:1rem;font-weight:500;margin:0 0 10px}
 .chart{background:var(--surface);border:1px solid var(--line-soft);border-radius:22px;overflow:hidden}
 svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
@@ -60,13 +63,13 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 @media(max-width:600px){.chart:not(.pgc) .lab{font-size:17px}}
 .pt circle{fill:var(--accent)}.pt text{font:700 13px "DM Sans",system-ui,sans-serif;fill:#fff;text-anchor:middle;dominant-baseline:central}
 @media(max-width:600px){.pt text{font-size:20px}}
-.nextpt{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 6px;border:2px dashed var(--accent);border-radius:999px;color:var(--accent);font-weight:700;vertical-align:middle;font-size:.9rem}
+.nextpt{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 6px;border:2px dashed var(--accent-text);border-radius:999px;color:var(--accent-text);font-weight:700;vertical-align:middle;font-size:.9rem}
 /* feste Button-Leiste unten: Hauptaktion groß und blau links, Nebenaktionen rechts */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line-soft);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;align-items:center;gap:8px;box-shadow:0 -6px 20px rgba(30,60,140,.08)}
 .dock>*{margin:0}.dock p{flex:1 1 100%;margin:0}.dock button[hidden]{display:none}
 .dock button.p{flex:1 1 auto;min-height:52px;font-size:1.02rem}
 @media(min-width:840px){.dock{left:50%;right:auto;width:800px;transform:translateX(-50%);border:1px solid var(--line-soft);border-bottom:0;border-radius:20px 20px 0 0;padding-left:48px;padding-right:48px}}
-.tip{display:flex;gap:8px;align-items:flex-start}.tip svg{flex:none;width:20px;height:20px;margin-top:2px;stroke:var(--accent)}
+.tip{display:flex;gap:8px;align-items:flex-start}.tip svg{flex:none;width:20px;height:20px;margin-top:2px;stroke:var(--accent-text)}
 /* Regelstufen als Abzeichen */
 .stufe{display:inline-block;border-radius:999px;padding:1px 9px;font-size:.78rem;font-weight:700;margin-right:6px;vertical-align:1px;line-height:1.5}
 .stufe .c{font-size:0} /* Doppelpunkt bleibt im Text (1:1), wird aber nicht angezeigt */
@@ -81,7 +84,7 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .calh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.calh button{margin:0;padding:4px 14px;font-size:1.1rem}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal span{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:.9rem;line-height:1.1}
 .cal .wd{aspect-ratio:auto;font-size:.8rem;font-weight:700;color:var(--muted)}.cal i{font-style:normal;font-size:.8rem;font-weight:700}
-.cs{background:var(--ok);color:#fff}.cf{background:var(--bad);color:#fff}.cn,.co{border:1px solid var(--line-soft)}.cx{opacity:.35}.ct{outline:2px solid var(--accent);outline-offset:1px}
+.cs{background:var(--ok);color:var(--surface)}.cf{background:var(--bad);color:var(--surface)}.cn,.co{border:1px solid var(--line-soft)}.cx{opacity:.35}.ct{outline:2px solid var(--accent);outline-offset:1px}
 .leg{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-left:8px}
 /* Blitz-Erkennen: Antworten groß und unten fixiert (Handy), Chart darüber */
 .bzhead{display:flex;justify-content:space-between;align-items:center;gap:8px}.bzhead button{margin:0}
@@ -93,12 +96,12 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 /* Rang-Abzeichen in echten Rangfarben */
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:.85rem;font-weight:700;padding:2px 10px 2px 8px;border-radius:999px;vertical-align:middle;background:var(--chip);color:var(--muted);border:2px solid transparent;font-family:"DM Sans",system-ui,sans-serif}
 .badge svg{width:16px;height:16px}
-.badge.r1{background:#fff;border-color:var(--r1);color:var(--r1t)}.badge.r1 svg{stroke:var(--r1)}
-.badge.r2{background:#fff;border-color:var(--r2);color:var(--r2t)}.badge.r2 svg{stroke:var(--r2)}
-.badge.r3{background:#fff;border-color:var(--r3);color:var(--r3t)}.badge.r3 svg{stroke:var(--r3)}
-.badge.r4{background:#fff;border-color:var(--r4);color:var(--r4t)}.badge.r4 svg{stroke:var(--r4)}
-#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;pointer-events:none;z-index:60;background:var(--text);color:#fff;padding:12px 18px;border-radius:16px;font-weight:700;max-width:calc(100% - 32px);text-align:center;transition:.3s;box-shadow:var(--shadow)}#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
-.qlink{color:var(--accent);font-weight:700;text-underline-offset:3px}
+.badge.r1{background:var(--surface);border-color:var(--r1);color:var(--r1t)}.badge.r1 svg{stroke:var(--r1)}
+.badge.r2{background:var(--surface);border-color:var(--r2);color:var(--r2t)}.badge.r2 svg{stroke:var(--r2)}
+.badge.r3{background:var(--surface);border-color:var(--r3);color:var(--r3t)}.badge.r3 svg{stroke:var(--r3)}
+.badge.r4{background:var(--surface);border-color:var(--r4);color:var(--r4t)}.badge.r4 svg{stroke:var(--r4)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;pointer-events:none;z-index:60;background:var(--text);color:var(--bg);padding:12px 18px;border-radius:16px;font-weight:700;max-width:calc(100% - 32px);text-align:center;transition:.3s;box-shadow:var(--shadow)}#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.qlink{color:var(--accent-text);font-weight:700;text-underline-offset:3px}
 .qa{display:block;width:100%;text-align:left;margin:8px 0}.qa:disabled{opacity:1;cursor:default}.qok{border:2px solid var(--ok);color:var(--ok);font-weight:700}.qbad{border:2px solid var(--bad);color:var(--bad)} /* Quiz-Antworten */
 /* Lernbereich: Text aus lernen/regelwerk-lernversion.md, am Handy ohne seitliches Scrollen */
 .learn{overflow-wrap:break-word}.learn h1{font-size:1.6rem;margin:12px 0 8px}.learn h2{margin:32px 0 8px;padding-top:12px;border-top:1px solid var(--line-soft);scroll-margin-top:64px}
@@ -119,7 +122,7 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .home{position:relative;display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"c c" "l r" "b b";grid-template-rows:auto auto 1fr;column-gap:10px;row-gap:14px;min-height:calc(100vh - 70px);overflow:hidden}
 .hbg{position:absolute;inset:0;z-index:0;pointer-events:none}.hbg svg{width:100%;height:100%}.hbg .wn{display:none}
 .hc{grid-area:c;position:relative;z-index:1;text-align:center;padding:0 16px}
-.lead{font-size:38px;font-weight:800;line-height:1.05;margin:6px 0 14px;letter-spacing:-.01em}.lead span{color:var(--accent)}
+.lead{font-size:38px;font-weight:800;line-height:1.05;margin:6px 0 14px;letter-spacing:-.01em}.lead span{color:var(--accent-text)}
 .hc .daily{text-align:left;margin:0 auto 8px;max-width:520px;padding:14px 16px}.hc .daily h2{font-size:1.1rem}.hc .daily p{margin:4px 0}
 .rec{margin:8px auto;max-width:520px}
 .hl,.hrr{position:relative;z-index:1;display:flex;flex-direction:column;gap:12px}
@@ -128,7 +131,7 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .isl{position:relative;background:var(--surface);color:var(--text);text-align:left;font:inherit;border:1px solid var(--line);box-shadow:var(--shadow);padding:12px 14px;margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:44px;width:var(--w,92%)}
 button.isl:hover{border-color:var(--accent)}
 .isl b{font-size:15px;font-weight:700;line-height:1.2}.isl .d{font-size:13px;color:var(--muted);line-height:1.35}
-.isl .ico svg{width:24px;height:24px;stroke:var(--accent)}
+.isl .ico svg{width:24px;height:24px;stroke:var(--accent-text)}
 .isl .sb{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.isl .sb button{margin:0;min-height:40px;padding:6px 12px;font-size:.9rem}
 .hl .isl{border-left:0;border-radius:0 28px 22px 0}
 .hrr .isl{border-right:0;border-radius:26px 0 0 20px}
@@ -589,7 +592,7 @@ const isl=(icon,title,desc,act,extra)=>(act?'<button class="isl" onclick="'+act+
 function home(){
  const blitzIsl=cls=>bzCard().replace('class="isl"','class="isl '+cls+'"');
  $('#view').innerHTML='<section class="home"><div class="hbg">'+bgChart()+'</div>'+
-  '<div class="hc"><p class="lead">Elliott-Wellen <span>spielerisch lernen.</span></p>'+dailyCard()+
+  '<div class="hc"><p class="lead">Elliott-Wellen <span>lernen</span></p>'+dailyCard()+
    '<p class="mut rec">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><p id="rs" class="hreset">'+RSBTN+'</p></div>'+
   '<div class="hl">'+isl('book','Elliott-Wellen lernen','Das Regelwerk mit Beispielcharts','learn()')+
    isl('quiz','Quiz','Kapitel abfragen in kurzen Runden','quizMenu()')+
@@ -802,7 +805,7 @@ function recogHard(D){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, 
   if(!okQ.length){ // Tipps zum Muster, das am nächsten dran ist (zuerst Teilstruktur, dann Richtung, dann wenigste Regelverstöße)
    fail();const rank=x=>({subs:300,struct:200,rules:100})[x.r.kind]+(x.r.f?x.r.f.length:0)-(x.Q===P?.5:0);
    return tipUI(res.sort((a,b)=>rank(a)-rank(b))[0]);}
-  m.done=true;m.ok=okQ;const gain=Math.max(8,20-6*m.tips)-(m.failed?4:0);
+  m.done=true;m.ok=okQ;if(D)D.solvedNow(m.tips);const gain=Math.max(8,20-6*m.tips)-(m.failed?4:0);
   if(!m.failed)st.streak++;st.pts+=gain;stats();exSolved(P.key,m.tips,true); // Rang: Schwer bzw. Tagesaufgabe
   bonus('<p class="ok">Regelkonform! +'+gain+' Punkte</p>');
  };
@@ -1358,21 +1361,25 @@ function daily(){
  if(o.day.done)return dailyResult(o,P,R,no);
  const D={P,R,no,tries:o.day.tries,tips:o.day.tips,
   save(){o.day.tries=D.tries;o.day.tips=D.tips;dSave(o)}, // Fehlversuche bleiben auch nach dem Neuladen gezählt
-  finish(r){Object.assign(o.day,{done:true,solved:r.solved,bonus:!!r.bonus,tries:D.tries,tips:r.tips});o.hist=o.hist||{};o.hist[today]=r.solved?'s':'f'; // Verlauf für den Kalender
-   if(r.solved){o.streak=o.last===addDays(today,-1)?(o.streak||0)+1:1;o.last=today}else o.streak=0;
+  // Gelöst wird sofort bei der regelkonformen Zählung gespeichert, nicht erst nach der Bonusfrage
+  // (sonst fehlte der Tag in Kalender und Serie, wenn man vor der Bonusfrage die Seite verlässt). bonus: null = nicht beantwortet.
+  solvedNow(tips){if(o.day.done)return;Object.assign(o.day,{done:true,solved:true,bonus:null,tries:D.tries,tips});
+   o.hist=o.hist||{};o.hist[today]='s';o.streak=o.last===addDays(today,-1)?(o.streak||0)+1:1;o.last=today;dSave(o)},
+  finish(r){if(r.solved){D.solvedNow(r.tips);o.day.bonus=!!r.bonus;o.day.tips=r.tips}
+   else{Object.assign(o.day,{done:true,solved:false,bonus:false,tries:D.tries,tips:r.tips});o.hist=o.hist||{};o.hist[today]='f';o.streak=0} // Verlauf für den Kalender
    dSave(o);dailyResult(o,P,R,no)}};
  recogHard(D);
 }
 // Ergebnis: Lösung im Chart, Teilen, Countdown bis zur nächsten Aufgabe
 function dailyResult(o,P,R,no){const d=o.day,s=dStreak(o,d.date);
  $('#view').innerHTML='<div class="card daily"><h2>Tagesaufgabe #'+no+'</h2><p class="'+(d.solved?'ok':'bad')+'">'+(d.solved?'Gelöst im '+dAtt(d)+'. Versuch':'Heute nicht gelöst ('+dAtt(d)+' Versuche)')+'</p>'+
-  '<p>'+(d.solved?'Bonusfrage: '+(d.bonus?'richtig':'falsch')+' · ':'')+tipTxt(d.tips)+' · Tages-Serie: '+s+(s===1?' Tag':' Tage')+'</p>'+
+  '<p>'+(d.solved?'Bonusfrage: '+(d.bonus===null?'nicht beantwortet':d.bonus?'richtig':'falsch')+' · ':'')+tipTxt(d.tips)+' · Tages-Serie: '+s+(s===1?' Tag':' Tage')+'</p>'+
   '<p><button class="p" id="share">Ergebnis teilen</button></p><p id="shareMsg" class="mut"></p><p>Nächste Aufgabe in <b id="cd">…</b></p></div>'+
   '<p class="mut">Die Lösung im Chart:</p><div class="chart">'+draw(R,[],true,P.tri?R.piv:null)+'</div><p>Generiert wurde: <b>'+P.title+'</b>. '+P.recog+'</p><div class="card" id="cal"></div>';
   $('#share').onclick=()=>shareResult(o,no);countdown(d.date);calendar($('#cal'));}
 // Teilen-Text verrät das Muster nicht
 function shareText(o,no){const d=o.day,s=dStreak(o,d.date);
- return 'Wave Checker Tagesaufgabe #'+no+'\n'+(d.solved?'✅ im '+dAtt(d)+'. Versuch · Bonus '+(d.bonus?'✅':'❌'):'❌ nicht gelöst')+' · '+tipTxt(d.tips)+
+ return 'Wave Checker Tagesaufgabe #'+no+'\n'+(d.solved?'✅ im '+dAtt(d)+'. Versuch · Bonus '+(d.bonus===null?'–':d.bonus?'✅':'❌'):'❌ nicht gelöst')+' · '+tipTxt(d.tips)+
   '\n🔥 Serie: '+s+(s===1?' Tag':' Tage')+'\n'+location.origin+'/'}
 async function shareResult(o,no){shareOut(shareText(o,no),$('#shareMsg'))}
 // Teilen: am Handy Teilen-Menü, sonst Zwischenablage, notfalls Text zum Selbstkopieren (auch für „Rang teilen“)
