@@ -32,6 +32,9 @@ button:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
 svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .lab{font:600 11px "Bricolage Grotesque",system-ui,sans-serif;fill:var(--ink);text-anchor:middle}
 .daily{border:2px solid var(--up)}
+.badge{display:inline-block;font-size:.85rem;font-weight:700;padding:2px 10px;border-radius:999px;vertical-align:middle;background:var(--line);color:var(--ink)}
+.badge.r1{background:#C08A55;color:#2B1A0C}.badge.r2{background:#C3CCD3;color:#1F2A30}.badge.r3{background:#E3B84A;color:#2E2205}.badge.r4{background:#9BD8E3;color:#0F2E35} /* Bronze, Silber, Gold, Platin */
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;pointer-events:none;z-index:60;background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:10px;font-weight:600;max-width:calc(100% - 32px);text-align:center;transition:.3s}#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .qlink{color:var(--up);font-weight:600;text-underline-offset:3px} /* gut lesbar in hell und dunkel */
 .qa{display:block;width:100%;text-align:left;margin:8px 0}.qa:disabled{opacity:1;cursor:default}.qok{border:2px solid var(--up);color:var(--up);font-weight:600}.qbad{border:2px solid var(--dn);color:var(--dn)} /* Quiz-Antworten */
 .hr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}#learn{margin:0}
@@ -463,7 +466,7 @@ const saveProgress=()=>{try{localStorage.setItem(SAVE,JSON.stringify({pts:st.pts
 const $=q=>document.querySelector(q);
 function stats(){saveProgress();const lv=Math.floor(st.pts/50)+1;$('#lv').textContent=lv;$('#pt').textContent=st.pts;$('#sr').textContent=st.streak;$('#pb').style.width=(st.pts%50)*2+'%';}
 function home(){
- $('#view').innerHTML=dailyCard()+'<p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist: normal per Auswahl oder schwer durch eigenes Zählen.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div><p id="rs" style="text-align:center;margin-top:28px">'+RSBTN+'</p>';
+ $('#view').innerHTML=dailyCard()+'<p><button onclick="ranks()">Meine Ränge</button></p><p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist: normal per Auswahl oder schwer durch eigenes Zählen.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div><p id="rs" style="text-align:center;margin-top:28px">'+RSBTN+'</p>';
 }
 // Fortschritt zurücksetzen: unauffälliger Button, Sicherheitsabfrage direkt auf der Seite (kein Browser-Popup)
 const RSBTN='<button class="mut" style="border-color:var(--line);font-size:.85rem" onclick="resetAsk()">Fortschritt zurücksetzen</button>';
@@ -485,7 +488,7 @@ function pick(mode){
 }
 function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key):find(PAT[key])}
 // Hauptmenü-Button: erscheint, sobald ein Modus gestartet wird (pick, recognize, pickSub), und verschwindet im Hauptmenü
-['pick','recognize','pickSub','daily'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
+['pick','recognize','pickSub','daily','ranks'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
 {const h0=home;window.home=function(){$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
 $('#menu').onclick=()=>home();
 $('#home').onclick=()=>home();$('#home').onkeydown=e=>{if(e.key==='Enter')home()};
@@ -532,7 +535,7 @@ function count(P){
   const f=hardFails(P,v);
   if(f.length){fail();return tipUI(f)}
   m.done=true;const gain=Math.max(4,10-3*m.tips)-(m.failed?2:0);
-  if(!m.failed)st.streak++;st.pts+=gain;stats();
+  if(!m.failed)st.streak++;st.pts+=gain;stats();exSolved(P.key,m.tips); // zählt für die Ränge
   const w=warns(P,v).map(id=>'<p class="warn">'+(P.rules[id].lvl==='o'?'Hinweis':'Warnung')+' ('+tag(P,id)+'): '+P.rules[id].ex+'</p>').join('');
   render('<p class="ok">Regelkonform! +'+gain+' Punkte</p><p class="mut">Die App prüft die Regeln. Die Wendepunkte müssen dafür an den echten Extremen sitzen.</p>'+w+P.info(v)+'<button class="p" id="nxt">Nächster Chart</button>');
   $('#nxt').onclick=()=>count(P);
@@ -561,7 +564,7 @@ function find(P){
   document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{m.r=b.dataset.r;render()});
   $('#dk').onclick=()=>{render('<p class="mut">Kein Problem, hier die Auflösung (keine Punkte, deine Serie bleibt).</p><p>Gesucht war: Welle '+wv+', Regel „'+rule.name+'“ ('+tag(P,id)+'). '+rule.ex+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=()=>find(P);};
   $('#go').onclick=()=>{const wOk=m.w===wv||!!(R.alt&&R.alt.includes(m.w)),rOk=m.r===id;
-   if(wOk&&rOk){st.streak++;st.pts+=10}else st.streak=0;stats();
+   if(wOk&&rOk){st.streak++;st.pts+=10;exSolved(P.key,0)}else st.streak=0;stats();
    render('<p class="'+(wOk&&rOk?'ok':'bad')+'">'+(wOk&&rOk?'Richtig! +10 Punkte':wOk?'Die Welle stimmt, die Regel nicht.':rOk?'Die Regel stimmt, die Welle nicht.':'Leider daneben.')+'</p><p>Gesucht war: Welle '+(R.alt?R.alt.join(' oder '):wv)+', Regel „'+rule.name+'“ ('+tag(P,id)+'). '+rule.ex+'</p><button class="p" id="nxt">Nächster Chart</button>');
    $('#nxt').onclick=()=>find(P);};
  };
@@ -600,7 +603,7 @@ function recogNormal(){
   if(fb)return;
   document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{m.sel=b.dataset.k;render()});
   $('#go').onclick=()=>{const Q=PAT[m.sel],same=m.sel===P.key,why=same?null:misfit(Q,R),ok=!why;
-   if(ok){st.streak++;st.pts+=10}else st.streak=0;stats();
+   if(ok){st.streak++;st.pts+=10;exSolved(P.key,0)}else st.streak=0;stats(); // Rang: zählt für das generierte Muster
    render({v:same?'<p class="ok">Richtig! +10 Punkte</p>':ok?'<p class="ok">Richtig, auch regelkonform! +10 Punkte. Generiert wurde: '+P.title+'.</p>':'<p class="bad">Nicht ganz. Das war ein '+P.title+'.</p>',
     d:(same?'':'<p>'+(ok?diffMsg(P,Q):why)+'</p>')+'<p>'+P.recog+'</p>'+(same?'':'<p class="mut">Deine Wahl war: '+Q.recog+'</p>')});
    $('#nxt').onclick=recogNormal;};
@@ -656,7 +659,7 @@ function recogHard(D){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, 
    fail();const rank=x=>({subs:300,struct:200,rules:100})[x.r.kind]+(x.r.f?x.r.f.length:0)-(x.Q===P?.5:0);
    return tipUI(res.sort((a,b)=>rank(a)-rank(b))[0]);}
   m.done=true;m.ok=okQ;const gain=Math.max(8,20-6*m.tips)-(m.failed?4:0);
-  if(!m.failed)st.streak++;st.pts+=gain;stats();
+  if(!m.failed)st.streak++;st.pts+=gain;stats();exSolved(P.key,m.tips,true); // Rang: Schwer bzw. Tagesaufgabe
   bonus('<p class="ok">Regelkonform! +'+gain+' Punkte</p>');
  };
  const tipUI=({Q,r})=>{const z=Z();
@@ -806,9 +809,10 @@ function sub(key){
   const last=m.s===stages.length-1;
   const done=(main?'Hauptwellen':'Subwellen von Welle '+g.nm)+' regelkonform! +'+gain+' Punkte';
   if(last&&!m.failed){st.streak++;stats();}
+  if(last)exSolved(P.key,(m.tt||0)+m.tips); // Rang: Tipps aller Stufen zusammen
   m.fixed=m.fixed.concat(m.sel.map((i,k)=>({i,l:g.labels[k],sub:!main})));
   render('<p class="ok">'+done+'</p>'+w+(last?'<p class="mut">Runde geschafft: '+m.gain+' Punkte.</p>':'')+'<button class="p" id="nxt">'+(last?'Nächster Chart':'Weiter')+'</button>');
-  $('#nxt').onclick=()=>{if(last)return sub(P.key);m.s++;m.sel=[];m.tips=0;m.done=false;render();};
+  $('#nxt').onclick=()=>{if(last)return sub(P.key);m.s++;m.sel=[];m.tt=(m.tt||0)+m.tips;m.tips=0;m.done=false;render();};
  };
  render();
 }
@@ -869,7 +873,7 @@ function findSub(key){
   document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{m.r=b.dataset.r;render()});
   $('#dk').onclick=()=>{render('<p class="mut">Kein Problem, hier die Auflösung (keine Punkte, deine Serie bleibt).</p><p>'+solution()+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=()=>findSub(key);};
   $('#go').onclick=()=>{const wOk=m.w===wv||!!(alt&&alt.includes(m.w)),rOk=m.r===id,ok=wOk&&rOk;
-   if(ok){st.streak++;st.pts+=10}else st.streak=0;stats();
+   if(ok){st.streak++;st.pts+=10;exSolved(P.key,0)}else st.streak=0;stats();
    render('<p class="'+(ok?'ok':'bad')+'">'+(ok?'Richtig! +10 Punkte':wOk?'Die Welle stimmt, die Regel nicht.':rOk?'Die Regel stimmt, die Welle nicht.':'Leider daneben.')+'</p><p>'+solution()+'</p><button class="p" id="nxt">Nächster Chart</button>');
    $('#nxt').onclick=()=>findSub(key);};
  };
@@ -935,7 +939,7 @@ async function showLearn(kap){const v=$('#view');
  catch(_){if(LEARN)v.innerHTML='<div class="card"><p class="bad">Die Lernseite konnte nicht geladen werden.</p><button class="p" onclick="learnBack()">← Zurück</button></div>';return}
  if(!LEARN)return; // inzwischen woandershin gewechselt
  const {html,toc,title}=mdToHtml(md),back='<button onclick="learnBack()">'+(PEEK?'← Zurück zum Quiz':'← Zurück')+'</button>';
- v.innerHTML='<div class="learn">'+back+(PEEK?'':'<button class="p" onclick="quizMenu()">Quiz</button>')+title+'<nav class="card toc"><b>Inhalt</b><ol>'+
+ v.innerHTML='<div class="learn">'+back+(PEEK?'':'<button class="p" onclick="quizMenu()">Quiz</button><button onclick="ranks(true)">Meine Ränge</button>')+title+'<nav class="card toc"><b>Inhalt</b><ol>'+
   toc.map((t,j)=>'<li><a href="#lk-'+(j+1)+'" data-j="'+(j+1)+'">'+inl(t)+'</a></li>').join('')+'</ol></nav>'+html+'<p>'+back+'</p></div>';
  v.querySelectorAll('[data-j]').forEach(a=>a.onclick=e=>{e.preventDefault();$('#lk-'+a.dataset.j).scrollIntoView({behavior:'smooth'})});
  v.querySelectorAll('.learn figure img').forEach(im=>im.onclick=()=>zoom(im));
@@ -1015,9 +1019,11 @@ function dailyResult(o,P,R,no){const d=o.day,s=dStreak(o,d.date);
 function shareText(o,no){const d=o.day,s=dStreak(o,d.date);
  return 'Wave Checker Tagesaufgabe #'+no+'\n'+(d.solved?'✅ im '+dAtt(d)+'. Versuch · Bonus '+(d.bonus?'✅':'❌'):'❌ nicht gelöst')+' · '+tipTxt(d.tips)+
   '\n🔥 Serie: '+s+(s===1?' Tag':' Tage')+'\n'+location.origin+'/'}
-async function shareResult(o,no){const t=shareText(o,no),msg=$('#shareMsg');
+async function shareResult(o,no){shareOut(shareText(o,no),$('#shareMsg'))}
+// Teilen: am Handy Teilen-Menü, sonst Zwischenablage, notfalls Text zum Selbstkopieren (auch für „Rang teilen“)
+async function shareOut(t,msg){
  try{if(navigator.share&&matchMedia('(pointer:coarse)').matches){await navigator.share({text:t});return} // Handy: Teilen-Menü
-  await navigator.clipboard.writeText(t);msg.textContent='Kopiert! Du kannst das Ergebnis jetzt einfügen.'}
+  await navigator.clipboard.writeText(t);msg.textContent='Kopiert! Du kannst den Text jetzt einfügen.'}
  catch(e){if(e&&e.name==='AbortError')return; // Teilen-Menü abgebrochen
   msg.innerHTML='Kopieren hat nicht geklappt. Markiere den Text und kopiere ihn selbst:<br><textarea rows="4" style="width:100%">'+esc(t)+'</textarea>'}}
 // Countdown bis Mitternacht deutscher Zeit (an den zwei Tagen der Zeitumstellung um eine Stunde ungenau)
@@ -1074,9 +1080,9 @@ function quizAsk(R){const q=R.qs[R.i],ord=q.typ==='mc'?shuffle(q.antworten.map((
   document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{sel=+b.dataset.a;render()});
   $('#qg').onclick=()=>{const ok=sel===q.richtig,o=qLoad();o.cats=o.cats||{};o.rep=o.rep||{};
    const c=o.cats[q.kategorie]=o.cats[q.kategorie]||{answered:0,correct:0,last:[]};
-   c.answered++;if(ok)c.correct++;c.last=c.last.concat(ok?1:0).slice(-10);
+   c.answered++;if(ok)c.correct++;c.last=c.last.concat(ok?1:0).slice(-30); // letzte 30 für die Ränge, die Schwäche nutzt die letzten 10
    if(!ok)o.rep[q.id]=2;else if(o.rep[q.id]&&!--o.rep[q.id])delete o.rep[q.id]; // bis zweimal richtig beantwortet
-   qSave(o);if(ok){st.streak++;st.pts+=QPTS}else st.streak=0;stats();R.res.push({q,ok});
+   qSave(o);if(ok){st.streak++;st.pts+=QPTS}else st.streak=0;stats();R.res.push({q,ok});rankCheck();
    render((ok?'<p class="ok">Richtig! +'+QPTS+' Punkte</p>':'<p class="bad">Leider falsch.</p><p>'+(q.typ==='rf'?'Die Aussage ist <b>'+esc(q.antworten[q.richtig]).toLowerCase()+'</b>.':'Richtig ist: <b>'+esc(q.antworten[q.richtig])+'</b>')+'</p>')+
     '<p>'+esc(q.erklaerung)+'</p><p><a href="#" id="qr" class="qlink">Im Regelwerk nachlesen →</a></p>');};
  };
@@ -1084,17 +1090,67 @@ function quizAsk(R){const q=R.qs[R.i],ord=q.typ==='mc'?shuffle(q.antworten.map((
 // Rundenende. Schwäche: 2 Fehler einer Kategorie in dieser Runde oder unter 60 % in den letzten 10 Antworten (ab 5 Antworten)
 function quizEnd(R){const o=qLoad(),n=R.res.filter(x=>x.ok).length,wrong={};
  R.res.forEach(x=>{if(!x.ok)wrong[x.q.kategorie]=(wrong[x.q.kategorie]||0)+1});
- const weak=[...new Set(R.res.map(x=>x.q.kategorie))].find(k=>{const l=((o.cats||{})[k]||{}).last||[];return (wrong[k]||0)>=2||(l.length>=5&&l.reduce((a,b)=>a+b,0)/l.length<.6)});
+ const weak=[...new Set(R.res.map(x=>x.q.kategorie))].find(k=>{const l=(((o.cats||{})[k]||{}).last||[]).slice(-10);return (wrong[k]||0)>=2||(l.length>=5&&l.reduce((a,b)=>a+b,0)/l.length<.6)});
  $('#view').innerHTML='<div class="card"><h2>Runde geschafft</h2><p class="'+(n>=4?'ok':'')+'">'+n+' von '+R.res.length+' richtig · +'+n*QPTS+' Punkte</p></div>'+
   (weak?'<div class="card daily"><p><b>'+(QBEI[weak]||'Bei '+esc(weak))+' hakt es noch.</b> Lies das Kapitel nochmal, dann probier es erneut.</p><button class="p" id="qk">Zum Kapitel</button><button class="p" id="qw">Wiederholungsrunde</button></div>':'')+
   '<p><button class="p" id="qnr">Neue Runde</button><button onclick="quizMenu()">Andere Kategorie</button><button onclick="showLearn()">← Zum Regelwerk</button></p>';
  if(weak){$('#qk').onclick=()=>peek(qChap(weak));$('#qw').onclick=()=>quizRound(weak)}
  $('#qnr').onclick=()=>quizRound(R.cat);window.scrollTo(0,0);}
+// ---- 8) Ränge pro Kategorie (Bronze, Silber, Gold, Platin) und Gesamtrang „Elliott-Meister“.
+// Quelle: Quiz-Daten (waveChecker.quiz) und gelöste Übungen (waveChecker.ranks, gezählt ab RSTART).
+// Ein erreichter Rang geht nicht verloren (gespeichert in rank).
+const RKEY='waveChecker.ranks',RSTART='23.10.2026';
+const RCATS=['Grundbegriffe & Fibonacci','Impuls','Zigzag','Flats','Dreiecke','Diagonalen','Komplexe Korrekturen'];
+const RCAT={imp:'Impuls',zig:'Zigzag',fr:'Flats',fe:'Flats',fru:'Flats',trk:'Dreiecke',tre:'Dreiecke',dl:'Diagonalen',db:'Diagonalen',de:'Diagonalen',dz:'Komplexe Korrekturen',tz:'Komplexe Korrekturen'};
+const RIN={'Grundbegriffe & Fibonacci':'in Grundbegriffen & Fibonacci','Impuls':'in Impulsen','Zigzag':'in Zigzags','Flats':'in Flats','Dreiecke':'in Dreiecken','Diagonalen':'in Diagonalen','Komplexe Korrekturen':'in komplexen Korrekturen'};
+const RNAME=['Noch kein Rang','Bronze','Silber','Gold','Platin'],REMO=['','🥉','🥈','🥇','💎'];
+const rLoad=()=>{try{return JSON.parse(localStorage.getItem(RKEY))||{}}catch(_){return{}}}; // {ex:{Kategorie:{solved,noTip,hard}}, rank:{Kategorie:1..4}, master:true}
+const rSave=o=>{try{localStorage.setItem(RKEY,JSON.stringify(o))}catch(_){}};
+// Eine richtig abgeschlossene Runde (alle Spielmodi), zugeordnet nach dem Muster des Charts
+function exSolved(key,tips,hard){const cat=RCAT[key];if(!cat)return;const o=rLoad();o.ex=o.ex||{};
+ const e=o.ex[cat]=o.ex[cat]||{solved:0,noTip:0,hard:0};e.solved++;if(!tips)e.noTip++;if(hard)e.hard++;rSave(o);rankCheck();}
+// Anforderungen des nächsten Rangs als Liste {have, need, txt}; or=true: eine davon reicht (Bronze)
+function rNeeds(cat,lv){const q=(qLoad().cats||{})[cat]||{},e=(rLoad().ex||{})[cat]||{solved:0,noTip:0,hard:0},l=q.last||[],
+ rate=l.length?l.reduce((a,b)=>a+b,0)/l.length:0,qc=q.correct||0,pct=x=>Math.round(x*100)+' %',R=(have,need,txt)=>({have,need,txt});
+ const quiz=n=>R(rate,n,'mind. '+pct(n)+' im Quiz (aktuell '+pct(rate)+')');
+ if(cat==='Grundbegriffe & Fibonacci'){const n=[10,25,50,100][lv-1],a=[R(qc,n,'Noch '+(n-qc)+' richtige Quiz-Antworten')];if(lv>1)a.push(quiz([0,0,.7,.8,.9][lv]));return{list:a}}
+ if(lv===1)return{or:true,list:[R(qc,10,'Noch '+(10-qc)+' richtige Quiz-Antworten'),R(e.solved,10,(10-e.solved)+' gelöste Übungen')]};
+ const n=[0,0,30,50,100][lv],a=[R(e.solved,n,'Noch '+(n-e.solved)+' gelöste Übungen'),quiz([0,0,.7,.8,.9][lv])];
+ if(lv===3)a.push(R(e.noTip,10,'noch '+(10-e.noTip)+' Übungen ohne Tipp'));
+ if(lv===4)a.push(R(e.hard,20,'noch '+(20-e.hard)+' Übungen in „Muster erkennen – Schwer“ oder der Tagesaufgabe'));
+ return{list:a};}
+const rMet=x=>x.or?x.list.some(r=>r.have>=r.need):x.list.every(r=>r.have>=r.need);
+function rCalc(cat){let lv=0;while(lv<4&&rMet(rNeeds(cat,lv+1)))lv++;return lv}
+// Neue Ränge speichern und einblenden; quiet: ohne Einblendung
+function rankCheck(quiet){const o=rLoad();o.rank=o.rank||{};const msgs=[];
+ RCATS.forEach(c=>{const lv=Math.max(o.rank[c]||0,rCalc(c));if(lv>(o.rank[c]||0)){o.rank[c]=lv;msgs.push('Neuer Rang: '+RNAME[lv]+' '+RIN[c]+'! '+REMO[lv])}});
+ if(!o.master&&RCATS.every(c=>(o.rank[c]||0)>=3)){o.master=true;msgs.push('Neuer Gesamtrang: Elliott-Meister! 🏆')}
+ rSave(o);if(msgs.length&&!quiet)toast(msgs.join('<br>'));}
+function toast(html){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t)}
+ t.innerHTML=html;t.className='show';clearTimeout(t.tm);t.tm=setTimeout(()=>t.className='',4500);t.onclick=()=>t.className='';}
+// Seite „Meine Ränge“; fromLearn: aus dem Lernbereich geöffnet (Zurück führt zum Regelwerk)
+function ranks(fromLearn){rankCheck();const o=rLoad(),ex=o.ex||{},qc=qLoad().cats||{};
+ if(fromLearn){PEEK=null;if(!LEARN)enterLearn();$('#menu').hidden=$('#tolearn').hidden=true}
+ const badge=lv=>'<span class="badge r'+lv+'">'+(lv?REMO[lv]+' ':'')+RNAME[lv]+'</span>';
+ $('#view').innerHTML='<h2>Meine Ränge</h2><p class="mut">Ränge gibt es pro Kategorie für Quiz und gelöste Übungen. Ein erreichter Rang bleibt. Übungen werden erst ab dem '+RSTART+' gezählt, Quiz-Antworten von vorher zählen mit.</p>'+
+  '<div class="card'+(o.master?' daily':'')+'"><b>Gesamtrang Elliott-Meister</b> '+(o.master?badge(4).replace('💎 Platin','🏆 Elliott-Meister'):'<span class="mut">alle Kategorien mindestens Gold ('+RCATS.filter(c=>((o.rank||{})[c]||0)>=3).length+' von '+RCATS.length+')</span>')+
+  (o.master?'<p><button data-share="m">Rang teilen</button></p>':'')+'</div>'+
+  RCATS.map((c,i)=>{const lv=(o.rank||{})[c]||0,e=ex[c]||{solved:0,noTip:0,hard:0},q=qc[c]||{},l=q.last||[],nx=lv<4?rNeeds(c,lv+1):null;
+   const prog=nx?(nx.or?Math.max(...nx.list.map(r=>Math.min(1,r.have/r.need))):nx.list.reduce((s,r)=>s+Math.min(1,r.have/r.need),0)/nx.list.length):1;
+   const open=nx?nx.list.filter(r=>r.have<r.need).map(r=>r.txt):[];
+   return '<div class="card"><h2>'+esc(c)+' '+badge(lv)+'</h2><p class="mut">Quiz: '+(q.correct||0)+' richtig'+(l.length?', '+Math.round(l.reduce((a,b)=>a+b,0)/l.length*100)+' % der letzten '+l.length:'')+
+    (c==='Grundbegriffe & Fibonacci'?'':' · Übungen: '+e.solved+' gelöst, '+e.noTip+' ohne Tipp, '+e.hard+' schwer/Tagesaufgabe')+'</p>'+
+    (nx?'<div class="bar"><i style="width:'+Math.round(prog*100)+'%"></i></div><p>Bis '+RNAME[lv+1]+': '+open.join(nx.or?' oder ':' und ')+'.</p>':'<p class="ok">Höchster Rang erreicht.</p>')+
+    (lv?'<p><button data-share="'+i+'">Rang teilen</button></p>':'')+'</div>'}).join('')+
+  '<p id="shareMsg" class="mut"></p>'+(fromLearn?'<p><button onclick="showLearn()">← Zum Regelwerk</button></p>':'');
+ document.querySelectorAll('[data-share]').forEach(b=>b.onclick=()=>{const s=b.dataset.share,c=RCATS[+s],lv=(o.rank||{})[c];
+  shareOut(s==='m'?'Ich bin Elliott-Meister im Wave Checker 🏆 '+location.origin+'/':'Ich bin '+RNAME[lv]+' '+RIN[c]+' im Wave Checker '+REMO[lv]+' '+location.origin+'/',$('#shareMsg'))});
+ window.scrollTo(0,0);}
 $('#learn').onclick=()=>learn();
 // „← Zurück zum Regelwerk“: nur sichtbar, wenn man über „Jetzt üben“ in „Chart durchzählen“ gekommen ist
 $('#tolearn').onclick=()=>learn($('#tolearn').dataset.kap);
 {const h1=window.home;window.home=function(){LEARN=PEEK=null;$('#tolearn').hidden=true;return h1.apply(this,arguments)}} // Hauptmenü verlässt Lernseite und „Jetzt üben“ endgültig
-stats();home();
+stats();home();rankCheck(); // bisherige Quiz-Daten zählen mit
 </script>
 </body>
 </html>
