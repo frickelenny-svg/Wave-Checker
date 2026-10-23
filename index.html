@@ -32,6 +32,7 @@ button:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
 svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .lab{font:600 11px "Bricolage Grotesque",system-ui,sans-serif;fill:var(--ink);text-anchor:middle}
 .daily{border:2px solid var(--up)}
+.qlink{color:var(--up);font-weight:600;text-underline-offset:3px} /* gut lesbar in hell und dunkel */
 .qa{display:block;width:100%;text-align:left;margin:8px 0}.qa:disabled{opacity:1;cursor:default}.qok{border:2px solid var(--up);color:var(--up);font-weight:600}.qbad{border:2px solid var(--dn);color:var(--dn)} /* Quiz-Antworten */
 .hr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}#learn{margin:0}
 /* Lernbereich: Text aus lernen/regelwerk-lernversion.md, am Handy ohne seitliches Scrollen */
@@ -1077,7 +1078,7 @@ function quizAsk(R){const q=R.qs[R.i],ord=q.typ==='mc'?shuffle(q.antworten.map((
    if(!ok)o.rep[q.id]=2;else if(o.rep[q.id]&&!--o.rep[q.id])delete o.rep[q.id]; // bis zweimal richtig beantwortet
    qSave(o);if(ok){st.streak++;st.pts+=QPTS}else st.streak=0;stats();R.res.push({q,ok});
    render((ok?'<p class="ok">Richtig! +'+QPTS+' Punkte</p>':'<p class="bad">Leider falsch.</p><p>'+(q.typ==='rf'?'Die Aussage ist <b>'+esc(q.antworten[q.richtig]).toLowerCase()+'</b>.':'Richtig ist: <b>'+esc(q.antworten[q.richtig])+'</b>')+'</p>')+
-    '<p>'+esc(q.erklaerung)+'</p><p><a href="#" id="qr">Im Regelwerk nachlesen</a></p>');};
+    '<p>'+esc(q.erklaerung)+'</p><p><a href="#" id="qr" class="qlink">Im Regelwerk nachlesen →</a></p>');};
  };
  render();window.scrollTo(0,0);}
 // Rundenende. Schwäche: 2 Fehler einer Kategorie in dieser Runde oder unter 60 % in den letzten 10 Antworten (ab 5 Antworten)
