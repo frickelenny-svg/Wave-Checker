@@ -1128,6 +1128,13 @@ function rankCheck(quiet){const o=rLoad();o.rank=o.rank||{};const msgs=[];
  rSave(o);if(msgs.length&&!quiet)toast(msgs.join('<br>'));}
 function toast(html){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t)}
  t.innerHTML=html;t.className='show';clearTimeout(t.tm);t.tm=setTimeout(()=>t.className='',4500);t.onclick=()=>t.className='';}
+// „Rang verdienen“: Quiz der Kategorie und „Chart durchzählen“ mit ihren Mustern; vor Platin zusätzlich „Muster erkennen – Schwer“
+function earnOpts(cat,lv){const keys=Object.keys(RCAT).filter(k=>RCAT[k]===cat);
+ return '<p class="mut">Damit kommst du weiter:</p><p><button class="p" data-eq="'+esc(cat)+'">Quiz: '+esc(cat)+'</button>'+
+  keys.map(k=>'<button data-ec="'+k+'">Chart durchzählen: '+PAT[k].title+'</button>').join('')+
+  (keys.length&&lv===3?'<button data-ec="hard">Muster erkennen – Schwer</button>':'')+'</p>'+
+  (keys.length?'<p class="mut">Auch Fehler finden, Muster erkennen, Subwellen zählen und die Tagesaufgabe zählen, wenn der Chart '+(keys.length>1?'eines dieser Muster':'dieses Muster')+' zeigt.'+
+   (lv===3?' Für Platin zählen bei „schwer“ nur Muster erkennen – Schwer und die Tagesaufgabe.':'')+'</p>':'');}
 // Seite „Meine Ränge“; fromLearn: aus dem Lernbereich geöffnet (Zurück führt zum Regelwerk)
 function ranks(fromLearn){rankCheck();const o=rLoad(),ex=o.ex||{},qc=qLoad().cats||{};
  if(fromLearn){PEEK=null;if(!LEARN)enterLearn();$('#menu').hidden=$('#tolearn').hidden=true}
@@ -1141,8 +1148,14 @@ function ranks(fromLearn){rankCheck();const o=rLoad(),ex=o.ex||{},qc=qLoad().cat
    return '<div class="card"><h2>'+esc(c)+' '+badge(lv)+'</h2><p class="mut">Quiz: '+(q.correct||0)+' richtig'+(l.length?', '+Math.round(l.reduce((a,b)=>a+b,0)/l.length*100)+' % der letzten '+l.length:'')+
     (c==='Grundbegriffe & Fibonacci'?'':' · Übungen: '+e.solved+' gelöst, '+e.noTip+' ohne Tipp, '+e.hard+' schwer/Tagesaufgabe')+'</p>'+
     (nx?'<div class="bar"><i style="width:'+Math.round(prog*100)+'%"></i></div><p>Bis '+RNAME[lv+1]+': '+open.join(nx.or?' oder ':' und ')+'.</p>':'<p class="ok">Höchster Rang erreicht.</p>')+
-    (lv?'<p><button data-share="'+i+'">Rang teilen</button></p>':'')+'</div>'}).join('')+
+    '<p>'+(lv<4?'<button class="p" data-earn="'+i+'">Rang verdienen</button>':'')+(lv?'<button data-share="'+i+'">Rang teilen</button>':'')+'</p>'+
+    (lv<4?'<div id="earn-'+i+'" hidden>'+earnOpts(c,lv)+'</div>':'')+'</div>'}).join('')+
   '<p id="shareMsg" class="mut"></p>'+(fromLearn?'<p><button onclick="showLearn()">← Zum Regelwerk</button></p>':'');
+ // „Rang verdienen“ klappt die passenden Übungen der Kategorie auf
+ document.querySelectorAll('[data-earn]').forEach(b=>b.onclick=()=>{const d=$('#earn-'+b.dataset.earn);d.hidden=!d.hidden});
+ document.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>quizStart(b.dataset.eq));
+ document.querySelectorAll('[data-ec]').forEach(b=>b.onclick=()=>{LEARN=PEEK=null;$('#menu').hidden=false;$('#tolearn').hidden=true;window.scrollTo(0,0);
+  b.dataset.ec==='hard'?recogHard():count(PAT[b.dataset.ec])});
  document.querySelectorAll('[data-share]').forEach(b=>b.onclick=()=>{const s=b.dataset.share,c=RCATS[+s],lv=(o.rank||{})[c];
   shareOut(s==='m'?'Ich bin Elliott-Meister im Wave Checker 🏆 '+location.origin+'/':'Ich bin '+RNAME[lv]+' '+RIN[c]+' im Wave Checker '+REMO[lv]+' '+location.origin+'/',$('#shareMsg'))});
  window.scrollTo(0,0);}
