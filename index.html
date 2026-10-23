@@ -38,6 +38,13 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .cal .wd{aspect-ratio:auto;font-size:.8rem;font-weight:600;color:var(--mut)}.cal i{font-style:normal;font-size:.8rem;font-weight:700}
 .cs{background:var(--up);color:var(--bg)}.cf{background:var(--dn);color:var(--bg)}.cn,.co{border:1px solid var(--line)}.cx{opacity:.35}.ct{outline:2px solid var(--ink);outline-offset:1px}
 .leg{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-left:8px}
+/* Blitz-Erkennen: Antworten groß und unten fixiert (Handy), Chart darüber */
+.bzhead{display:flex;justify-content:space-between;align-items:center;gap:8px}.bzhead button{margin:0}
+#bz{padding-bottom:170px}.bzc{position:relative;aspect-ratio:720/340;display:flex;align-items:center;justify-content:center}.bzc svg{position:absolute;inset:0}
+.bzq{font-size:1.7rem;font-weight:800;text-align:center;color:var(--mut)}.bzq small{font-size:1rem}.bzq.ok{color:var(--up)}.bzq.bad{color:var(--dn)}.bzover{position:absolute;left:0;right:0;bottom:4px;font-size:1rem;background:var(--card)}
+.bztime{height:6px;background:var(--line);border-radius:3px;margin:8px 0;overflow:hidden}.bztime i{display:block;height:100%;width:100%;background:var(--warn)}
+.bzans{position:fixed;left:0;right:0;bottom:0;z-index:20;max-width:760px;margin:0 auto;background:var(--bg);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:8px;min-height:140px;align-content:center}
+.bzans button{margin:0;min-height:56px;font-size:1rem;line-height:1.2}.bzans button.qok,.bzans button.qbad{background:var(--card)}.bzans p{grid-column:1/-1;text-align:center;margin:0}
 .badge{display:inline-block;font-size:.85rem;font-weight:700;padding:2px 10px;border-radius:999px;vertical-align:middle;background:var(--line);color:var(--ink)}
 .badge.r1{background:#C08A55;color:#2B1A0C}.badge.r2{background:#C3CCD3;color:#1F2A30}.badge.r3{background:#E3B84A;color:#2E2205}.badge.r4{background:#9BD8E3;color:#0F2E35} /* Bronze, Silber, Gold, Platin */
 #toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;pointer-events:none;z-index:60;background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:10px;font-weight:600;max-width:calc(100% - 32px);text-align:center;transition:.3s}#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
@@ -472,7 +479,7 @@ const saveProgress=()=>{try{localStorage.setItem(SAVE,JSON.stringify({pts:st.pts
 const $=q=>document.querySelector(q);
 function stats(){saveProgress();const lv=Math.floor(st.pts/50)+1;$('#lv').textContent=lv;$('#pt').textContent=st.pts;$('#sr').textContent=st.streak;$('#pb').style.width=(st.pts%50)*2+'%';}
 function home(){
- $('#view').innerHTML=dailyCard()+'<p><button onclick="ranks()">Meine Ränge</button></p><p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist: normal per Auswahl oder schwer durch eigenes Zählen.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div><div class="card"><h2>Wie geht es weiter?</h2><p class="mut">Der Chart bricht ab. Plane die fehlenden Wellen regelkonform: erst den Charakter, dann die Subwellen. Punkte gibt es für regelkonformes Planen, nicht fürs Raten.</p><button class="p" onclick="progn(\'imp\')">Impuls</button><button class="p" onclick="progn(\'zig\')">Zigzag</button></div><p id="rs" style="text-align:center;margin-top:28px">'+RSBTN+'</p>';
+ $('#view').innerHTML=dailyCard()+'<p><button onclick="ranks()">Meine Ränge</button></p><p class="mut">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><div class="card"><h2>Chart durchzählen</h2><p class="mut">Wähle das Muster, setze die Wellenpunkte auf den Chart und lass die Zählung prüfen.</p><button class="p" onclick="pick(\'count\')">Starten</button></div><div class="card"><h2>Fehler finden</h2><p class="mut">Ein Count ist vorgegeben und enthält einen Regelverstoß, bei Impuls, Zigzag und Flats auch in den Subwellen. Finde die Welle und die Regel.</p><button class="p" onclick="pick(\'find\')">Starten</button></div><div class="card"><h2>Muster erkennen</h2><p class="mut">Ein Chart ohne Beschriftung kommt zufällig. Erkenne, welches Muster es ist: normal per Auswahl oder schwer durch eigenes Zählen.</p><button class="p" onclick="recognize()">Starten</button></div><div class="card"><h2>Subwellen zählen</h2><p class="mut">Längerer Chart: Zähle erst die Hauptwellen, dann die Subwellen der einzelnen Wellen. Für alle Muster.</p><button class="p" onclick="pickSub()">Starten</button></div><div class="card"><h2>Wie geht es weiter?</h2><p class="mut">Der Chart bricht ab. Plane die fehlenden Wellen regelkonform: erst den Charakter, dann die Subwellen. Punkte gibt es für regelkonformes Planen, nicht fürs Raten.</p><button class="p" onclick="progn(\'imp\')">Impuls</button><button class="p" onclick="progn(\'zig\')">Zigzag</button></div>'+bzCard()+'<p id="rs" style="text-align:center;margin-top:28px">'+RSBTN+'</p>';
 }
 // Fortschritt zurücksetzen: unauffälliger Button, Sicherheitsabfrage direkt auf der Seite (kein Browser-Popup)
 const RSBTN='<button class="mut" style="border-color:var(--line);font-size:.85rem" onclick="resetAsk()">Fortschritt zurücksetzen</button>';
@@ -494,7 +501,7 @@ function pick(mode){
 }
 function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key):find(PAT[key])}
 // Hauptmenü-Button: erscheint, sobald ein Modus gestartet wird (pick, recognize, pickSub), und verschwindet im Hauptmenü
-['pick','recognize','pickSub','daily','ranks','dailyCal','progn'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
+['pick','recognize','pickSub','daily','ranks','dailyCal','progn','blitz','blitzKap'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
 {const h0=home;window.home=function(){$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
 $('#menu').onclick=()=>home();
 $('#home').onclick=()=>home();$('#home').onkeydown=e=>{if(e.key==='Enter')home()};
@@ -950,6 +957,74 @@ function progn(key){
  };
  render();
 }
+// Modus 7: „Blitz-Erkennen“ (schnelles Mustererkennen nach dem Vorbild von Perceptual-Learning-Trainings).
+// 20 Charts je Runde, jeder nur kurz sichtbar, dann 4 Antworten. Anzeigedauer passt sich an: nach 3 richtigen in Folge
+// 0,5 s kürzer (mind. 1,5 s), nach einer falschen 0,5 s länger (höchstens 5 s). Falsch erkannte Muster kommen 1–2 Mal wieder.
+// Richtig ist auch jede Antwort, zu der der Chart regelkonform ist (misfit, wie in „Muster erkennen“).
+const BZCONF=[['fr','fe'],['fe','fru'],['fr','fru'],['trk','tre'],['dl','db'],['db','tz'],['zig','dz']]; // Verwechslungspaare
+const bzPartners=k=>BZCONF.filter(p=>p.includes(k)).map(p=>p[0]===k?p[1]:p[0]);
+const BZKEY='waveChecker.blitz',BZN=20,BZPTS=5,BZFAST=3; // Speicher, Charts je Runde, Punkte je richtige, Extra unter 2 s
+const bzLoad=()=>{try{return JSON.parse(localStorage.getItem(BZKEY))||{}}catch(_){return{}}}; // {best:{Runden-Art:{pts,acc,minDur}}}
+const bzSave=o=>{try{localStorage.setItem(BZKEY,JSON.stringify(o))}catch(_){}};
+let BZ=0; // Nummer der laufenden Runde: alte Zeitgeber erkennen daran, dass sie nicht mehr gelten
+// opt: {id: Art der Runde (Bestleistung), name, keys: Muster}
+function blitz(opt){
+ if(typeof opt==='string')opt=opt==='easy'?{id:'einsteiger',name:'Einsteiger',keys:['imp','zig','fr','fe','fru']}:{id:'alle',name:'Alle Muster',keys:Object.keys(PAT).filter(k=>!PAT[k].noRecog)};
+ const run=++BZ,pool=opt.keys,pick=a=>a[Math.floor(Math.random()*a.length)],q=[];
+ for(let i=0;i<BZN;i++){let k;do k=pick(pool);while(pool.length>1&&k===q[i-1]);q.push(k)} // nie zweimal dasselbe direkt hintereinander
+ const m={i:0,dur:4,row:0,ok:0,pts:0,times:[],minDur:4,conf:{},forced:new Set()};
+ const alive=()=>run===BZ&&$('#bz');
+ const head=()=>'<div id="bz"><div class="bzhead"><span class="mut">'+esc(opt.name)+' · Chart '+(m.i+1)+'/'+BZN+' · Anzeige '+String(m.dur).replace('.',',')+' s</span><button id="bzx">Abbrechen</button></div><div class="bar"><i style="width:'+(m.i/BZN*100)+'%"></i></div>';
+ const show=()=>{const P=PAT[q[m.i]],R=makeRound(P,null);
+  // Antworten: die richtige, mindestens ein Verwechslungspartner (falls es einen gibt), Rest aus der Runde, sonst aus allen Mustern
+  const all=Object.keys(PAT).filter(k=>!PAT[k].noRecog),opts=[P.key],add=k=>{if(k&&!opts.includes(k))opts.push(k)};
+  add(pick(bzPartners(P.key).length?bzPartners(P.key):[null]));
+  shuffle(pool).forEach(k=>opts.length<4&&add(k));shuffle(all).forEach(k=>opts.length<4&&add(k));
+  const ans=shuffle(opts);
+  $('#view').innerHTML=head()+'<div class="chart bzc">'+draw(R,[],false,null)+'</div><div class="bztime"><i style="transition:width '+m.dur+'s linear"></i></div></div>'+
+   '<div class="bzans"><p class="mut">Schau genau hin …</p></div>';
+  $('#bzx').onclick=()=>{BZ++;home()};
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{const t=$('.bztime i');if(t)t.style.width='0%'})); // Zeitbalken läuft ab
+  setTimeout(()=>{if(!alive())return;
+   $('.bzc').innerHTML='<div class="bzq">?</div>';$('.bztime').style.visibility='hidden';
+   $('.bzans').innerHTML=ans.map(k=>'<button class="p" data-bz="'+k+'">'+PAT[k].title+'</button>').join('');
+   const t0=performance.now();
+   document.querySelectorAll('[data-bz]').forEach(b=>b.onclick=()=>answer(P,R,b.dataset.bz,(performance.now()-t0)/1000));},m.dur*1000);
+ };
+ const answer=(P,R,sel,t)=>{if(!alive())return;
+  const ok=sel===P.key||!misfit(PAT[sel],R),fast=ok&&t<2,gain=ok?BZPTS+(fast?BZFAST:0):0;m.times.push(t);
+  document.querySelectorAll('[data-bz]').forEach(b=>{b.disabled=true;if(b.dataset.bz===sel)b.classList.add(ok?'qok':'qbad');if(b.dataset.bz===P.key)b.classList.add('qok')});
+  if(ok){m.ok++;m.pts+=gain;st.streak++;st.pts+=gain;stats();exSolved(P.key,0); // zählt für die Ränge
+   if(++m.row>=3){m.row=0;m.dur=Math.max(1.5,m.dur-.5)}
+   $('.bzc').innerHTML='<div class="bzq ok">✓ Richtig'+(sel!==P.key?' (auch regelkonform)':'')+'<br><small>+'+gain+(fast?' · schnell!':'')+'</small></div>';}
+  else{st.streak=0;stats();m.row=0;m.dur=Math.min(5,m.dur+.5);const c=P.title+' → als '+PAT[sel].title+' erkannt';m.conf[c]=(m.conf[c]||{n:0,k:P.key});m.conf[c].n++;
+   // falsch erkanntes Muster kommt 1–2 Mal wieder (gemischt, nicht direkt danach)
+   const free=j=>j>m.i+1&&j<BZN&&!m.forced.has(j)&&q[j-1]!==P.key&&q[j+1]!==P.key; // nie zweimal dasselbe Muster direkt hintereinander
+   for(let n=1+(Math.random()<.5?1:0);n>0;n--){const s=shuffle([2,3,4,5,6,7].map(d=>m.i+d)).find(free);if(s!==undefined){q[s]=P.key;m.forced.add(s)}}
+   $('.bzc').innerHTML=draw(R,[],true,P.tri?R.piv:null)+'<div class="bzq bad bzover">✗ Richtig: '+P.title+'</div>';}
+  m.minDur=Math.min(m.minDur,m.dur);
+  setTimeout(()=>{if(!alive())return;if(++m.i<BZN)show();else end()},1000); // Rückmeldung höchstens 1 Sekunde
+ };
+ const end=()=>{const o=bzLoad();o.best=o.best||{};const b=o.best[opt.id],acc=m.ok/BZN,avg=m.times.reduce((a,c)=>a+c,0)/m.times.length,isBest=!b||m.pts>b.pts;
+  if(isBest){o.best[opt.id]={pts:m.pts,acc,minDur:m.minDur};bzSave(o);if(b)toast('Neue Bestleistung: '+m.pts+' Punkte! 🎉')}
+  const kap=k=>(UEBEN.find(e=>e[1].includes(k))||[])[0],list=Object.entries(m.conf).sort((a,c)=>c[1].n-a[1].n);
+  $('#view').innerHTML='<div class="card"><h2>Blitz-Runde geschafft</h2><p class="'+(acc>=.8?'ok':'')+'">'+m.ok+' von '+BZN+' richtig ('+Math.round(acc*100)+' %) · +'+m.pts+' Punkte</p>'+
+   '<p>Durchschnittliche Antwortzeit: '+avg.toFixed(1).replace('.',',')+' s · Kürzeste Anzeigedauer: '+String(m.minDur).replace('.',',')+' s</p>'+
+   '<p class="mut">'+(isBest?(b?'🎉 Neue Bestleistung!':'Deine erste Bestleistung in „'+esc(opt.name)+'“.'):'Bestleistung „'+esc(opt.name)+'“: '+b.pts+' Punkte.')+'</p></div>'+
+   (list.length?'<div class="card"><b>Verwechselt</b>'+list.map(([c,v])=>'<p>'+c+': '+v.n+'× '+(kap(v.k)?'<a href="#" class="qlink" data-kap="'+kap(v.k)+'">Kapitel lesen →</a>':'')+'</p>').join('')+'</div>':'')+
+   '<p><button class="p" id="bzagain">Neue Runde</button><button onclick="home()">Hauptmenü</button></p>';
+  document.querySelectorAll('[data-kap]').forEach(a=>a.onclick=e=>{e.preventDefault();learn(a.dataset.kap)});
+  $('#bzagain').onclick=()=>blitz(opt);window.scrollTo(0,0);};
+ window.scrollTo(0,0);show();
+}
+// Karte im Hauptmenü mit den Bestleistungen
+function bzCard(){const b=bzLoad().best||{},t=k=>b[k]?b[k].pts+' Punkte':'noch keine';
+ return '<div class="card"><h2>Blitz-Erkennen</h2><p class="mut">20 Charts, jeder nur kurz sichtbar. Erkenne das Muster so schnell wie möglich. Das Tempo passt sich deinem Können an.</p>'+
+  '<button class="p" onclick="blitz(\'easy\')">Einsteiger</button><button class="p" onclick="blitz(\'all\')">Alle Muster</button>'+
+  '<p class="mut">Bestleistung: Einsteiger '+t('einsteiger')+' · Alle Muster '+t('alle')+'</p></div>'}
+// Blitz-Training aus einem Kapitel: Muster des Kapitels plus ihre Verwechslungspartner
+function blitzKap(prefix){const e=UEBEN.find(x=>x[0]===prefix),keys=[...new Set(e[1].concat(...e[1].map(bzPartners)))];
+ blitz({id:'kap-'+prefix,name:'Blitz-Training: '+e[1].map(k=>PAT[k].title).join(', ').replace(/ \(.*?\)/g,''),keys});}
 // Modus 5 (Fehler finden für Impuls, Zigzag und Flats): Alle Haupt- und Subpunkte sind beschriftet, genau ein Verstoß steckt im Count.
 // Der Fehler liegt entweder auf Hauptebene (Regeln des Musters) oder in der Teilstruktur einer Welle: falsche Teilzahl (5 statt 3 oder umgekehrt)
 // oder eine fünfteilige Welle verletzt IMP-1 bis IMP-3 in ihren Subwellen. Nach der Wahl der Welle zeigt die App nur die Regeln, die diese Welle betreffen.
@@ -1029,7 +1104,7 @@ function mdToHtml(md){
  const L=md.replace(/\r/g,'').split('\n'),out=[],toc=[];let i=0,chap=null,title='';
  const ueben=()=>{const e=chap&&UEBEN.find(([p])=>chap.toLowerCase().startsWith(p)),q=chap&&QUIZKAP.find(([p])=>chap.toLowerCase().startsWith(p));
   if(e||q)out.push('<p class="ueben">'+(e?e[1].map(k=>'<button class="p" data-ueben="'+k+'" data-kap="lk-'+toc.length+'">Jetzt üben'+(e[1].length>1?': '+PAT[k].title:'')+'</button>').join(''):'')+
-   (e&&PG[e[1][0]]?'<button class="p" data-progn="'+e[1][0]+'" data-kap="lk-'+toc.length+'">Prognose üben</button>':'')+(q?'<button data-quiz="'+esc(q[1])+'">Kapitel abfragen</button>':'')+'</p>')};
+   (e?'<button data-blitz="'+e[0]+'" data-kap="lk-'+toc.length+'">Blitz-Training</button>':'')+(e&&PG[e[1][0]]?'<button class="p" data-progn="'+e[1][0]+'" data-kap="lk-'+toc.length+'">Prognose üben</button>':'')+(q?'<button data-quiz="'+esc(q[1])+'">Kapitel abfragen</button>':'')+'</p>')};
  const isBlock=l=>/^(#{1,3} |\||!\[|- |\d+\. )/.test(l);
  while(i<L.length){const l=L[i];
   if(!l.trim()){i++;continue}
@@ -1079,6 +1154,7 @@ async function showLearn(kap){const v=$('#view');
  jumpTo(kap); // z. B. direkt zum Kapitel des Musters, von dem man kam
  v.querySelectorAll('[data-ueben]').forEach(b=>b.onclick=()=>{LEARN=PEEK=null;$('#menu').hidden=false;$('#tolearn').hidden=false;$('#tolearn').dataset.kap=b.dataset.kap;window.scrollTo(0,0);count(PAT[b.dataset.ueben])});
  v.querySelectorAll('[data-quiz]').forEach(b=>b.onclick=()=>quizStart(b.dataset.quiz,true));
+ v.querySelectorAll('[data-blitz]').forEach(b=>b.onclick=()=>{LEARN=PEEK=null;$('#menu').hidden=false;$('#tolearn').hidden=false;$('#tolearn').dataset.kap=b.dataset.kap;window.scrollTo(0,0);blitzKap(b.dataset.blitz)});
  v.querySelectorAll('[data-progn]').forEach(b=>b.onclick=()=>{LEARN=PEEK=null;$('#menu').hidden=false;$('#tolearn').hidden=false;$('#tolearn').dataset.kap=b.dataset.kap;window.scrollTo(0,0);progn(b.dataset.progn)}); // „Kapitel abfragen“: ohne Lese-Hinweis
 }
 function jumpTo(kap){let el=kap&&document.getElementById(kap);
