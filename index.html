@@ -45,11 +45,35 @@ h2{font-size:1.25rem;font-weight:700;margin:0 0 6px;line-height:1.25}
 .bar i{display:block;height:100%;background:var(--accent);transition:width .3s}
 .card{background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;padding:16px;margin-bottom:12px}
 button{font:inherit;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:16px;padding:9px 16px;min-height:44px;margin:4px 6px 4px 0}
-button:hover{border-color:var(--accent)}
 button.p{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
-button.p:hover,button.p:active{background:var(--accent-dark);border-color:var(--accent-dark)}
 button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-text);font-weight:700}
 button:disabled{opacity:.45;cursor:not-allowed}
+/* Buttons: beim Darüberfahren (am Handy kurz beim Antippen) tauschen Füllung und Schrift die Farben (DESIGN.md, Bewegung) */
+button,.toc a{transition:background-color .18s ease,color .18s ease,border-color .18s ease}
+@media(hover:hover){
+ button:not(.isl):not(.logo):not(:disabled):hover,.toc a:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+ button.p:not(.isl):not(.logo):not(:disabled):hover{background:var(--surface);color:var(--accent-text);border-color:var(--accent)}
+ .daily button:not(.isl):not(.logo):not(:disabled):hover{background:#fff;color:var(--accent);border-color:var(--accent)}
+ .daily button.p:not(.isl):not(.logo):not(:disabled):hover{background:var(--accent);color:#fff;border-color:#fff}
+}
+button:not(.isl):not(.logo):not(:disabled):active,.toc a:active{background:var(--accent);color:#fff;border-color:var(--accent)}
+button.p:not(.isl):not(.logo):not(:disabled):active{background:var(--surface);color:var(--accent-text);border-color:var(--accent)}
+.daily button:not(.isl):not(.logo):not(:disabled):active{background:#fff;color:var(--accent);border-color:var(--accent)}
+.daily button.p:not(.isl):not(.logo):not(:disabled):active{background:var(--accent);color:#fff;border-color:#fff}
+/* Einflug der Startseite (nur beim ersten Öffnen in einer Sitzung, Klasse intro). Nur transform und opacity. */
+@keyframes inL{from{transform:translateX(-105%);opacity:0}}
+@keyframes inR{from{transform:translateX(105%);opacity:0}}
+@keyframes inB{from{transform:translateY(105%);opacity:0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}}
+@keyframes wipe{to{transform:translateX(100%)}}
+@keyframes show{from{opacity:0}}
+.home.intro .isl{animation:.5s cubic-bezier(.22,1,.36,1) calc(320ms + var(--i,0)*70ms) backwards}
+.home.intro .hl .isl{animation-name:inL}.home.intro .hrr .isl{animation-name:inR}.home.intro .hb .isl{animation-name:inB}
+main.intro .logo,.home.intro .hc>*{animation:fadeUp .45s ease-out backwards}
+.home.intro .hc>:nth-child(2){animation-delay:70ms}.home.intro .hc>:nth-child(n+3){animation-delay:140ms}
+.hbg .wipe{display:none}.home.intro .hbg .wipe{display:block;transform-box:fill-box;animation:wipe 1.8s linear .2s both} /* deckt den Chart ab und gibt ihn von links nach rechts frei */
+.home.intro .hbg .wn text{animation:show .4s ease-out var(--d,0ms) backwards} /* Wellenzahl erscheint, wenn die Linie dort ankommt */
+@media(prefers-reduced-motion:reduce){.home.intro *,main.intro .logo{animation:none!important}.home.intro .hbg .wipe{display:none!important}}
 button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 a{color:var(--accent-text)}
 .mut{color:var(--muted);font-size:.9rem}
@@ -147,7 +171,6 @@ button.isl:hover{border-color:var(--accent)}
  .isl:hover{transform:scale(1.04);background:var(--surface-hover);border-color:var(--accent);box-shadow:0 14px 36px rgba(30,60,140,.24)}
  .isl:hover b{color:var(--accent-text)}.isl:hover .ico svg{transform:scale(1.15)}
  .hc .daily:hover{transform:scale(1.02);background:var(--daily-hover);border-color:var(--daily-hover);box-shadow:0 16px 40px rgba(30,60,140,.3)}
- .daily button:hover{background:rgba(255,255,255,.18);border-color:#fff}.daily button.p:hover{background:#EAF1FF;color:var(--daily-hover)}
 }
 .isl:focus-visible,.isl:focus-within{border-color:var(--accent);background:var(--surface-hover)}
 @media(prefers-reduced-motion:reduce){.isl,.hc .daily,.isl .ico svg{transition:none!important;transform:none!important}}
@@ -617,7 +640,19 @@ function home(){
   '<div class="hb">'+isl('trend','Wie geht es weiter?','Plane die fehlenden Wellen regelkonform',null,
     '<span class="sb"><button class="p" onclick="progn(\'imp\')">Impuls</button><button class="p" onclick="progn(\'zig\')">Zigzag</button></span>')+blitzIsl('desk')+'</div>'+
   '</section>';
+ intro();
 }
+// Einflug nur beim ersten Öffnen der Startseite in einer Sitzung (nicht bei jeder Rückkehr aus einem Modus)
+let INTRO=false;
+function intro(){let first=!INTRO;INTRO=true;
+ try{first=!sessionStorage.getItem('waveChecker.intro');sessionStorage.setItem('waveChecker.intro','1')}catch(_){}
+ if(!first)return;
+ const h=$('.home'),mn=document.querySelector('main'),vis=s=>[...h.querySelectorAll(s)].filter(e=>e.offsetParent);
+ const L=vis('.hl .isl'),R=vis('.hrr .isl');let n=0; // abwechselnd links und rechts, dann unten
+ for(let i=0;i<Math.max(L.length,R.length);i++)[L[i],R[i]].forEach(e=>e&&e.style.setProperty('--i',n++));
+ vis('.hb .isl').forEach(e=>e.style.setProperty('--i',n++));
+ h.classList.add('intro');mn.classList.add('intro');
+ setTimeout(()=>{h.classList.remove('intro');mn.classList.remove('intro')},3200);}
 // Hintergrund-Chart: 5-Wellen-Impuls mit kleinen Zacken von unten links nach oben rechts, blass, nicht anklickbar
 function bgChart(){const P=[[0,960],[380,610],[560,770],[1080,250],[1240,420],[1600,60]],pts=[];
  for(let w=0;w<5;w++){const [x1,y1]=P[w],[x2,y2]=P[w+1],n=7;
@@ -627,7 +662,8 @@ function bgChart(){const P=[[0,960],[380,610],[560,770],[1080,250],[1240,420],[1
   '<polyline points="'+ps+'" fill="none" stroke="var(--accent)" stroke-width="26" stroke-linejoin="round" opacity=".06"/>'+
   '<polyline points="'+ps+'" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round" opacity=".22"/>'+
   '<g class="wn" fill="var(--accent)" opacity=".12" font-family="Bricolage Grotesque,sans-serif" font-weight="800" font-size="56" text-anchor="middle">'+
-  P.slice(1).map((p,i)=>'<text x="'+p[0]+'" y="'+(p[1]+(i%2?70:-26))+'">'+(i+1)+'</text>').join('')+'</g></svg>'}
+  P.slice(1).map((p,i)=>'<text style="--d:'+Math.round(200+1800*(p[0]+60)/1720)+'ms" x="'+p[0]+'" y="'+(p[1]+(i%2?70:-26))+'">'+(i+1)+'</text>').join('')+'</g>'+
+  '<rect class="wipe" x="-60" y="-60" width="1720" height="1120" fill="var(--bg)"/></svg>'} // Abdeckung, die beim ersten Öffnen nach rechts wegfährt (Linie „zeichnet“ sich)
 // Fortschritt zurücksetzen: unauffälliger Button, Sicherheitsabfrage direkt auf der Seite (kein Browser-Popup)
 const RSBTN='<button class="mut" style="border-color:var(--line);font-size:.85rem" onclick="resetAsk()">Fortschritt zurücksetzen</button>';
 function resetAsk(){$('#rs').innerHTML='<span class="mut">Punkte, Level und Serie wirklich auf 0 setzen? Das lässt sich nicht rückgängig machen.</span><br><button onclick="resetDo()">Ja, zurücksetzen</button><button class="p" onclick="$(\'#rs\').innerHTML=RSBTN">Abbrechen</button>'}
