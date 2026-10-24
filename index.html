@@ -174,6 +174,18 @@ button.isl:hover{border-color:var(--accent)}
 }
 .isl:focus-visible,.isl:focus-within{border-color:var(--accent);background:var(--surface-hover)}
 @media(prefers-reduced-motion:reduce){.isl,.hc .daily,.isl .ico svg{transition:none!important;transform:none!important}}
+/* Wegführer (Guide) */
+.gd{position:fixed;inset:0;z-index:70}.gd-catch{position:fixed;inset:0}
+.gd-spot{position:fixed;box-shadow:0 0 0 200vmax rgba(11,27,58,.55);border:2px solid var(--accent);pointer-events:none}
+.gd-bub{position:fixed;background:var(--surface);color:var(--text);border:2px solid var(--accent);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);opacity:0;transform:translateY(6px);transition:opacity .2s ease,transform .2s ease}
+.gd-bub.in{opacity:1;transform:none}.gd-bub p{margin:0 0 10px;font-size:15px;line-height:1.45}
+.gd-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.gd-n{color:var(--muted);font-size:.85rem;margin-right:auto}.gd-row button{margin:0;min-height:44px}
+.gd-skip{border-color:transparent;background:transparent;color:var(--muted)}
+.gd-arr{position:absolute;width:14px;height:14px;background:var(--surface);border:2px solid var(--accent);transform:rotate(45deg)}
+.gd-arr.l{left:-9px;margin-top:-7px;border-top:0;border-right:0}.gd-arr.r{right:-9px;margin-top:-7px;border-bottom:0;border-left:0}
+.gd-arr.t{top:-9px;margin-left:-7px;border-bottom:0;border-right:0}.gd-arr.b{bottom:-9px;margin-left:-7px;border-top:0;border-left:0}
+.lnk{border:0;background:none;color:var(--accent-text);text-decoration:underline;text-underline-offset:3px;font-size:.88rem;min-height:44px;padding:4px 8px}
+@media(prefers-reduced-motion:reduce){.gd-bub{transition:none}}
 .desk{display:none!important}
 .hreset{grid-column:1/-1;text-align:center;margin:0;position:relative;z-index:1}
 @media(min-width:700px){.lead{font-size:48px}.isl b{font-size:17px}.isl .d{font-size:14px}.home{column-gap:24px}}
@@ -629,7 +641,7 @@ function home(){
  const blitzIsl=cls=>bzCard().replace('class="isl"','class="isl '+cls+'"');
  $('#view').innerHTML='<section class="home"><div class="hbg">'+bgChart()+'</div>'+
   '<div class="hc"><p class="lead">Elliott-Wellen <span>lernen</span></p>'+dailyCard()+
-   '<p class="mut rec">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><p id="rs" class="hreset">'+RSBTN+'</p></div>'+
+   '<p class="mut rec">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><p id="rs" class="hreset">'+RSBTN+'</p><p class="hreset"><button class="lnk" onclick="guideStart()">Einführung erneut ansehen</button></p></div>'+
   '<div class="hl">'+isl('book','Elliott-Wellen lernen','Das Regelwerk mit Beispielcharts','learn()')+
    isl('quiz','Quiz','Kapitel abfragen in kurzen Runden','quizMenu()')+
    isl('medal','Meine Ränge','Bronze bis Platin je Kapitel','ranks()')+blitzIsl('mob')+'</div>'+
@@ -642,10 +654,59 @@ function home(){
   '</section>';
  intro();
 }
+// ---- Wegführer (Guide) beim allerersten Besuch: dunkelt die Seite ab, hebt ein Modul hervor, Sprechblase daneben.
+// Kommt ein neues Modul dazu, bekommt es hier ebenfalls einen Schritt (t = Titel der Insel, s = CSS-Selektor).
+const GUIDE=[
+ {t:'Elliott-Wellen lernen',x:'Hier findest du das komplette Regelwerk mit Beispielcharts. Lies es zuerst, dann fällt dir alles andere leichter.'},
+ {t:'Quiz',x:'Teste dein Wissen in kurzen Runden. Hakt es irgendwo, schicken wir dich zum passenden Kapitel.'},
+ {t:'Meine Ränge',x:'Sammle für jede Musterart Ränge von Bronze bis Platin.'},
+ {s:'.hc .daily',x:'Jeden Tag ein neuer Chart, für alle derselbe. Löse ihn und teile dein Ergebnis.'},
+ {t:'Chart durchzählen',x:'Wähle ein Muster, setze die Wellenpunkte und lass deine Zählung prüfen.'},
+ {t:'Fehler finden',x:'In diesem Count steckt ein Regelbruch. Finde die Welle und die Regel.'},
+ {t:'Muster erkennen',x:'Welches Muster zeigt der Chart? Auf Schwer zählst du ihn zusätzlich selbst.'},
+ {t:'Subwellen zählen',x:'Zähle in längeren Charts die Hauptwellen und ihre Subwellen.'},
+ {t:'Blitz-Erkennen',x:'Charts blitzen nur kurz auf. Erkenne das Muster so schnell du kannst.'},
+ {t:'Wie geht es weiter?',x:'Der Chart bricht ab. Zeichne regelkonform, wie es weitergeht.'}];
+const GKEY='waveChecker.guide';let G=null;
+const guideSeen=()=>{try{return !!localStorage.getItem(GKEY)}catch(_){return false}};
+const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+const guideTarget=st=>st.s?$(st.s):[...document.querySelectorAll('.home .isl')].find(e=>e.offsetParent&&(e.querySelector('b')||{}).textContent===st.t);
+function guideStart(){if(G||!$('.home'))return;
+ const ov=document.createElement('div');ov.className='gd';
+ ov.innerHTML='<div class="gd-catch"></div><div class="gd-spot"></div><div class="gd-bub" role="dialog" aria-modal="true" aria-labelledby="gdTxt"><span class="gd-arr"></span>'+
+  '<p id="gdTxt"></p><div class="gd-row"><span class="gd-n"></span><button class="gd-skip">Überspringen</button><button class="p gd-next">Weiter</button></div></div>';
+ document.body.appendChild(ov);G={i:0,ov};
+ ov.querySelector('.gd-next').onclick=guideNext;ov.querySelector('.gd-skip').onclick=guideEnd;
+ G.key=e=>{if(e.key==='Escape'){e.preventDefault();guideEnd()}else if(e.key==='Enter'){e.preventDefault();guideNext()}}; // Enter = Weiter, Esc = Überspringen
+ G.pos=()=>guidePlace();document.addEventListener('keydown',G.key);addEventListener('resize',G.pos);addEventListener('scroll',G.pos,{passive:true});
+ guideShow();}
+function guideShow(){const st=GUIDE[G.i],el=guideTarget(st),b=G.ov.querySelector('.gd-bub'),nx=G.ov.querySelector('.gd-next');
+ if(!el)return guideNext(); // Modul gerade nicht sichtbar
+ b.classList.remove('in');G.el=el;el.scrollIntoView({block:'center',behavior:calm()?'auto':'smooth'});
+ G.ov.querySelector('#gdTxt').textContent=st.x;G.ov.querySelector('.gd-n').textContent=(G.i+1)+' / '+GUIDE.length;
+ nx.textContent=G.i===GUIDE.length-1?'Los geht\'s':'Weiter';
+ guidePlace();requestAnimationFrame(()=>requestAnimationFrame(()=>b.classList.add('in')));nx.focus({preventScroll:true});}
+function guideNext(){if(!G)return;if(G.i>=GUIDE.length-1)return guideEnd();G.i++;guideShow()}
+function guideEnd(){if(!G)return;document.removeEventListener('keydown',G.key);removeEventListener('resize',G.pos);removeEventListener('scroll',G.pos);
+ G.ov.remove();G=null;try{localStorage.setItem(GKEY,'1')}catch(_){}}
+// Hervorhebung über das Modul legen, Sprechblase daneben (sonst darunter oder darüber), immer ganz im Bild
+function guidePlace(){if(!G||!G.el)return;
+ const r=G.el.getBoundingClientRect(),sp=G.ov.querySelector('.gd-spot'),b=G.ov.querySelector('.gd-bub'),a=b.querySelector('.gd-arr'),pad=6,M=16,vw=document.documentElement.clientWidth,vh=innerHeight,gap=16;
+ Object.assign(sp.style,{left:r.left-pad+'px',top:r.top-pad+'px',width:r.width+2*pad+'px',height:r.height+2*pad+'px',borderRadius:getComputedStyle(G.el).borderRadius});
+ const bw=Math.min(340,vw-2*M);b.style.width=bw+'px';const bh=b.offsetHeight;let x,y,side;
+ if(r.right+gap+bw<=vw-M){side='l';x=r.right+gap;y=r.top+r.height/2-bh/2}        // rechts daneben, Pfeil zeigt nach links
+ else if(r.left-gap-bw>=M){side='r';x=r.left-gap-bw;y=r.top+r.height/2-bh/2}      // links daneben
+ else if(r.bottom+gap+bh<=vh-M){side='t';y=r.bottom+gap;x=r.left+r.width/2-bw/2}  // darunter, Pfeil zeigt nach oben
+ else{side='b';y=r.top-gap-bh;x=r.left+r.width/2-bw/2}                            // darüber
+ x=Math.max(M,Math.min(vw-M-bw,x));y=Math.max(M,Math.min(vh-M-bh,y));
+ b.style.left=x+'px';b.style.top=y+'px';a.className='gd-arr '+side;
+ if(side==='l'||side==='r'){a.style.top=Math.max(16,Math.min(bh-16,r.top+r.height/2-y))+'px';a.style.left=''}
+ else{a.style.left=Math.max(18,Math.min(bw-18,r.left+r.width/2-x))+'px';a.style.top=''}}
 // Einflug nur beim ersten Öffnen der Startseite in einer Sitzung (nicht bei jeder Rückkehr aus einem Modus)
 let INTRO=false;
 function intro(){let first=!INTRO;INTRO=true;
  try{first=!sessionStorage.getItem('waveChecker.intro');sessionStorage.setItem('waveChecker.intro','1')}catch(_){}
+ if(!guideSeen())setTimeout(()=>{if($('.home')&&!G)guideStart()},first&&!calm()?1500:300); // Guide startet nach dem Einflug
  if(!first)return;
  const h=$('.home'),mn=document.querySelector('main'),vis=s=>[...h.querySelectorAll(s)].filter(e=>e.offsetParent);
  const L=vis('.hl .isl'),R=vis('.hrr .isl');let n=0; // abwechselnd links und rechts, dann unten
