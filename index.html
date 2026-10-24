@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Wave Checker – Elliott-Wellen trainieren</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpolyline points='2,17 7,9 11,14 16,5 22,11' fill='none' stroke='%231E5EFF' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap">
 <script>/* gewähltes Design (hell/dunkel) sofort setzen, damit nichts aufblitzt */try{const t=localStorage.getItem("waveChecker.theme");if(t)document.documentElement.dataset.theme=t}catch(_){}</script>
 <style>
@@ -47,7 +48,7 @@ h2{font-size:1.25rem;font-weight:700;margin:0 0 6px;line-height:1.25}
 button{font:inherit;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:16px;padding:9px 16px;min-height:44px;margin:4px 6px 4px 0}
 button.p{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
 button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-text);font-weight:700}
-button:disabled{opacity:.45;cursor:not-allowed}
+button:disabled{opacity:.45;cursor:not-allowed}button:disabled.qok,button:disabled.qbad,button:disabled.on{opacity:1}
 /* Buttons: beim Darüberfahren (am Handy kurz beim Antippen) tauschen Füllung und Schrift die Farben (DESIGN.md, Bewegung) */
 button,.toc a{transition:background-color .18s ease,color .18s ease,border-color .18s ease}
 @media(hover:hover){
@@ -109,8 +110,9 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .calh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.calh button{margin:0;padding:4px 14px;font-size:1.1rem}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal span{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:.9rem;line-height:1.1}
 .cal .wd{aspect-ratio:auto;font-size:.8rem;font-weight:700;color:var(--muted)}.cal i{font-style:normal;font-size:.8rem;font-weight:700}
-.cs{background:var(--ok);color:var(--surface)}.cf{background:var(--bad);color:var(--surface)}.cn,.co{border:1px solid var(--line-soft)}.cx{opacity:.35}.ct{outline:2px solid var(--accent);outline-offset:1px}
-.leg{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-left:8px}
+.cs{background:var(--ok);color:var(--surface)}.cf{background:var(--bad);color:var(--surface)}.cn,.co{border:1px solid var(--line-soft)}.cx{opacity:.5}.ct{outline:2px solid var(--accent);outline-offset:1px}
+.lgi{white-space:nowrap}.lgi:first-of-type .leg{margin-left:0}
+.leg{display:inline-block;min-width:18px;height:18px;line-height:18px;text-align:center;font-size:12px;font-weight:700;border-radius:4px;vertical-align:-3px;margin-left:8px}
 /* Blitz-Erkennen: Antworten groß und unten fixiert (Handy), Chart darüber */
 .bzhead{display:flex;justify-content:space-between;align-items:center;gap:8px}.bzhead button{margin:0}
 #bz{padding-bottom:170px}.bzc{position:relative;aspect-ratio:720/340;display:flex;align-items:center;justify-content:center}.bzc svg{position:absolute;inset:0}
@@ -141,8 +143,9 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .toc a{flex:none;border-radius:999px;padding:8px 13px;background:var(--surface);border:1px solid var(--line);color:var(--text);text-decoration:none;font-size:.88rem;font-weight:500;white-space:nowrap;min-height:40px;display:inline-flex;align-items:center}
 .toc a.act{background:var(--accent);border-color:var(--accent);color:#fff}
 .ueben{margin:14px 0 0}
-.lb{position:fixed;inset:0;z-index:50;background:rgba(11,27,58,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;cursor:zoom-out}
-.lb img{max-width:100%;max-height:80vh;height:auto}.lb p{color:#fff;font-size:14px;margin:8px 0 0;text-align:center;max-width:760px}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(11,27,58,.95);overflow:auto;padding:64px 12px 24px}
+.lb img{display:block;max-width:none;height:auto;margin:0 auto}.lb p{position:sticky;left:0;color:#fff;font-size:14px;margin:10px auto 0;text-align:center;max-width:760px}
+.lb .lbx{position:fixed;top:12px;right:12px;z-index:51;min-height:44px;background:var(--surface);color:var(--text)}
 /* ===== Startseite: Inseln an den Bildschirmrändern, Hintergrund-Chart ===== */
 .home{position:relative;display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"c c" "l r" "b b";grid-template-rows:auto auto 1fr;column-gap:10px;row-gap:14px;min-height:calc(100vh - 70px);overflow:hidden}
 .hbg{position:absolute;inset:0;z-index:0;pointer-events:none}.hbg svg{width:100%;height:100%}.hbg .wn{display:none}
@@ -374,7 +377,7 @@ const WXW='Regelwerk, Abschnitt Welle X';
 const wx2=(a,b,wave,name,wname)=>({page:null,where:WXW,hard:1,wave,name,hint:'Schau, wie weit '+name.split(' retraced')[0].replace(/^Die/,'die')+' gegen '+wname+' zurückläuft.',
  ex:'Welle X muss unter 100 % der vorangegangenen Welle bleiben. Eine überschießende Welle X lässt das Regelwerk nicht zu. Bis 99 % ist erlaubt, aber ein starkes Warnsignal.',
  ok:u=>L(u,a)/L(u,b)<1});
-// Starkes Warnsignal (kein Regelbruch): X läuft fast bis zum Start der Vorwelle zurück. Grenze 88,7 % ist eine Annahme, bitte von Lenny bestätigen lassen.
+// Starkes Warnsignal (kein Regelbruch): X läuft fast bis zum Start der Vorwelle zurück. Grenze 88,7 % laut WX-2 (von Lenny bestätigt).
 const wx2w=(a,b,wave,name)=>({page:null,where:WXW,hard:0,wave,name,hint:'Schau, wie nah Welle X am Start der vorangegangenen Welle endet.',
  ex:'Starkes Warnsignal: Ein Rücklauf von Welle X über 88,7 % bis knapp unter 100 % ist erlaubt, spricht aber deutlich gegen die Zählung. Das ist kein sicherer Fehler.',ok:u=>L(u,a)/L(u,b)<=.887});
 const wx3=(a,b,wave,name)=>({page:null,hard:0,wave,name,hint:'Vergleiche die Länge der Welle X mit der vorangegangenen Welle.',
@@ -421,7 +424,7 @@ PAT.tz={key:'tz',title:'Dreifache Form (W-X-Y-X-Z)',labels:['0','W','X1','Y','X2
  endMsg:'Der Chart endet im Extrem von Welle Z. Setze Punkt Z an das letzte Tief (bei steigenden Preisen: Hoch) des Charts.',
  info:v=>'<p class="mut">Orientierung: Die erste Welle X lief '+pct(L(v,2)/L(v,1))+' von W zurück, die zweite '+pct(L(v,4)/L(v,3))+' von Y (häufig 61,8 %, mindestens 38,2 %, unter 100 %). Welle Y erreicht '+pct(L(v,3)/L(v,1))+' von W (häufig 100 %, zwischen 61,8 % und 261,8 %).</p>'+HCX};
 // Hilfsfunktionen: je Muster prüfen
-const tag=(P,id)=>{const r=P.rules[id];return r.page?'Buch S.'+r.page:(r.where||'Orientierung aus dem Regelwerk')};
+const tag=(P,id)=>{const r=P.rules[id];return r.page?'Buch S.'+r.page:(r.where||'Regelwerk')};
 const check=(P,v)=>Object.keys(P.rules).filter(id=>!P.rules[id].ok(v));
 const hardFails=(P,v)=>check(P,v).filter(id=>P.rules[id].hard);
 const warns=(P,v)=>check(P,v).filter(id=>!P.rules[id].hard);
@@ -479,7 +482,7 @@ function genDiag(kind,violate){
   if(kind==='de'){L2=L1*rnd(.3,.8);L3=L1*rnd(wide?.7:1.1,wide?1.8:2);L4=L3*(violate==='DE-9'?rnd(1.02,1.3):violate==='DIAG-2'?rnd(.3,.9):rnd(.5,.887));L5=L3*rnd(1.1,1.6);} // Welle 4 retraced 50 % bis 88,7 % der Welle 3 (DE-9)
   else{L2=L1*rnd(.3,.85);L3=L1*rnd(.4,wide?1.5:.98);L4=L1*rnd(.15,.9);L5=L1*rnd(.15,wide?1.3:.95);}
   const u=[0,L1,L1-L2,L1-L2+L3,L1-L2+L3-L4,L1-L2+L3-L4+L5];
-  // Form: Hochs steigen (3 über 1, 5 über 3, Regel DIAG-5); Tiefs steigen (kontrahierend) bzw. fallen (expandierend)
+  // Form: Hochs steigen (3 über 1, 5 über 3, Regel DIAG-5); Tiefs steigen (bei der Expandierenden Diagonale folgt das aus DE-9)
   if(!(u[3]>u[1]&&u[5]>u[3]&&u[4]>u[0]&&(kind==='de'?(u[4]>u[2]||violate==='DE-9'||violate==='DIAG-2'):u[4]>u[2])))continue;
   const f=hardFails(P,u),Ln=j=>Math.abs(u[j]-u[j-1]);
   if(violate){
@@ -599,7 +602,7 @@ function draw(R,marks,showPiv,tl){ // tl: gesetzte Dreieckspunkte (0,A,B,C,D,E) 
  const pr=innerWidth<=600?24:14; // gesetzte Punkte: blaue Kreise (ca. 28 px) mit weißer Beschriftung
  list.forEach(([i,k])=>{const up=R.pr[i]>=(R.pr[i-1]??-1e9)&&R.pr[i]>=(R.pr[i+1]??-1e9),l=R.lab?R.lab[k]:R.P.labels[k];
   if(showPiv)s+='<text class="lab" x="'+X(i)+'" y="'+(Y(R.pr[i])+(up?-7:15))+'">'+l+'</text>';
-  else s+='<g class="pt"><circle cx="'+X(i)+'" cy="'+(Y(R.pr[i])+(up?-pr-4:pr+4))+'" r="'+pr+'"/><text x="'+X(i)+'" y="'+(Y(R.pr[i])+(up?-pr-4:pr+4))+'">'+l+'</text></g>';});
+  else s+='<g class="pt"><circle cx="'+Math.max(pr+2,Math.min(W-pr-2,X(i)))+'" cy="'+(Y(R.pr[i])+(up?-pr-4:pr+4))+'" r="'+pr+'"/><text x="'+Math.max(pr+2,Math.min(W-pr-2,X(i)))+'" y="'+(Y(R.pr[i])+(up?-pr-4:pr+4))+'">'+l+'</text></g>';});
  return s+'</svg>';
 }
 
@@ -630,13 +633,18 @@ const tipLine=t=>t.startsWith('Tipp')?'<p class="tip">'+ICON.bulb+'<span>'+t+'</
 const stufe=s=>'<span class="stufe s-'+s+'">'+{regel:'Regel',warn:'Warnsignal',faust:'Faustregel'}[s]+'</span>';
 const lvlNote=(X,id)=>{const o=X.rules[id].lvl==='o';return '<p class="rnote '+(o?'f':'w')+'">'+stufe(o?'faust':'warn')+'('+tag(X,id)+') '+X.rules[id].ex+'</p>'};
 // „Nächster Chart“/„Weiter“ wandert in die feste Leiste unten, damit es am Handy ohne Scrollen erreichbar ist
+// Neu erscheinende Weiter-Buttons sind kurz gesperrt, damit ein schnelles Doppeltippen die Rückmeldung nicht überspringt
+const lockTap=b=>{if(!b||b.dataset.lk)return;b.dataset.lk=1;b.style.pointerEvents='none';setTimeout(()=>b.style.pointerEvents='',450)};
+let lastFb='';
 new MutationObserver(()=>{const n=$('#view #nxt'),d=$('#view .dock');
- if(n&&d&&!d.contains(n)){d.querySelectorAll('button:disabled').forEach(b=>b.hidden=true);d.prepend(n)}}).observe(document.getElementById('view'),{childList:true,subtree:true});
+ if(n&&d&&!d.contains(n)){d.querySelectorAll('button:disabled').forEach(b=>b.hidden=true);d.prepend(n)}
+ lockTap(n);lockTap($('#view #qn'));
+ const f=$('#view #fb'),h=f&&!f.hidden?f.innerHTML:'';if(h!==lastFb){lastFb=h;if(h&&f.querySelector('.ok,.bad'))f.scrollIntoView({block:'nearest'})}}).observe(document.getElementById('view'),{childList:true,subtree:true});
 function stats(){saveProgress();const lv=Math.floor(st.pts/50)+1;$('#lv').textContent=lv;$('#pt').textContent=st.pts;$('#sr').textContent=st.streak;$('#pb').style.width=(st.pts%50)*2+'%';}
 // Startseite (DESIGN.md, Abschnitt 4 und 5): Modi als Inseln an den Bildschirmrändern, in der Mitte Leitsatz und Tagesaufgabe,
 // dahinter der impulsive Hintergrund-Chart. Links Lernen, Quiz, Ränge (Handy: auch Blitz), rechts die Übungsmodi, unten die Prognose
 // (Desktop: auch Blitz). Neue Modi bekommen ebenfalls eine Insel.
-const isl=(icon,title,desc,act,extra)=>(act?'<button class="isl" onclick="'+act+'">':'<div class="isl">')+'<span class="ico">'+ICON[icon]+'</span><b>'+title+'</b><span class="d">'+desc+'</span>'+(extra||'')+(act?'</button>':'</div>');
+const isl=(icon,title,desc,act,extra)=>(act?'<button class="isl" aria-label="'+title+': '+desc+'" onclick="'+act+'">':'<div class="isl">')+'<span class="ico">'+ICON[icon]+'</span><b>'+title+'</b><span class="d">'+desc+'</span>'+(extra||'')+(act?'</button>':'</div>');
 function home(){
  const blitzIsl=cls=>bzCard().replace('class="isl"','class="isl '+cls+'"');
  $('#view').innerHTML='<section class="home"><div class="hbg">'+bgChart()+'</div>'+
@@ -682,7 +690,7 @@ function guideStart(){if(G||!$('.home'))return;
  guideShow();}
 function guideShow(){const st=GUIDE[G.i],el=guideTarget(st),b=G.ov.querySelector('.gd-bub'),nx=G.ov.querySelector('.gd-next');
  if(!el)return guideNext(); // Modul gerade nicht sichtbar
- b.classList.remove('in');G.el=el;el.scrollIntoView({block:'center',behavior:calm()?'auto':'smooth'});
+ b.classList.remove('in');G.el=el;el.scrollIntoView({block:'center'}); // sofort, damit „Weiter“ nicht unter dem Finger wegwandert
  G.ov.querySelector('#gdTxt').textContent=st.x;G.ov.querySelector('.gd-n').textContent=(G.i+1)+' / '+GUIDE.length;
  nx.textContent=G.i===GUIDE.length-1?'Los geht\'s':'Weiter';
  guidePlace();requestAnimationFrame(()=>requestAnimationFrame(()=>b.classList.add('in')));nx.focus({preventScroll:true});}
@@ -692,7 +700,8 @@ function guideEnd(){if(!G)return;document.removeEventListener('keydown',G.key);r
 // Hervorhebung über das Modul legen, Sprechblase daneben (sonst darunter oder darüber), immer ganz im Bild
 function guidePlace(){if(!G||!G.el)return;
  const r=G.el.getBoundingClientRect(),sp=G.ov.querySelector('.gd-spot'),b=G.ov.querySelector('.gd-bub'),a=b.querySelector('.gd-arr'),pad=6,M=16,vw=document.documentElement.clientWidth,vh=innerHeight,gap=16;
- Object.assign(sp.style,{left:r.left-pad+'px',top:r.top-pad+'px',width:r.width+2*pad+'px',height:r.height+2*pad+'px',borderRadius:getComputedStyle(G.el).borderRadius});
+ const sl=Math.max(2,r.left-pad),sr=Math.min(vw-2,r.right+pad);
+ Object.assign(sp.style,{left:sl+'px',top:r.top-pad+'px',width:sr-sl+'px',height:r.height+2*pad+'px',borderRadius:getComputedStyle(G.el).borderRadius});
  const bw=Math.min(340,vw-2*M);b.style.width=bw+'px';const bh=b.offsetHeight;let x,y,side;
  if(r.right+gap+bw<=vw-M){side='l';x=r.right+gap;y=r.top+r.height/2-bh/2}        // rechts daneben, Pfeil zeigt nach links
  else if(r.left-gap-bw>=M){side='r';x=r.left-gap-bw;y=r.top+r.height/2-bh/2}      // links daneben
@@ -745,7 +754,7 @@ function pick(mode){
 }
 function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key):find(PAT[key])}
 // Hauptmenü-Button: erscheint, sobald ein Modus gestartet wird (pick, recognize, pickSub), und verschwindet im Hauptmenü
-['pick','recognize','pickSub','daily','ranks','dailyCal','progn','blitz','blitzKap'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;return f.apply(this,arguments)}});
+['pick','recognize','pickSub','daily','ranks','dailyCal','progn','blitz','blitzKap'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;window.scrollTo(0,0);return f.apply(this,arguments)}});
 {const h0=home;window.home=function(){$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
 $('#menu').onclick=()=>home();
 $('#home').onclick=()=>home();$('#home').onkeydown=e=>{if(e.key==='Enter')home()};
@@ -813,8 +822,8 @@ function find(P){
  const id=P.viol[Math.floor(Math.random()*P.viol.length)],R=makeRound(P,id,true),m={w:null,r:P.viol.length===1?id:null},rule=P.rules[id],wv=R.vwave||rule.wave;
  const render=(fb)=>{
   $('#view').innerHTML='<p class="kick">Fehler finden · '+P.title+'</p><p class="task">Dieser Count enthält genau einen Regelverstoß. Wähle die fehlerhafte Welle und die verletzte Regel.</p><div class="chart">'+draw(R,[],true)+'</div>'+
-  '<div class="card"><b>Welche Welle?</b><br>'+P.waves.map(w=>'<button data-w="'+w+'" class="'+(m.w===w?'on':'')+'">Welle '+w+'</button>').join('')+
-  (P.viol.length>1&&m.w?'<br><b>Welche Regel?</b><br>'+P.viol.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'">'+P.rules[x].name+'</button>').join(''):'')+
+  '<div class="card"><b>Welche Welle?</b><br>'+P.waves.map(w=>'<button data-w="'+w+'" class="'+(m.w===w?'on':'')+'" '+(fb?'disabled':'')+'>Welle '+w+'</button>').join('')+
+  (P.viol.length>1&&m.w?'<br><b>Welche Regel?</b><br>'+P.viol.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'" '+(fb?'disabled':'')+'>'+P.rules[x].name+'</button>').join(''):'')+
   '</div><div class="dock"><button class="p" id="go" '+(m.w&&m.r&&!fb?'':'disabled')+'>Auswerten</button><button id="dk" '+(fb?'disabled':'')+'>Ich weiß nicht</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
   if(fb)return;
   document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{m.w=b.dataset.w;render()});
@@ -889,12 +898,12 @@ function recogHard(D){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, 
  const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=D?D.P:PAT[keys[Math.floor(Math.random()*keys.length)]],R=D?D.R:makeRound(P,null),
   m={z:null,sel:[],tips:D?D.tips:0,failed:D?D.tries>0:false,done:false};
  const Z=()=>ZW[m.z],pic=()=>draw({...R,P:{labels:Z()?Z().labels:[]}},m.sel,false,null); // nackter Chart, Beschriftung nur an gesetzten Punkten
- const fail=html=>{m.failed=true;if(st.streak)st.streak=0,stats();if(D){D.tries++;D.save()}return html}; // Tagesaufgabe: jeder Fehlversuch zählt
+ const fail=html=>{m.failed=true;m.sig=JSON.stringify([m.z,m.sel]);if(st.streak)st.streak=0,stats();if(D){D.tries++;D.save()}return html}; // m.sig: Prüfen bleibt gesperrt, bis sich etwas ändert (Doppeltipp kostet keinen Versuch) // Tagesaufgabe: jeder Fehlversuch zählt
  const render=(fb)=>{
   const z=Z(),n=z?z.labels.length:0;
   $('#view').innerHTML='<p class="kick">'+(D?'Tagesaufgabe #'+D.no+' · Versuch '+Math.min(3,D.tries+1)+' von 3':'Muster erkennen · Schwer')+'</p><p class="task">'+(D?'':'Zähle den Chart selbst. ')+(z?'Zählweise '+z.name+': Tippe nacheinander die Punkte '+z.labels.join(', ')+' auf den Chart. Gesetzte Punkte kannst du anfassen und verschieben. Nächster Punkt: <span class="nextpt">'+(m.sel.length<n?z.labels[m.sel.length]:'fertig')+'</span>':'Wähle zuerst die Zählweise.')+'</p>'+
    '<div class="chart">'+pic()+'</div><div class="card"><b>Zählweise</b><br>'+ZW.map((w,i)=>'<button data-z="'+i+'" class="'+(m.z===i?'on':'')+'" '+(m.done?'disabled':'')+'>'+w.name+' · '+w.hint+'</button>').join('')+'</div>'+
-   (z?'<div class="dock"><button class="p" id="chk" '+(m.sel.length<n||m.done?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div>':'')+
+   (z?'<div class="dock"><button class="p" id="chk" '+(m.sel.length<n||m.done||m.sig===JSON.stringify([m.z,m.sel])?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div>':'')+
    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
   if(m.done)return;
   // Neue Zählweise: Punkte bleiben nur, wenn die Punktanzahl gleich bleibt
@@ -952,7 +961,7 @@ function recogHard(D){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, 
 // Modus 4: Subwellen zählen. Längerer Chart; erst die Hauptpunkte, dann die Subwellen der Wellen einzeln.
 // Impuls: Subwellen von Welle 1, 3, 5 (je 5-teilig). Zigzag: A (5), B (3), C (5). Flats: A (3), B (3), C (5).
 // Fünfteilige Wellen sind selbst Impulse (W1-1, WA-1, WC-1): dafür gelten IMP-1 bis IMP-4. Dreiteilige Wellen: nur die App-Vorgabe zur Richtung,
-// denn B und A einer Flat dürfen laut Regelwerk jedes Korrekturmuster sein (WB-2, WA-2). Offen: Diagonalen in Welle 1/5 bzw. C kommen hier noch nicht vor.
+// denn B einer Flat darf jedes Korrekturmuster sein (WB-2), A ein Zigzag, eine Flat oder ein Double-Zigzag (WA-2). Offen: Diagonalen in Welle 1/5 bzw. C kommen hier noch nicht vor.
 // Muster der Wellen 2 und 4 im Impuls: Welle 2 nie ein Dreieck (DRE-1, W2-1), Welle 4 anders als Welle 2 (W4-3, Alternation). Flat-Varianten zählen hier als eine Art.
 function pickAlt(violate){
  const pk=a=>a[Math.floor(Math.random()*a.length)],A2=['Zigzag','Flat','Double Zigzag'],A4=A2.concat('Dreieck');
@@ -1011,7 +1020,8 @@ function sub(key){
   svg.onpointerdown=e=>{if(m.done)return;e.preventDefault();
    const r=svg.getBoundingClientRect(),sc=r.width/W,px=e.clientX-r.left,py=e.clientY-r.top;let k=-1,best=m.sel.length<n?16:1e9; // solange Punkte fehlen: nur greifen, wenn der Finger sehr nah (16 px) dran ist; sind alle gesetzt: immer der nächste Punkt
    const labs=[...svg.querySelectorAll('text.lab')].slice(-m.sel.length||1e9); // die letzten Labels gehören zu den gerade gesetzten Punkten
-   if(m.sel.length)labs.forEach((t,j)=>{const x=+t.getAttribute('x')*sc,y=+t.getAttribute('y'),
+   if(m.sel.length&&!(m.sel.length<n&&idxOf(xAt(e))>m.sel[m.sel.length-1]))labs.forEach( // Tipp rechts vom letzten Punkt setzt immer einen neuen (am Handy liegen Punkte eng)
+    (t,j)=>{const x=+t.getAttribute('x')*sc,y=+t.getAttribute('y'),
     d=Math.min(...[y-5,y+6,y-14].map(yy=>Math.hypot(x-px,yy*sc-py))); // Beschriftung, oder der Wendepunkt darunter bzw. darüber
     if(d<best){best=d;k=j}});
    if(k>=0){const mv=ev=>{const[lo,hi]=bounds(k),nw=Math.max(lo,Math.min(hi,idxOf(xAt(ev))));
@@ -1056,7 +1066,7 @@ function sub(key){
   }else{
    const pts=[g.lo].concat(m.sel),sg=Math.sign(R.pr[g.hi]-R.pr[g.lo]);v=pts.map(i=>sg*(R.pr[i]-R.pr[pts[0]])); // in Richtung der Welle gemessen
    // Diagonale möglich (Impuls Welle 1/5, Zigzag-/Flat-C): Überlappung IMP-3 ist dort kein Fehler, die Diagonalen-Regeln prüft diese Stufe noch nicht
-   const diag=(key==='imp'?(g.w===1||g.w===5):key==='dl'?true:P.waves[g.w-1]==='C'),olap=!IM.rules['IMP-3'].ok(v);
+   const diag=(key==='imp'?(g.w===1||g.w===5):key==='dl'?false:P.waves[g.w-1]==='C'),olap=!IM.rules['IMP-3'].ok(v);
    if(g.five){f=hardFails(IM,v).filter(id=>!(diag&&id==='IMP-3'));if(f.length){fail();return tipUI(f)}
     if(diag&&olap)w+='<p class="mut">Welle '+g.nm+' überlappt sich: Das wäre nur als Diagonale zulässig (Ending Diagonale in C bzw. Diagonale in Welle 1 oder 5). Die Diagonalen-Regeln prüft diese Stufe noch nicht.</p>';
     w+=warns(IM,v).map(id=>lvlNote(IM,id)).join('');}
@@ -1095,11 +1105,11 @@ function progn(key){
  const cur=()=>{for(const g of segs())if(g.pts.length<g.n)return{k:g.k,n:g.n,have:g.pts.length};const k=waves.find(k=>!m.ch[k]);return k?{k,needChar:true}:null};
  const subL=(n,j)=>n===5?'('+(j+1)+')':'('+'abc'[j]+')';
  const mainP=()=>R.mp.slice(0,cut+1).map(i=>R.pr[i]).concat(segs().map(g=>g.pts[g.n-1].p)); // Hauptpunkte: echt + gezeichnet
- const pic=()=>{let s='<svg id="svg" viewBox="0 0 '+VW+' '+VH+'" role="img" aria-label="Preischart mit Zukunftszone">';
+ const pic=()=>{let s='<svg id="svg" viewBox="0 0 '+VW+' '+VH+'" role="img" aria-label="Preischart mit Zukunftszone"><defs><pattern id="hz" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--dn)" stroke-width="2" opacity=".45"/></pattern></defs>';
   s+='<rect x="'+X(c0)+'" y="0" width="'+(X(ZE)-X(c0))+'" height="'+VH+'" fill="var(--line)" opacity=".35"/>';
   for(let y=20;y<VH;y+=50)s+='<line x1="0" x2="'+VW+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width=".6"/>';
   m.zones.forEach(z=>{const y1=Y(Math.max(z.a,z.b)),y2=Y(Math.min(z.a,z.b)),xr=X(z.x1); // verbotene Zone: hier wäre die Zählung ungültig
-   s+='<rect x="'+xr+'" y="'+y1+'" width="'+Math.max(4,X(z.x2)-xr)+'" height="'+(y2-y1)+'" fill="var(--dn)" opacity=".18"/>';
+   s+='<rect x="'+xr+'" y="'+y1+'" width="'+Math.max(4,X(z.x2)-xr)+'" height="'+(y2-y1)+'" fill="url(#hz)" stroke="var(--dn)" stroke-width="1.5" stroke-dasharray="6 4"/>';
    // Beschriftung zweizeilig, an der Grenze innerhalb der Zone und nie über den rechten Rand hinaus
    const tx=Math.max(4,Math.min(xr+4,VW-108)),ty=Math.max(16,Math.min(VH-22,z.top?y2-22:y1+14));
    s+='<text class="lab" style="fill:var(--dn);font-size:12px;text-anchor:start" x="'+tx+'" y="'+ty+'">'+z.t.split('|').map((l,i)=>'<tspan x="'+tx+'" dy="'+(i?14:0)+'">'+l+'</tspan>').join('')+'</text>'});
@@ -1245,7 +1255,7 @@ function blitz(opt){
    // falsch erkanntes Muster kommt 1–2 Mal wieder (gemischt, nicht direkt danach)
    const free=j=>j>m.i+1&&j<BZN&&!m.forced.has(j)&&q[j-1]!==P.key&&q[j+1]!==P.key; // nie zweimal dasselbe Muster direkt hintereinander
    for(let n=1+(Math.random()<.5?1:0);n>0;n--){const s=shuffle([2,3,4,5,6,7].map(d=>m.i+d)).find(free);if(s!==undefined){q[s]=P.key;m.forced.add(s)}}
-   $('.bzc').innerHTML=draw(R,[],true,P.tri?R.piv:null)+'<div class="bzq bad bzover">✗ Richtig: '+P.title+'</div>';}
+   $('.bzc').innerHTML=draw(R,[],true,P.tri?R.piv:null)+'<div class="bzq bad bzover">✗ Richtig wäre: '+P.title+'</div>';}
   m.minDur=Math.min(m.minDur,m.dur);
   setTimeout(()=>{if(!alive())return;if(++m.i<BZN)show();else end()},1000); // Rückmeldung höchstens 1 Sekunde
  };
@@ -1320,8 +1330,8 @@ function findSub(key){
  const render=fb=>{
   const rl=m.w?[...new Set(all.filter(x=>x.wave===m.w||x.wave==='*').map(x=>x.id))]:[];
   $('#view').innerHTML='<p class="kick">Fehler finden · '+P.title+'</p><p class="task">Dieser Count enthält genau einen Regelverstoß, auf Hauptebene oder in den Subwellen. Wähle die fehlerhafte Welle und die verletzte Regel.</p><div class="chart">'+drawS(R,pts,null)+'</div>'+
-   '<div class="card"><b>Welche Welle?</b><br>'+P.waves.map(w=>'<button data-w="'+w+'" class="'+(m.w===w?'on':'')+'">Welle '+w+'</button>').join('')+
-   (m.w?'<br><b>Welche Regel?</b> <span class="mut">(Regeln zu Welle '+m.w+' und ihren Subwellen)</span><br>'+(rl.length?rl.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'">'+SR[x].name+'</button>').join(''):'<span class="mut">Zu dieser Welle gibt es in diesem Muster keinen Regelverstoß.</span>'):'<br><span class="mut">Klicke zuerst die Welle an, in der du den Fehler vermutest. Danach siehst du die Regeln zur Auswahl.</span>')+
+   '<div class="card"><b>Welche Welle?</b><br>'+P.waves.map(w=>'<button data-w="'+w+'" class="'+(m.w===w?'on':'')+'" '+(fb?'disabled':'')+'>Welle '+w+'</button>').join('')+
+   (m.w?'<br><b>Welche Regel?</b> <span class="mut">(Regeln zu Welle '+m.w+' und ihren Subwellen)</span><br>'+(rl.length?rl.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'" '+(fb?'disabled':'')+'>'+SR[x].name+'</button>').join(''):'<span class="mut">Zu dieser Welle gibt es in diesem Muster keinen Regelverstoß.</span>'):'<br><span class="mut">Klicke zuerst die Welle an, in der du den Fehler vermutest. Danach siehst du die Regeln zur Auswahl.</span>')+
    '</div><div class="dock"><button class="p" id="go" '+(m.w&&m.r&&!fb?'':'disabled')+'>Auswerten</button><button id="dk" '+(fb?'disabled':'')+'>Ich weiß nicht</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
   if(fb)return;
   document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{m.w=b.dataset.w;if(!all.some(x=>(x.wave===m.w||x.wave==='*')&&x.id===m.r))m.r=null;render()});
@@ -1398,7 +1408,7 @@ async function learn(kap){
  await showLearn(kap);
 }
 async function showLearn(kap){const v=$('#view');
- $('#menu').hidden=$('#tolearn').hidden=true;closeZoom();v.innerHTML='<p class="mut">Lädt …</p>';window.scrollTo(0,0);
+ $('#tolearn').hidden=true;$('#menu').hidden=false;closeZoom();v.innerHTML='<p class="mut">Lädt …</p>';window.scrollTo(0,0);
  let md;
  try{const r=await fetch(LMD,{cache:'no-cache'});if(!r.ok)throw new Error(r.status);md=await r.text()}
  catch(_){if(LEARN)v.innerHTML='<div class="card"><p class="bad">Die Lernseite konnte nicht geladen werden.</p><button class="p" onclick="learnBack()">← Zurück</button></div>';return}
@@ -1431,8 +1441,8 @@ function learnBack(){closeZoom();
  const v=$('#view');v.innerHTML='';v.appendChild(s.f);$('#menu').hidden=s.menu;$('#tolearn').hidden=s.tolearn;window.scrollTo(0,s.y);}
 // Bild vergrößern: Vollbild mit Bildunterschrift, Tippen oder Escape schließt
 function zoom(im){const fc=im.parentNode.querySelector('figcaption'),d=document.createElement('div');d.className='lb';d.id='lb';
- d.innerHTML='<img src="'+esc(im.getAttribute('src'))+'" alt="'+esc(im.alt)+'">'+(fc?'<p>'+fc.innerHTML+'</p>':'')+'<p>Tippen zum Schließen</p>';
- d.onclick=closeZoom;document.body.appendChild(d);}
+ d.innerHTML='<button class="lbx">Schließen ✕</button><img src="'+esc(im.getAttribute('src'))+'" alt="'+esc(im.alt)+'">'+(fc?'<p>'+fc.innerHTML+'</p>':'');
+ d.querySelector('.lbx').onclick=closeZoom;d.onclick=e=>{if(e.target===d)closeZoom()};document.body.appendChild(d);}
 function closeZoom(){const d=$('#lb');if(d)d.remove()}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeZoom()});
 // ---- 6) Tagesaufgabe (wie Wordle): jeden Tag eine Aufgabe im Modus „Muster erkennen – Schwer“, für alle gleich.
@@ -1481,7 +1491,7 @@ function daily(){
  recogHard(D);
 }
 // Ergebnis: Lösung im Chart, Teilen, Countdown bis zur nächsten Aufgabe
-function dailyResult(o,P,R,no){const d=o.day,s=dStreak(o,d.date);
+function dailyResult(o,P,R,no){const d=o.day,s=dStreak(o,d.date);window.scrollTo(0,0);
  $('#view').innerHTML='<div class="card daily"><h2>Tagesaufgabe #'+no+'</h2><p class="'+(d.solved?'ok':'bad')+'">'+(d.solved?'Gelöst im '+dAtt(d)+'. Versuch':'Heute nicht gelöst ('+dAtt(d)+' Versuche)')+'</p>'+
   '<p>'+(d.solved?'Bonusfrage: '+(d.bonus===null?'nicht beantwortet':d.bonus?'richtig':'falsch')+' · ':'')+tipTxt(d.tips)+' · Tages-Serie: '+s+(s===1?' Tag':' Tage')+'</p>'+
   '<p><button class="p" id="share">Ergebnis teilen</button></p><p id="shareMsg" class="mut"></p><p>Nächste Aufgabe in <b id="cd">…</b></p></div>'+
@@ -1527,7 +1537,7 @@ function calendar(el,y,m){const today=berlinDate(),h=dHist(dLoad());if(y===undef
   cells+='<span class="'+c+(s===today?' ct':'')+'" title="'+wd+', '+p2(d)+'.'+p2(m+1)+'.'+y+': '+t+'">'+d+(v==='s'?'<i>✓</i>':v==='f'?'<i>✗</i>':'')+'</span>';}
  el.innerHTML='<div class="calh"><button data-cm="-1" '+(ym<=min?'disabled':'')+' aria-label="Vormonat">‹</button><b>'+MONATE[m]+' '+y+'</b><button data-cm="1" '+(ym>=max?'disabled':'')+' aria-label="Nächster Monat">›</button></div>'+
   '<div class="cal">'+WTAGE.map(w=>'<span class="wd">'+w+'</span>').join('')+cells+'</div>'+
-  '<p class="mut">'+ok+' gelöst · '+bad+' nicht gelöst in diesem Monat. <span class="leg cs"></span> gelöst <span class="leg cf"></span> nicht gelöst <span class="leg cn"></span> nicht gespielt</p>';
+  '<p class="mut">'+ok+' gelöst · '+bad+' nicht gelöst in diesem Monat.<br><span class="lgi"><span class="leg cs">✓</span> gelöst</span> <span class="lgi"><span class="leg cf">✗</span> nicht gelöst</span> <span class="lgi"><span class="leg cn"></span> nicht gespielt</span></p>';
  el.querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>{const n=ym+ +b.dataset.cm;calendar(el,Math.floor(n/12),n%12)});}
 function dailyCal(){$('#view').innerHTML='<h2>Kalender der Tagesaufgaben</h2><div class="card" id="cal"></div><p><button class="p" onclick="daily()">Zur Tagesaufgabe</button></p>';calendar($('#cal'));window.scrollTo(0,0)}
 // ---- 7) Lern-Quiz zum Regelwerk (im Lernbereich). Fragen: quiz/fragen.json, Quelle ausschließlich die Lernversion.
@@ -1541,7 +1551,7 @@ const QBEI={'Grundbegriffe & Fibonacci':'Bei den Grundbegriffen','Impuls':'Beim 
 const qChap=cat=>(QUIZKAP.find(x=>x[1]===cat)||[])[0]; // Kapitel der Lernseite zu einer Kategorie
 const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 // Quiz läuft im Lernbereich: Lernbereich betreten (falls nötig) und Fragen laden
-async function qReady(){PEEK=null;closeZoom();if(!LEARN)enterLearn();$('#menu').hidden=$('#tolearn').hidden=true;window.scrollTo(0,0);
+async function qReady(){PEEK=null;closeZoom();if(!LEARN)enterLearn();$('#tolearn').hidden=true;$('#menu').hidden=false;window.scrollTo(0,0);
  try{if(!QZ){const r=await fetch('quiz/fragen.json',{cache:'no-cache'});if(!r.ok)throw new Error(r.status);QZ=await r.json()}return true}
  catch(_){$('#view').innerHTML='<div class="card"><p class="bad">Das Quiz konnte nicht geladen werden.</p><button onclick="showLearn()">← Zum Regelwerk</button></div>';return false}}
 async function quizMenu(){if(!await qReady())return;
@@ -1627,7 +1637,7 @@ function earnOpts(cat,lv){const keys=Object.keys(RCAT).filter(k=>RCAT[k]===cat);
    (lv===3?' Für Platin zählen bei „schwer“ nur Muster erkennen – Schwer und die Tagesaufgabe.':'')+'</p>':'');}
 // Seite „Meine Ränge“; fromLearn: aus dem Lernbereich geöffnet (Zurück führt zum Regelwerk)
 function ranks(fromLearn){rankCheck();const o=rLoad(),ex=o.ex||{},qc=qLoad().cats||{};
- if(fromLearn){PEEK=null;if(!LEARN)enterLearn();$('#menu').hidden=$('#tolearn').hidden=true}
+ if(fromLearn){PEEK=null;if(!LEARN)enterLearn();$('#tolearn').hidden=true;$('#menu').hidden=false}
  const badge=lv=>'<span class="badge r'+lv+'">'+(lv?ICON.medal:'')+RNAME[lv]+'</span>';
  $('#view').innerHTML='<h2>Meine Ränge</h2><p class="mut">Ränge gibt es pro Kategorie für Quiz und gelöste Übungen. Ein erreichter Rang bleibt. Übungen werden erst ab dem '+RSTART+' gezählt, Quiz-Antworten von vorher zählen mit.</p>'+
   '<div class="card'+(o.master?' daily':'')+'"><b>Gesamtrang Elliott-Meister</b> '+(o.master?badge(4).replace('Platin','Elliott-Meister'):'<span class="mut">alle Kategorien mindestens Gold ('+RCATS.filter(c=>((o.rank||{})[c]||0)>=3).length+' von '+RCATS.length+')</span>')+
