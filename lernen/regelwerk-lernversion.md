@@ -2,6 +2,16 @@
 
 Dieses Regelwerk erklärt alle Elliott-Wellen-Muster, die du im Wave Checker übst, mit ihren Regeln und Faustregeln. Es beruht auf Phantoms Buch und folgt genau den Regeln, nach denen die App prüft.
 
+## Was sind Elliott-Wellen?
+
+Aktien, Rohstoffe, Kryptowährungen, Indizes, Anleihen, Währungspaare und, und, und … die Liste ist lang. Analysiert werden sie häufig auf zwei verschiedene Arten und Weisen. Viele Analysten schauen sich die fundamentale Lage an: Wie viel Gewinn macht das Unternehmen? Welche Rohstoffe werden für neue Produkte benötigt? Wie stehen internationale Beziehungen und wie entwickeln sich Konflikte?
+
+Davon grenzt sich die technische Analyse klar ab. Bei der technischen Betrachtung eines Assets wird lediglich der Kursverlauf beobachtet und interpretiert. Muster lassen sich erkennen und im Kursgeschehen einordnen.
+
+Die Elliott-Wellen-Methodik gehört zu der technischen Analyse und basiert genau auf solchen Mustern. In den 1930er Jahren entdeckte Ralph Nelson Elliott, dass sich Kurse nicht zufällig bewegen, sondern in wiederkehrenden Wellen. Er teilte die Wellen in zwei Kategorien ein: einmal die trendgebenden oder impulsiven fünfteiligen Wellen und die, die diesen Trend korrigieren, also die meist aus drei Wellen bestehenden Korrekturwellen. Eine Bewegung in Trendrichtung besteht aus fünf Wellen, eine Korrektur dagegen meist aus drei. Jede dieser Wellen setzt sich wiederum aus kleineren Wellen zusammen, die demselben Prinzip folgen. So entsteht ein Bild des Marktes, in dem man erkennen kann, in welcher Phase sich ein Kurs gerade befindet.
+
+In diesem Regelwerk und generell auf dieser Website sollen dir diese Muster nähergebracht werden, sodass du sie für dich nutzen und Marktsituationen einschätzen kannst.
+
 ## So liest du dieses Regelwerk
 
 Nicht jede Aussage über Elliott-Wellen ist gleich streng. Darum hat jede Aussage hier eine von drei Stufen:
