@@ -37,6 +37,10 @@ Mit diesen Begriffen arbeitet das ganze Regelwerk:
 - **Wichtige Retracement-Verhältnisse:** 23,6 %, 38,2 %, 50 %, 61,8 %, 78,6 %, 88,7 %. Am wichtigsten sind 38,2 %, 50 % und 61,8 %, die anderen ergänzen sie.
 - **Expansionsniveaus in diesem Regelwerk:** 38,2 %, 61,8 %, 100 %, 123,6 %, 138,2 %, 161,8 %, 261,8 %. Diese Liste ist aus den Regeln unten zusammengetragen und stammt nicht als Liste aus dem Buch.
 
+![Abbildung 1: Fibonacci-Retracement](bilder/abb_fibonacci_retracement.png)
+
+*Abbildung 1: So ziehst du ein Fibonacci-Retracement in TradingView. Erster Klick: das Fibonacci-Werkzeug wählen. Zweiter Klick: Startpunkt der Bezugswelle. Dritter Klick: Endpunkt der Bezugswelle. Die Linien zeigen, wie weit der Kurs danach zurücklaufen kann (Palantir). Chart erstellt mit TradingView.*
+
 ## Alle Muster auf einen Blick
 
 Elliott-Wellen bestehen aus Bewegungen mit dem Trend (Impulse, Diagonalen) und Korrekturen gegen ihn.
@@ -100,9 +104,9 @@ Der Impuls ist die Grundbewegung mit dem Trend. Die Wellen 1, 3 und 5 laufen in 
 - Warnsignal: Welle 5 sollte **mindestens 38,2 %** erreichen. Faustregel: meist 61,8 % bis 261,8 %, wenn sie sich verlängert. Gemessen mit der Fibonacci-Expansion über den Start von Welle 1 sowie die Enden von Welle 3 und 4.
 - **Truncation:** In Ausnahmefällen endet Welle 5 unter dem Hoch von Welle 3 (im Abwärtstrend: über dem Tief). Das passiert, wenn dem Markt die Kraft ausgeht. Für eine solche Welle 5 gelten dieselben Regeln, nur die Kursziele sind niedriger.
 
-![Abbildung 1: Impuls](bilder/abb1_impuls.png)
+![Abbildung 2: Impuls](bilder/abb1_impuls.png)
 
-*Abbildung 1: Impuls mit eingezeichneten Subwellen (FET/USD). Chart erstellt mit TradingView.*
+*Abbildung 2: Impuls mit eingezeichneten Subwellen (FET/USD). Chart erstellt mit TradingView.*
 
 ## Das Zigzag (A-B-C)
 
@@ -124,9 +128,9 @@ Das Zigzag ist das bekannteste Korrekturmuster. Es verläuft zickzackförmig in 
 - Regel: entweder ein klassischer Fünfteiler oder eine Beendende Diagonale.
 - Faustregel: Am häufigsten ist C genau so lang wie A (100 %). Üblich sind 61,8 % bis 161,8 % von A.
 
-![Abbildung 2: Zigzag-Korrektur](bilder/abb2_zigzag.png)
+![Abbildung 3: Zigzag-Korrektur](bilder/abb2_zigzag.png)
 
-*Abbildung 2: Zigzag-Korrektur, Welle (c) mit Subwellen (PayPal). Chart erstellt mit TradingView.*
+*Abbildung 3: Zigzag-Korrektur, Welle (c) mit Subwellen (PayPal). Chart erstellt mit TradingView.*
 
 ## Die Flats (A-B-C, 3-3-5)
 
@@ -146,17 +150,17 @@ Alle drei Varianten haben denselben Aufbau 3-3-5. Sie unterscheiden sich darin, 
 | Expanded Flat | überschreitet den Start von A | endet unter dem Tief von A |
 | Running Flat | überschießt den Start von A | schafft kein neues Tief unter A |
 
-![Abbildung 3: Regular Flat](bilder/abb3_regular_flat.png)
+![Abbildung 4: Regular Flat](bilder/abb3_regular_flat.png)
 
-*Abbildung 3: Regular Flat (MicroStrategy). Chart erstellt mit TradingView.*
+*Abbildung 4: Regular Flat (MicroStrategy). Chart erstellt mit TradingView.*
 
-![Abbildung 4: Expanded Flat](bilder/abb4_expanded_flat.png)
+![Abbildung 5: Expanded Flat](bilder/abb4_expanded_flat.png)
 
-*Abbildung 4: Expanded Flat (a)-(b)-(c) als Welle B, hier aufwärts: (b) unterschreitet den Start von (a) (Under Armour). Chart erstellt mit TradingView.*
+*Abbildung 5: Expanded Flat (a)-(b)-(c) als Welle B, hier aufwärts: (b) unterschreitet den Start von (a) (Under Armour). Chart erstellt mit TradingView.*
 
-![Abbildung 5: Running Flat](bilder/abb5_running_flat.png)
+![Abbildung 6: Running Flat](bilder/abb5_running_flat.png)
 
-*Abbildung 5: Running Flat (FET/USD). Chart erstellt mit TradingView.*
+*Abbildung 6: Running Flat (FET/USD). Chart erstellt mit TradingView.*
 
 ## Dreiecke (A-B-C-D-E)
 
@@ -176,9 +180,9 @@ Dreiecke erkennst du an ihren Trendlinien. Ein Dreieck hat fünf Wellen A-B-C-D-
 | Kontrahierendes Dreieck | A ist die längste der fünf Wellen, jede Welle ist kürzer als die vorherige. Die Trendlinien laufen aufeinander zu. |
 | Expandierendes Dreieck | A ist die kürzeste der fünf Wellen, jede Welle ist länger als die vorherige. Die Trendlinien laufen auseinander. |
 
-![Abbildung 6: Expandierendes Dreieck](bilder/abb6_expandierendes_dreieck.png)
+![Abbildung 7: Expandierendes Dreieck](bilder/abb6_expandierendes_dreieck.png)
 
-*Abbildung 6: Expandierendes Dreieck (Lumen). Chart erstellt mit TradingView.*
+*Abbildung 7: Expandierendes Dreieck (Lumen). Chart erstellt mit TradingView.*
 
 ## Diagonalen (1-2-3-4-5)
 
@@ -211,9 +215,9 @@ Diagonalen sind fünfteilige Bewegungen mit dem Trend, aber anders gebaut als de
 - Faustregel: Welle 1 ist meistens die längste der fünf Wellen.
 - Faustregel: Welle 4 läuft oft 61,8 % zurück.
 
-![Abbildung 7: Beendende Diagonale](bilder/abb7_beendende_diagonale.png)
+![Abbildung 8: Beendende Diagonale](bilder/abb7_beendende_diagonale.png)
 
-*Abbildung 7: Beendende Diagonale (XPeng). Chart erstellt mit TradingView.*
+*Abbildung 8: Beendende Diagonale (XPeng). Chart erstellt mit TradingView.*
 
 **Expandierende Diagonale**
 
