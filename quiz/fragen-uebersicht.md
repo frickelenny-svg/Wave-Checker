@@ -35,12 +35,12 @@ Abschnitt: Grundbegriffe und Fibonacci
 Erklärung: Korrektiv heißt dreiteilig, aufgebaut aus A-B-C oder W-X-Y.  
 Abschnitt: Grundbegriffe und Fibonacci
 
-**3. Das Dreieck und die Dreifache Form (W-X-Y-X-Z) bestehen aus fünf Wellen, und jede davon ist dreiteilig.** _(Richtig/Falsch, gb-03)_
+**3. Das Dreieck und die Dreifache Form (W-X-Y-X-Z) haben fünf Wellen, sind aber trotzdem Korrekturen und kein Impuls.** _(Richtig/Falsch, gb-03)_
 
 - Richtig ✅
 - Falsch
 
-Erklärung: Genau: Das sind die beiden Ausnahmen bei den korrektiven Mustern. Fünf Wellen, jede dreiteilig.  
+Erklärung: Genau: Das sind die beiden Ausnahmen bei den korrektiven Mustern. Sie haben fünf Wellen, sind aber Korrekturen und kein Impuls.  
 Abschnitt: Grundbegriffe und Fibonacci
 
 **4. Was ist das „Preisterritorium“ einer Welle?** _(Multiple Choice, gb-04)_
@@ -217,12 +217,12 @@ Abschnitt: Das Zigzag (A-B-C) › Welle B
 
 **4. Wie weit darf Welle B eines Zigzags höchstens von Welle A zurücklaufen?** _(Multiple Choice, zz-04)_
 
-- 99,99 % ✅
+- 99,9 % ✅
 - 88,7 %
 - 100 %
 - 161,8 %
 
-Erklärung: Höchstens 99,99 %, denn B darf den Start von A nicht überschreiten.  
+Erklärung: Höchstens 99,9 %. B darf den Start von A nicht überschreiten, und schon 100 % ist ein Regelbruch, denn dann erreicht B den Start von A.  
 Abschnitt: Das Zigzag (A-B-C) › Welle B
 
 **5. Wo muss Welle C eines Zigzags enden (bei fallenden Kursen)?** _(Multiple Choice, zz-05)_
@@ -265,12 +265,12 @@ Abschnitt: Das Zigzag (A-B-C) › Welle B
 
 **9. Wo kann ein Zigzag vorkommen?** _(Multiple Choice, zz-11)_
 
-- In Welle 2, 4, A, B, W, X, Y, X, Z und jeder Dreieckswelle ✅
+- In Welle 2, 4, A, B, W, X, Y, X, Z, jeder Dreieckswelle und jeder Welle einer Diagonale ✅
 - Nur in Welle 2 und 4
 - Nur in Welle 5 und C
 - Nur in Welle W, X und Y
 
-Erklärung: Das Zigzag ist vielseitig: Welle 2, 4, A, B, W, X, Y, X, Z und jede Dreieckswelle.  
+Erklärung: Das Zigzag ist vielseitig: Welle 2, 4, A, B, W, X, Y, X, Z, jede Dreieckswelle und jede Welle einer Diagonale.  
 Abschnitt: Alle Muster auf einen Blick
 
 ## Flats
@@ -335,12 +335,12 @@ Abschnitt: Die Flats (A-B-C, 3-3-5) › Was für alle Flats gilt
 
 **7. Wie lang ist Welle C eines Flats laut Faustregel am häufigsten?** _(Multiple Choice, fl-08)_
 
-- 61,8 % von A, bis zu 261,8 % möglich ✅
-- genau 100 % von A
+- 100 % von A, bis zu 261,8 % möglich ✅
+- 61,8 % von A
 - Mindestens 161,8 % von A
-- Höchstens 99,99 % von A
+- Höchstens 99,9 % von A
 
-Erklärung: Am häufigsten erreicht C 61,8 % von A. Bis zu 261,8 % sind möglich.  
+Erklärung: Am häufigsten erreicht C ein Kursziel von 100 % von A, ist also so lang wie A. Bis zu 261,8 % sind möglich.  
 Abschnitt: Die Flats (A-B-C, 3-3-5) › Was für alle Flats gilt
 
 **8. Worin unterscheiden sich Regular, Expanded und Running Flat?** _(Multiple Choice, fl-10)_

@@ -37,12 +37,12 @@ main:has(.home) header{padding:0 16px}@media(min-width:900px){main:has(.home) he
 .logo svg{width:30px;height:20px}
 #menu:not([hidden])~.logo{display:none}
 .pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 12px;font-size:.88rem;font-weight:500;background:var(--chip);color:var(--text);margin:0}
-@media(max-width:600px){.pts{display:none}} /* Spielrunden: Level und Serie genügen (DESIGN.md 6) */
+/* Punkte auch am Handy sichtbar (Lenny, 26.10.2026) */
 .pill b{font-weight:700}.pill.s{background:var(--accent-soft);color:var(--accent-text)}
 button.pill{background:var(--surface);border:1px solid var(--line);min-height:40px}
 button.pill svg{width:18px;height:18px}#theme{width:40px;padding:0;justify-content:center}
 h2{font-size:1.25rem;font-weight:700;margin:0 0 6px;line-height:1.25}
-.bar{height:4px;background:var(--accent-soft);border-radius:2px;overflow:hidden;margin-bottom:14px}
+.bar{height:6px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:14px}
 .bar i{display:block;height:100%;background:var(--accent);transition:width .3s}
 .card{background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;padding:16px;margin-bottom:12px}
 button{font:inherit;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:16px;padding:9px 16px;min-height:44px;margin:4px 6px 4px 0}
@@ -51,6 +51,7 @@ button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--a
 button:disabled{opacity:.45;cursor:not-allowed}button:disabled.qok,button:disabled.qbad,button:disabled.on{opacity:1}
 /* Buttons: beim Darüberfahren (am Handy kurz beim Antippen) tauschen Füllung und Schrift die Farben (DESIGN.md, Bewegung) */
 button,.toc a{transition:background-color .18s ease,color .18s ease,border-color .18s ease}
+.notr,.notr *{transition:none!important}
 @media(hover:hover){
  button:not(.isl):not(.logo):not(:disabled):hover,.toc a:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
  button.p:not(.isl):not(.logo):not(:disabled):hover{background:var(--surface);color:var(--accent-text);border-color:var(--accent)}
@@ -86,9 +87,9 @@ p.ok::before,.qok::before{content:"✓ "}p.bad::before,.qbad::before{content:"�
 .chart{background:var(--surface);border:1px solid var(--line-soft);border-radius:22px;overflow:hidden}
 svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .lab{font:700 11px "DM Sans",system-ui,sans-serif;fill:var(--text);text-anchor:middle}
-@media(max-width:600px){.chart:not(.pgc) .lab{font-size:17px}}
+@media(max-width:600px){.chart:not(.pgc) .lab{font-size:14px}}
 .pt circle{fill:var(--accent)}.pt text{font:700 13px "DM Sans",system-ui,sans-serif;fill:#fff;text-anchor:middle;dominant-baseline:central}
-@media(max-width:600px){.pt text{font-size:20px}}
+@media(max-width:600px){.pt text{font-size:16px}}
 .nextpt{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 6px;border:2px dashed var(--accent-text);border-radius:999px;color:var(--accent-text);font-weight:700;vertical-align:middle;font-size:.9rem}
 /* feste Button-Leiste unten: Hauptaktion groß und blau links, Nebenaktionen rechts */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line-soft);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;align-items:center;gap:8px;box-shadow:0 -6px 20px rgba(30,60,140,.08)}
@@ -110,12 +111,12 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .calh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.calh button{margin:0;padding:4px 14px;font-size:1.1rem}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal span{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:.9rem;line-height:1.1}
 .cal .wd{aspect-ratio:auto;font-size:.8rem;font-weight:700;color:var(--muted)}.cal i{font-style:normal;font-size:.8rem;font-weight:700}
-.cs{background:var(--ok);color:var(--surface)}.cf{background:var(--bad);color:var(--surface)}.cn,.co{border:1px solid var(--line-soft)}.cx{opacity:.5}.ct{outline:2px solid var(--accent);outline-offset:1px}
+.cs{background:var(--ok);color:var(--surface)}.cf{background:var(--bad);color:var(--surface)}.cn,.co{color:var(--muted)}.leg.cn{border:1px solid var(--line)}.cx{opacity:.5}.ct{outline:2px solid var(--accent);outline-offset:1px}
 .lgi{white-space:nowrap}.lgi:first-of-type .leg{margin-left:0}
 .leg{display:inline-block;min-width:18px;height:18px;line-height:18px;text-align:center;font-size:12px;font-weight:700;border-radius:4px;vertical-align:-3px;margin-left:8px}
 /* Blitz-Erkennen: Antworten groß und unten fixiert (Handy), Chart darüber */
 .bzhead{display:flex;justify-content:space-between;align-items:center;gap:8px}.bzhead button{margin:0}
-#bz{padding-bottom:170px}.bzc{position:relative;aspect-ratio:720/340;display:flex;align-items:center;justify-content:center}.bzc svg{position:absolute;inset:0}
+#bz{padding-bottom:170px}.bzc{position:relative;aspect-ratio:720/340;display:flex;align-items:center;justify-content:center}.bzc svg{position:absolute;inset:0}@media(max-width:600px){.bzc{aspect-ratio:440/420}}
 .bzq{font-size:1.7rem;font-weight:800;text-align:center;color:var(--muted)}.bzq small{font-size:1rem}.bzq.ok{color:var(--ok)}.bzq.bad{color:var(--bad)}.bzover{position:absolute;left:0;right:0;bottom:4px;font-size:1rem;background:var(--surface)}
 .bztime{height:6px;background:var(--accent-soft);border-radius:3px;margin:8px 0;overflow:hidden}.bztime i{display:block;height:100%;width:100%;background:var(--accent)}
 .bzans{position:fixed;left:0;right:0;bottom:0;z-index:20;max-width:800px;margin:0 auto;background:var(--surface);border-top:1px solid var(--line-soft);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:8px;min-height:140px;align-content:center}
@@ -227,8 +228,8 @@ const IMPR={
   ok:v=>!(L(v,3)<L(v,1)&&L(v,3)<L(v,5))},
  'IMP-3':{page:38,hard:1,wave:'4',name:'Welle 4 überschneidet Welle 1',
   hint:'Prüfe, wie tief Welle 4 läuft. Berührt sie das Preisterritorium von Welle 1?',
-  ex:'Welle 4 darf das Preisterritorium der Welle 1 nicht schneiden (Ausnahme: Diagonale).',
-  ok:v=>v[4]>=v[1]},
+  ex:'Welle 4 darf das Preisterritorium der Welle 1 nicht schneiden (Ausnahme: Diagonale). Schon eine Berührung zählt als Überlappung.',
+  ok:v=>v[4]>v[1]},
  'IMP-4':{page:38,hard:1,wave:'1',name:'Falsche Richtung einer Welle',
   hint:'Prüfe die Richtung jeder Welle: 1, 3, 5 laufen mit dem Trend, 2 und 4 dagegen.',
   ex:'Welle 1, 3 und 5 verlaufen immer in Trendrichtung, die Wellen 2 und 4 sind Korrekturen dagegen.',
@@ -236,7 +237,11 @@ const IMPR={
  'W3-4':{page:null,hard:0,wave:'3',name:'Welle 3 expandiert weniger als 123,6 %',
   hint:'Vergleiche Welle 3 mit Welle 1.',
   ex:'Harte Orientierung: Welle 3 sollte mindestens 123,6 % von Welle 1 erreichen. Das ist eine Warnung, kein sicherer Fehler.',
-  ok:v=>L(v,3)>=1.236*L(v,1)}
+  ok:v=>L(v,3)>=1.236*L(v,1)},
+ 'W5-3':{page:null,where:'Regelwerk, Abschnitt Welle 5',hard:0,wave:'5',name:'Welle 5 erreicht weniger als 38,2 %',
+  hint:'Miss Welle 5 mit der Fibonacci-Expansion über den Start von Welle 1 und die Enden von Welle 3 und 4.',
+  ex:'Harte Orientierung: Welle 5 sollte mindestens 38,2 % erreichen (Expansion über den Start von Welle 1 sowie die Enden von Welle 3 und 4). Das ist eine Warnung, kein sicherer Fehler.',
+  ok:v=>L(v,5)>=.382*(v[3]-v[0])}
 };
 const ZZR={ // Zigzag: Punkte 0, A, B, C (Abwärtskorrektur, im Aufwärtsfall spiegelbildlich)
  'ZZ-2':{page:42,hard:1,wave:'B',name:'Welle B überschreitet den Start von Welle A',
@@ -248,6 +253,15 @@ const ZZR={ // Zigzag: Punkte 0, A, B, C (Abwärtskorrektur, im Aufwärtsfall sp
   ex:'Welle C muss unter dem Endpunkt der Welle A enden (bei steigenden Preisen: darüber).',
   ok:u=>u[3]<u[1]}
 };
+// Regeltexte passend zur Chartrichtung (Lenny, 26.10.2026): Klammern zur Gegenrichtung entfallen, und bei gespiegeltem Chart
+// werden Richtungswörter getauscht (unter ↔ über, Tief ↔ Hoch …).
+let FLIP=false;
+const MSW=[['unterschreiten','überschreiten'],['unterschreitet','überschreitet'],['unterhalb','oberhalb'],['unter','über'],['Tiefs','Hochs'],['Tief','Hoch'],
+ ['tiefer','höher'],['darunter','darüber'],['fallenden','steigenden'],['fallende','steigende'],['Abwärtstrend','Aufwärtstrend'],['abwärts','aufwärts']];
+const MRX=new RegExp('(?<![\\wäöüÄÖÜß])('+MSW.flat().join('|')+')(?![\\wäöüÄÖÜß])','g'),MMAP=Object.fromEntries(MSW.flatMap(([a,b])=>[[a,b],[b,a]]));
+const mt=s=>{if(typeof s!=='string')return s;
+ s=s.replace(/ ?\((?:im (?:Abwärts|Aufwärts)trend|bei (?:steigenden|fallenden) Preisen)[^)]*\)/g,'');
+ return FLIP?s.replace(MRX,w=>MMAP[w]):s};
 const pct=x=>(Math.round(x*1000)/10).toString().replace('.',',')+' %';
 const PAT={
  imp:{key:'imp',title:'Impuls',labels:['0','1','2','3','4','5'],waves:['1','2','3','4','5'],rules:IMPR,viol:['IMP-1','IMP-2','IMP-3'],
@@ -284,7 +298,7 @@ const FLR={
    ex:'Beim Running Flat überschießt Welle B den Startpunkt der Welle A.'+MIR,ok:u=>u[2]>u[0]},
   'FRU-3':{page:46,hard:1,wave:'C',name:'Welle C bildet ein neues Tief unter Welle A',
    hint:'Vergleiche das Ende von Welle C mit dem Ende von Welle A.',
-   ex:'Beim Running Flat schafft es Welle C nicht, ein neues Tief unterhalb der Welle A auszubilden.'+MIR,ok:u=>u[3]>u[1]}}
+   ex:'Beim Running Flat schafft es Welle C nicht, ein neues Tief unterhalb der Welle A auszubilden. Endet C genau auf dem Tief von A, ist das kein neues Tief.'+MIR,ok:u=>u[3]>=u[1]}}
 };
 // Gemeinsame harte Orientierung für Welle B in Flats
 const WB2={page:null,hard:0,wave:'B',name:'Welle B liegt außerhalb von 88,7 % bis 161,8 % der Welle A',
@@ -294,7 +308,7 @@ const WB2={page:null,hard:0,wave:'B',name:'Welle B liegt außerhalb von 88,7 % b
 const flatPat=(key,title,viol)=>({key,title,labels:['0','A','B','C'],waves:['A','B','C'],rules:{...FLR[key],'WB-2':WB2},viol,
  sign:PAT.zig.sign,struct:PAT.zig.struct,structMsg:PAT.zig.structMsg,
  endMsg:'Der Chart endet im Extrem von Welle C. Setze Punkt C an das letzte Tief (bei steigenden Preisen: Hoch) des Charts.',
- info:v=>'<p class="mut">Orientierung: Welle B lief '+pct(L(v,2)/L(v,1))+' von A zurück (Regelwerk: mindestens 88,7 %, höchstens 161,8 %). Welle C erreicht '+pct(L(v,3)/L(v,1))+' von A (häufig 61,8 %, bis 261,8 %).</p><p class="mut">Hinweis: Dass A und B dreiteilig und C fünfteilig sind, prüft die App erst in der späteren Subwellen-Stufe.</p>'});
+ info:v=>'<p class="mut">Orientierung: Welle B lief '+pct(L(v,2)/L(v,1))+' von A zurück (Regelwerk: mindestens 88,7 %, höchstens 161,8 %). Welle C erreicht '+pct(L(v,3)/L(v,1))+' von A (häufig 100 %, bis 261,8 %).</p><p class="mut">Hinweis: Dass A und B dreiteilig und C fünfteilig sind, prüft die App erst in der späteren Subwellen-Stufe.</p>'});
 PAT.fr=flatPat('fr','Regular Flat',['FR-2','FR-3']);
 PAT.fe=flatPat('fe','Expanded Flat',['FE-2','FE-3']);
 PAT.fru=flatPat('fru','Running Flat',['FRU-2','FRU-3']);
@@ -330,24 +344,26 @@ const DPROG={page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',na
 const W3KURZ=a=>({page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Welle 3 ist die kürzeste Impulswelle',
  hint:'Vergleiche die Längen der Wellen 1, 3 und 5.',ex:'Welle 3 darf bei der '+a+' niemals die kürzeste der Impulswellen sein.',
  ok:u=>!(L(u,3)<L(u,1)&&L(u,3)<L(u,5))});
+const DIAG6={...IMPR['IMP-1'],page:null,where:'Regelwerk, Abschnitt Diagonale',
+ ex:'Auch bei einer Diagonale darf Welle 2 den Startpunkt der Welle 1 nicht unterschreiten (im Abwärtstrend: nicht überschreiten).'};
 const DRL={
- dl:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,'DIAG-5':DPROG,
+ dl:{'IMP-1':DIAG6,'DIAG-2':OVL,'DIAG-5':DPROG,
   'DL-4':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Welle 1 ist nicht die längste Welle',
-   hint:'Vergleiche Welle 1 mit allen anderen Wellen: Ist sie die längste?',ex:'Bei der Leading Diagonale ist Welle 1 die längste der fünf Wellen.',
-   ok:u=>L(u,1)>L(u,2)&&L(u,1)>L(u,3)&&L(u,1)>L(u,4)&&L(u,1)>L(u,5)},
+   hint:'Vergleiche Welle 1 mit Welle 3 und Welle 5: Ist sie die längste?',ex:'Bei der Leading Diagonale ist Welle 1 die längste der trendgebenden Wellen 1, 3 und 5.',
+   ok:u=>L(u,1)>L(u,3)&&L(u,1)>L(u,5)},
   'DL-6':W3KURZ('Leading Diagonale'),
-  'DL-8':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'5',name:'Welle 5 ist länger als Welle 3',
-   hint:'Vergleiche Welle 5 mit Welle 3.',ex:'Welle 5 darf bei der Leading Diagonale niemals länger als Welle 3 sein.',
-   ok:u=>L(u,5)<=L(u,3)}},
- db:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,'DIAG-5':DPROG,
+  'DL-8':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'5',name:'Welle 5 ist nicht kürzer als Welle 3',
+   hint:'Vergleiche Welle 5 mit Welle 3.',ex:'Bei der Leading Diagonale muss Welle 5 kürzer als Welle 3 sein. Gleich lang reicht nicht.',
+   ok:u=>L(u,5)<L(u,3)}},
+ db:{'IMP-1':DIAG6,'DIAG-2':OVL,'DIAG-5':DPROG,
   'DB-8':W3KURZ('Beendenden Diagonale'),
   'DB-10':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'5',name:'Welle 5 ist nicht kürzer als Welle 3',
-   hint:'Vergleiche Welle 5 mit Welle 3.',ex:'Bei der Beendenden Diagonale darf Welle 5 nicht länger als Welle 3 sein (maximal 99,99 % von Welle 3).',
+   hint:'Vergleiche Welle 5 mit Welle 3.',ex:'Bei der Beendenden Diagonale darf Welle 5 nicht länger als Welle 3 sein (maximal 99,9 % von Welle 3).',
    ok:u=>L(u,5)<L(u,3)},
   'DB-4':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Welle 3 ist nicht kürzer als Welle 1',
    hint:'Vergleiche Welle 3 mit Welle 1.',ex:'Bei der Beendenden Diagonale ist Welle 3 kürzer als Welle 1.',
    ok:u=>L(u,3)<L(u,1)}},
- de:{'IMP-1':IMPR['IMP-1'],'DIAG-2':OVL,'DIAG-5':DPROG,
+ de:{'IMP-1':DIAG6,'DIAG-2':OVL,'DIAG-5':DPROG,
   'DE-3':{page:null,where:'Regelwerk, Abschnitt Diagonale',hard:1,wave:'3',name:'Die Wellen 1, 3 und 5 werden nicht immer länger',
    hint:'Vergleiche die Längen der Wellen 1, 3 und 5: Wird jede länger als die davor?',
    ex:'Bei der Expandierenden Diagonale werden die Wellen immer länger: Welle 1 ist die kürzeste, Welle 5 die längste.',
@@ -375,7 +391,7 @@ PAT.de=diagPat('de','Expandierende Diagonale',['DIAG-2','DE-3','DE-9'],{},
 // Komplexe Korrekturen: Double Zigzag (0, W, X, Y) und Dreifache Form (0, W, X1, Y, X2, Z). Aufbau je Teil als eigenes Korrekturmuster.
 const WXW='Regelwerk, Abschnitt Welle X';
 const wx2=(a,b,wave,name,wname)=>({page:null,where:WXW,hard:1,wave,name,hint:'Schau, wie weit '+name.split(' retraced')[0].replace(/^Die/,'die')+' gegen '+wname+' zurückläuft.',
- ex:'Welle X muss unter 100 % der vorangegangenen Welle bleiben. Eine überschießende Welle X lässt das Regelwerk nicht zu. Bis 99 % ist erlaubt, aber ein starkes Warnsignal.',
+ ex:'Welle X muss unter 100 % der vorangegangenen Welle bleiben. Eine überschießende Welle X lässt das Regelwerk nicht zu. Bis knapp unter 100 % (z. B. 99,9 %) ist erlaubt, aber ein starkes Warnsignal.',
  ok:u=>L(u,a)/L(u,b)<1});
 // Starkes Warnsignal (kein Regelbruch): X läuft fast bis zum Start der Vorwelle zurück. Grenze 88,7 % laut WX-2 (von Lenny bestätigt).
 const wx2w=(a,b,wave,name)=>({page:null,where:WXW,hard:0,wave,name,hint:'Schau, wie nah Welle X am Start der vorangegangenen Welle endet.',
@@ -436,7 +452,10 @@ function genImp(violate){ // violate=null: regelkonform; sonst genau diese Regel
  // Truncation ist selten: nur in ca. 4 % der regelkonformen Charts, nie in Fehler-Aufgaben.
  const allowTrunc=!violate&&Math.random()<.04;
  for(let n=0;n<6000;n++){
-  const l1=rnd(.8,1.6)*100,p1=l1,p2=p1-rnd(.3,1.3)*l1,l3=rnd(.7,3)*l1,p3=p2+l3,p4=p3-rnd(.2,.7)*l3,p5=p4+rnd(.4,1.8)*l1;
+  // Profil: meist Welle 3 verlängert, manchmal Welle 5 verlängert, sonst ohne deutliche Verlängerung; Welle 2 und 4 mal flach, mal tief
+  const pr=Math.random(),ext=pr<.55?3:pr<.75?5:0,deep2=Math.random()<.5,deep4=Math.random()<.4;
+  const l1=rnd(.7,1.6)*100,p1=l1,p2=p1-(deep2?rnd(.6,1.3):rnd(.25,.65))*l1,l3=(ext===3?rnd(1.6,3.4):ext===5?rnd(1.24,1.8):rnd(.7,1.9))*l1,p3=p2+l3,
+   p4=p3-(deep4?rnd(.45,.75):rnd(.15,.45))*l3,p5=p4+(ext===5?rnd(1.4,2.8):rnd(.4,1.6))*l1;
   const v=[0,p1,p2,p3,p4,p5],f=violate?hardFails(PAT.imp,v):check(PAT.imp,v); // Fehler-Aufgaben: nur harte Regeln zählen
   if(allowTrunc?!(p5<p3):p5<p3)continue;
   if(violate==='IMP-2'){const r=l3/Math.min(l1,p5-p4);if(r<.6||r>.85)continue} // Welle 3 klar, aber nicht übertrieben kürzer als die kürzere der Wellen 1 und 5
@@ -548,21 +567,29 @@ PAT.tz.gen=v=>genCx('tz',v);PAT.tz.shape={piv:[0,9,18,27,36,45],fr:[abcF,abcF,ab
 PAT.imp.subs=['53535'];PAT.dl.subs=['53535','33333'];PAT.zig.subs=['535'];PAT.fr.subs=PAT.fe.subs=PAT.fru.subs=['335'];PAT.dz.subs=['333'];
 PAT.trk.subs=PAT.tre.subs=PAT.db.subs=PAT.de.subs=PAT.tz.subs=['33333'];
 // Wo das Muster im größeren Trend vorkommt (Regelwerk). Nur daran lassen sich Muster unterscheiden, zu denen derselbe Chart regelkonform ist.
-PAT.trk.ctx=PAT.tre.ctx='nie in Welle 2, C und W';PAT.dl.ctx='nur in Welle 1';PAT.db.ctx='nur in Welle 5 und C';PAT.de.ctx='nur in Welle 1, 5 und C';PAT.tz.ctx='kann in Welle 2 und 4 vorkommen';
+PAT.trk.ctx=PAT.tre.ctx='nie in Welle 2, C, W und Z';PAT.dl.ctx='nur in Welle 1';PAT.db.ctx='nur in Welle 5 und C';PAT.de.ctx='nur in Welle 1, 5 und C';PAT.tz.ctx='kann in Welle 2 und 4 vorkommen';
 const triF=()=>[0,1,.5,.85,.65,1]; // fünfteiliges Dreieck (Teil A-B-C-D-E), endet auf dem Teilziel
 // Muster der Teile wählen (nur Fehler finden): frei wählbar, nur W darf kein Dreieck sein; mit DRE-1 steht ein Dreieck in W
 function pickNames(P,violate){
  const pk=a=>a[Math.floor(Math.random()*a.length)],nonTri=ARTEN.filter(a=>a!=='Dreieck');
  return[violate==='DRE-1'?'Dreieck':pk(nonTri),pk(ARTEN),P.key==='tz'?(violate==='WZ-1'?'Dreieck':pk(nonTri)):pk(ARTEN)]; // W nie Dreieck (DRE-1), Z nie Dreieck (WZ-1), X und Y frei
 }
+// Zeitachse variieren: Jede Welle dauert zufällig 70 % bis 140 % ihrer Grundlänge, zusammen bleiben es 45 Kerzen.
+// So sehen auch Charts desselben Musters jedes Mal anders aus (Lenny, 26.10.2026). Jede Welle behält mindestens mn Kerzen.
+function jitPiv(piv,mn){
+ for(let n=0;n<20;n++){const d=piv.slice(1).map((p,i)=>(p-piv[i])*rnd(.7,1.4)),f=45/d.reduce((a,b)=>a+b,0),out=[0];let acc=0;
+  d.forEach((x,i)=>{acc+=x*f;out.push(i===d.length-1?45:Math.round(acc))});
+  if(out.every((p,i)=>!i||p-out[i-1]>=mn))return out;}
+ return piv;
+}
 function makeRound(P,violate,named){
- const dir=Math.random()<.5?1:-1,B=600;let x,piv,lab,vw,alt;
- if(P.key==='imp'){const v=genImp(violate),S=9;x=[];
-  for(let k=1;k<=5;k++){const a=v[k-1],b=v[k];
+ const dir=Math.random()<.5?1:-1,B=600;FLIP=dir<0;let x,piv,lab,vw,alt;
+ if(P.key==='imp'){const v=genImp(violate),pv=jitPiv([0,9,18,27,36,45],6);x=[];
+  for(let k=1;k<=5;k++){const a=v[k-1],b=v[k],S=pv[k]-pv[k-1];
    for(let s=0;s<S;s++){let y=a+(b-a)*s/S+(s?(Math.random()-.5)*Math.abs(b-a)*.28:0);
     x.push(Math.min(Math.max(y,Math.min(a,b)),Math.max(a,b)));}}
-  x.push(v[5]);piv=[0,1,2,3,4,5].map(k=>k*S);
- }else{const num=!P.parts||!violate||/^WX/.test(violate),v=P.gen(num?violate:null),q=P.shape;x=[];piv=q.piv;
+  x.push(v[5]);piv=pv;
+ }else{const num=!P.parts||!violate||/^WX/.test(violate),v=P.gen(num?violate:null),q={...P.shape,piv:jitPiv(P.shape.piv,7)};x=[];piv=q.piv;
   const nl=q.piv.length-1,names=(named&&P.parts)?pickNames(P,violate):null;
   for(let k=0;k<nl;k++){const pi=names?P.partLeg.indexOf(k):-1;x.push(...leg(v[k],v[k+1],q.piv[k+1]-q.piv[k],pi>=0&&names[pi]==='Dreieck'?triF():q.fr[k]()));}
   x.push(v[nl]);
@@ -573,7 +600,10 @@ function makeRound(P,violate,named){
 }
 
 // ---- 3) Zeichnen: nur kleine Zahlen an den Extremen, keine Punkte.
-const W=720,H=340,X0=30,DX=660/45;
+// Zeichenfläche: Desktop breit (720×340). Am Handy schmaler und höher (440×420), damit der Chart etwa doppelt so hoch
+// erscheint (Lenny, 26.10.2026). Wird bei jedem Zeichnen neu bestimmt; Tippen rechnet mit denselben Werten.
+let W=720,H=340,X0=30,DX=660/45;
+const chartSize=()=>{const m=innerWidth<=600;W=m?440:720;H=m?420:340;X0=m?22:30;DX=(W-2*X0)/45};chartSize();
 // Ziehen von Punkten (PC und Handy). Wichtig fürs Handy: Das SVG-Element bleibt während des Ziehens bestehen
 // (nur sein Inhalt wird neu gezeichnet) und hält den Finger per Pointer-Capture fest. Früher wurde das ganze SVG ersetzt;
 // dann kam auf dem Handy das "Loslassen" nicht mehr an, und der alte Punkt "klebte" am Finger.
@@ -590,16 +620,16 @@ function startDrag(svg,e,move,end){
 const redraw=(svg,html)=>{svg.innerHTML=html.slice(html.indexOf('>')+1,html.lastIndexOf('</svg>'))}; // nur den Inhalt tauschen
 const TOL=2; // erlaubte Abweichung beim Setzen eines Punktes, in Kerzen
 function draw(R,marks,showPiv,tl){ // tl: gesetzte Dreieckspunkte (0,A,B,C,D,E) für die Trendlinien, sonst null
- const lo=Math.min(...R.pr),hi=Math.max(...R.pr),Y=p=>44+(hi-p)/(hi-lo)*252,X=i=>X0+i*DX; // oben und unten Platz für die Punkt-Kreise
+ chartSize();const lo=Math.min(...R.pr),hi=Math.max(...R.pr),Y=p=>44+(hi-p)/(hi-lo)*(H-88),X=i=>X0+i*DX; // oben und unten Platz für die Punkt-Kreise
  let s='<svg id="svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Preischart">';
- for(let g=0;g<7;g++)s+='<line x1="0" x2="'+W+'" y1="'+(20+g*50)+'" y2="'+(20+g*50)+'" stroke="var(--line)" stroke-width=".6"/>';
+ for(let g=0;20+g*50<H;g++)s+='<line x1="0" x2="'+W+'" y1="'+(20+g*50)+'" y2="'+(20+g*50)+'" stroke="var(--line)" stroke-width=".6"/>';
  s+='<polyline fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round" points="'+R.pr.map((p,i)=>X(i)+','+Y(p)).join(' ')+'"/>';
  if(tl&&tl.length===6){ // Trendlinien eines Dreiecks: A-C-E-Seite und B-D-Seite, gestrichelt, bis kurz hinter E verlängert
   const end=tl[5]+1.5,ln=(a,b)=>{const x1=X(tl[a]),y1=Y(R.pr[tl[a]]),x2=X(tl[b]),y2=Y(R.pr[tl[b]]),xe=X(end);
    return '<line x1="'+x1+'" y1="'+y1+'" x2="'+xe+'" y2="'+(y1+(y2-y1)/(x2-x1)*(xe-x1))+'" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="5 4" opacity=".55"/>'};
   s+=ln(1,3)+ln(2,4);}
  const list=showPiv?R.piv.map((i,k)=>[i,k]):marks.map((i,k)=>[i,k]);
- const pr=innerWidth<=600?24:14; // gesetzte Punkte: blaue Kreise (ca. 28 px) mit weißer Beschriftung
+ const pr=innerWidth<=600?17:14; // gesetzte Punkte: blaue Kreise (ca. 28 px) mit weißer Beschriftung
  list.forEach(([i,k])=>{const up=R.pr[i]>=(R.pr[i-1]??-1e9)&&R.pr[i]>=(R.pr[i+1]??-1e9),l=R.lab?R.lab[k]:R.P.labels[k];
   if(showPiv)s+='<text class="lab" x="'+X(i)+'" y="'+(Y(R.pr[i])+(up?-7:15))+'">'+l+'</text>';
   else s+='<g class="pt"><circle cx="'+Math.max(pr+2,Math.min(W-pr-2,X(i)))+'" cy="'+(Y(R.pr[i])+(up?-pr-4:pr+4))+'" r="'+pr+'"/><text x="'+Math.max(pr+2,Math.min(W-pr-2,X(i)))+'" y="'+(Y(R.pr[i])+(up?-pr-4:pr+4))+'">'+l+'</text></g>';});
@@ -631,7 +661,7 @@ const ICON={
  bulb:ico('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>')};
 const tipLine=t=>t.startsWith('Tipp')?'<p class="tip">'+ICON.bulb+'<span>'+t+'</span></p>':'<p>'+t+'</p>'; // Tipps mit Glühbirne
 const stufe=s=>'<span class="stufe s-'+s+'">'+{regel:'Regel',warn:'Warnsignal',faust:'Faustregel'}[s]+'</span>';
-const lvlNote=(X,id)=>{const o=X.rules[id].lvl==='o';return '<p class="rnote '+(o?'f':'w')+'">'+stufe(o?'faust':'warn')+'('+tag(X,id)+') '+X.rules[id].ex+'</p>'};
+const lvlNote=(X,id)=>{const o=X.rules[id].lvl==='o';return '<p class="rnote '+(o?'f':'w')+'">'+stufe(o?'faust':'warn')+'('+tag(X,id)+') '+mt(X.rules[id].ex)+'</p>'};
 // „Nächster Chart“/„Weiter“ wandert in die feste Leiste unten, damit es am Handy ohne Scrollen erreichbar ist
 // Neu erscheinende Weiter-Buttons sind kurz gesperrt, damit ein schnelles Doppeltippen die Rückmeldung nicht überspringt
 const lockTap=b=>{if(!b||b.dataset.lk)return;b.dataset.lk=1;b.style.pointerEvents='none';setTimeout(()=>b.style.pointerEvents='',450)};
@@ -645,19 +675,32 @@ function stats(){saveProgress();const lv=Math.floor(st.pts/50)+1;$('#lv').textCo
 // dahinter der impulsive Hintergrund-Chart. Links Lernen, Quiz, Ränge (Handy: auch Blitz), rechts die Übungsmodi, unten die Prognose
 // (Desktop: auch Blitz). Neue Modi bekommen ebenfalls eine Insel.
 const isl=(icon,title,desc,act,extra)=>(act?'<button class="isl" aria-label="'+title+': '+desc+'" onclick="'+act+'">':'<div class="isl">')+'<span class="ico">'+ICON[icon]+'</span><b>'+title+'</b><span class="d">'+desc+'</span>'+(extra||'')+(act?'</button>':'</div>');
+// Unterbrechung (Lenny, 26.10.2026): Eine angefangene Quiz- oder Blitz-Runde bleibt gespeichert (waveChecker.resume, höchstens 1 Tag)
+// und kann auf der Startseite fortgesetzt werden. Die Tagesaufgabe merkt sich gesetzte Punkte selbst (dLoad).
+const RESKEY='waveChecker.resume';
+const resLoad=()=>{try{const o=JSON.parse(localStorage.getItem(RESKEY));return o&&Date.now()-o.at<864e5?o:null}catch(_){return null}};
+const resSave=o=>{try{localStorage.setItem(RESKEY,JSON.stringify({...o,at:Date.now()}))}catch(_){}};
+const resDrop=()=>{try{localStorage.removeItem(RESKEY)}catch(_){}};
+function resumeCard(){const o=resLoad();if(!o)return '';
+ const what=o.t==='quiz'?'Quiz '+esc(o.cat||'Gemischt')+' · Frage '+Math.min(o.i+1,o.ids.length)+' von '+o.ids.length:'Blitz-Erkennen '+esc(o.opt.name)+' · Chart '+(o.m.i+1)+' von '+BZN;
+ return '<div class="card rsm"><p><b>Weitermachen?</b> '+what+'</p><p><button class="p" onclick="resume()">Weitermachen</button><button onclick="resDrop();home()">Verwerfen</button></p></div>'}
+async function resume(){const o=resLoad();if(!o)return home();
+ if(o.t==='quiz'){if(!await qReady())return;const f=id=>QZ.find(q=>q.id===id),R={cat:o.cat,qs:o.ids.map(f).filter(Boolean),i:o.i,res:o.res.map(r=>({q:f(r.id),ok:r.ok})).filter(r=>r.q)};
+  return R.i<R.qs.length?quizAsk(R):quizEnd(R)}
+ blitz(o.opt,o.lvl,o);}
 function home(){
  const blitzIsl=cls=>bzCard().replace('class="isl"','class="isl '+cls+'"');
  $('#view').innerHTML='<section class="home"><div class="hbg">'+bgChart()+'</div>'+
-  '<div class="hc"><p class="lead">Elliott-Wellen <span>lernen</span></p>'+dailyCard()+
-   '<p class="mut rec">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><p id="rs" class="hreset">'+RSBTN+'</p><p class="hreset"><button class="lnk" onclick="guideStart()">Einführung erneut ansehen</button></p></div>'+
+  '<div class="hc"><p class="lead">Elliott-Wellen <span>lernen</span></p>'+dailyCard()+resumeCard()+
+   '<p class="mut rec">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><p class="hreset"><button class="lnk" onclick="guideStart()">Einführung erneut ansehen</button></p><p id="rs" class="hreset">'+RSBTN+'</p></div>'+
   '<div class="hl">'+isl('book','Elliott-Wellen lernen','Das Regelwerk mit Beispielcharts','learn()')+
    isl('quiz','Quiz','Kapitel abfragen in kurzen Runden','quizMenu()')+
    isl('medal','Meine Ränge','Bronze bis Platin je Kapitel','ranks()')+blitzIsl('mob')+'</div>'+
   '<div class="hrr">'+isl('count','Chart durchzählen','Wellenpunkte setzen und prüfen','pick(\'count\')')+
-   isl('search','Fehler finden','Ein Regelverstoß steckt im Count','pick(\'find\')')+
+   isl('search','Fehler finden','Ein Regelverstoß steckt in der Zählung','pick(\'find\')')+
    isl('eye','Muster erkennen','Normal per Auswahl oder schwer selbst zählen','recognize()')+
    isl('layers','Subwellen zählen','Erst Hauptwellen, dann Subwellen','pickSub()')+'</div>'+
-  '<div class="hb">'+isl('trend','Wie geht es weiter?','Plane die fehlenden Wellen regelkonform',null,
+  '<div class="hb">'+isl('trend','Wie geht es weiter?','Plane die fehlenden Wellen nach den Regeln',null,
     '<span class="sb"><button class="p" onclick="progn(\'imp\')">Impuls</button><button class="p" onclick="progn(\'zig\')">Zigzag</button></span>')+blitzIsl('desk')+'</div>'+
   '</section>';
  intro();
@@ -674,7 +717,7 @@ const GUIDE=[
  {t:'Muster erkennen',x:'Welches Muster zeigt der Chart? Auf Schwer zählst du ihn zusätzlich selbst.'},
  {t:'Subwellen zählen',x:'Zähle in längeren Charts die Hauptwellen und ihre Subwellen.'},
  {t:'Blitz-Erkennen',x:'Charts blitzen nur kurz auf. Erkenne das Muster so schnell du kannst.'},
- {t:'Wie geht es weiter?',x:'Der Chart bricht ab. Zeichne regelkonform, wie es weitergeht.'}];
+ {t:'Wie geht es weiter?',x:'Der Chart bricht ab. Zeichne nach den Regeln, wie es weitergeht.'}];
 const GKEY='waveChecker.guide';let G=null;
 const guideSeen=()=>{try{return !!localStorage.getItem(GKEY)}catch(_){return false}};
 const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -735,7 +778,7 @@ function bgChart(){const P=[[0,960],[380,610],[560,770],[1080,250],[1240,420],[1
   P.slice(1).map((p,i)=>'<text style="--d:'+Math.round(200+1800*(p[0]+60)/1720)+'ms" x="'+p[0]+'" y="'+(p[1]+(i%2?70:-26))+'">'+(i+1)+'</text>').join('')+'</g>'+
   '<rect class="wipe" x="-60" y="-60" width="1720" height="1120" fill="var(--bg)"/></svg>'} // Abdeckung, die beim ersten Öffnen nach rechts wegfährt (Linie „zeichnet“ sich)
 // Fortschritt zurücksetzen: unauffälliger Button, Sicherheitsabfrage direkt auf der Seite (kein Browser-Popup)
-const RSBTN='<button class="mut" style="border-color:var(--line);font-size:.85rem" onclick="resetAsk()">Fortschritt zurücksetzen</button>';
+const RSBTN='<button class="lnk" onclick="resetAsk()">Fortschritt zurücksetzen</button>';
 function resetAsk(){$('#rs').innerHTML='<span class="mut">Punkte, Level und Serie wirklich auf 0 setzen? Das lässt sich nicht rückgängig machen.</span><br><button onclick="resetDo()">Ja, zurücksetzen</button><button class="p" onclick="$(\'#rs\').innerHTML=RSBTN">Abbrechen</button>'}
 function resetDo(){st.pts=0;st.streak=0;stats();$('#rs').innerHTML='<span class="mut">Fortschritt zurückgesetzt.</span>'}
 // Schwierigkeitsstufen sind nur eine Empfehlung: Jeder darf alles frei wählen. Die empfohlene Stufe folgt dem Level (alle 50 Punkte).
@@ -808,8 +851,8 @@ function count(P){
  };
  const tipUI=f=>{const r=P.rules[f[0]];
   const lines=['Die Zählung ist noch nicht regelkonform.'];
-  if(m.tips>=1)lines.push('Tipp 1: '+r.hint);
-  if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+r.name+'“.');
+  if(m.tips>=1)lines.push('Tipp 1: '+mt(r.hint));
+  if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+mt(r.name)+'“.');
   if(m.tips>=3)lines.push('Tipp 3: '+tag(P,f[0])+'. '+r.ex);
   render('<p class="bad">Noch nicht ganz.</p>'+lines.map(tipLine).join('')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':''));
   const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipUI(f)};
@@ -821,17 +864,17 @@ function count(P){
 function find(P){
  const id=P.viol[Math.floor(Math.random()*P.viol.length)],R=makeRound(P,id,true),m={w:null,r:P.viol.length===1?id:null},rule=P.rules[id],wv=R.vwave||rule.wave;
  const render=(fb)=>{
-  $('#view').innerHTML='<p class="kick">Fehler finden · '+P.title+'</p><p class="task">Dieser Count enthält genau einen Regelverstoß. Wähle die fehlerhafte Welle und die verletzte Regel.</p><div class="chart">'+draw(R,[],true)+'</div>'+
+  $('#view').innerHTML='<p class="kick">Fehler finden · '+P.title+'</p><p class="task">Diese Zählung enthält genau einen Regelverstoß. Wähle die fehlerhafte Welle und die verletzte Regel.</p><div class="chart">'+draw(R,[],true)+'</div>'+
   '<div class="card"><b>Welche Welle?</b><br>'+P.waves.map(w=>'<button data-w="'+w+'" class="'+(m.w===w?'on':'')+'" '+(fb?'disabled':'')+'>Welle '+w+'</button>').join('')+
-  (P.viol.length>1&&m.w?'<br><b>Welche Regel?</b><br>'+P.viol.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'" '+(fb?'disabled':'')+'>'+P.rules[x].name+'</button>').join(''):'')+
+  (P.viol.length>1&&m.w?'<br><b>Welche Regel?</b><br>'+P.viol.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'" '+(fb?'disabled':'')+'>'+mt(P.rules[x].name)+'</button>').join(''):'')+
   '</div><div class="dock"><button class="p" id="go" '+(m.w&&m.r&&!fb?'':'disabled')+'>Auswerten</button><button id="dk" '+(fb?'disabled':'')+'>Ich weiß nicht</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
   if(fb)return;
   document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{m.w=b.dataset.w;render()});
   document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{m.r=b.dataset.r;render()});
-  $('#dk').onclick=()=>{render('<p class="mut">Kein Problem, hier die Auflösung (keine Punkte, deine Serie bleibt).</p><p>Gesucht war: Welle '+wv+', Regel „'+rule.name+'“ ('+tag(P,id)+'). '+rule.ex+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=()=>find(P);};
+  $('#dk').onclick=()=>{render('<p class="mut">Kein Problem, hier die Auflösung (keine Punkte, deine Serie bleibt).</p><p>Gesucht war: Welle '+wv+', Regel „'+mt(rule.name)+'“ ('+tag(P,id)+'). '+rule.ex+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=()=>find(P);};
   $('#go').onclick=()=>{const wOk=m.w===wv||!!(R.alt&&R.alt.includes(m.w)),rOk=m.r===id;
    if(wOk&&rOk){st.streak++;st.pts+=10;exSolved(P.key,0)}else st.streak=0;stats();
-   render('<p class="'+(wOk&&rOk?'ok':'bad')+'">'+(wOk&&rOk?'Richtig! +10 Punkte':wOk?'Die Welle stimmt, die Regel nicht.':rOk?'Die Regel stimmt, die Welle nicht.':'Leider daneben.')+'</p><p>Gesucht war: Welle '+(R.alt?R.alt.join(' oder '):wv)+', Regel „'+rule.name+'“ ('+tag(P,id)+'). '+rule.ex+'</p><button class="p" id="nxt">Nächster Chart</button>');
+   render('<p class="'+(wOk&&rOk?'ok':'bad')+'">'+(wOk&&rOk?'Richtig! +10 Punkte':wOk?'Die Welle stimmt, die Regel nicht.':rOk?'Die Regel stimmt, die Welle nicht.':'Leider daneben.')+'</p><p>Gesucht war: Welle '+(R.alt?R.alt.join(' oder '):wv)+', Regel „'+mt(rule.name)+'“ ('+tag(P,id)+'). '+rule.ex+'</p><button class="p" id="nxt">Nächster Chart</button>');
    $('#nxt').onclick=()=>find(P);};
  };
  render();
@@ -847,7 +890,7 @@ function misfit(Q,R){
  const v=norm(Q,R.piv.map(i=>R.pr[i]));
  if(Q.struct&&!Q.struct(v))return 'Die Richtung der Wellen passt nicht '+sel+'.';
  const f=hardFails(Q,v);
- if(f.length)return 'Verletzte Regel '+sel+': '+f.map(id=>'„'+Q.rules[id].name+'“ ('+tag(Q,id)+')').join(', ')+'.';
+ if(f.length)return 'Verletzte Regel '+sel+': '+f.map(id=>'„'+mt(Q.rules[id].name)+'“ ('+tag(Q,id)+')').join(', ')+'.';
  if(!Q.subs.includes(R.P.subs[0]))return 'Die Teilwellen passen nicht: Hier sind sie '+fmtSub(R.P.subs[0])+' aufgebaut, '+sel+' '+Q.subs.map(fmtSub).join(' oder ')+'.';
  return null;
 }
@@ -870,7 +913,7 @@ function recogNormal(){
   document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{m.sel=b.dataset.k;render()});
   $('#go').onclick=()=>{const Q=PAT[m.sel],same=m.sel===P.key,why=same?null:misfit(Q,R),ok=!why;
    if(ok){st.streak++;st.pts+=10;exSolved(P.key,0)}else st.streak=0;stats(); // Rang: zählt für das generierte Muster
-   render({v:same?'<p class="ok">Richtig! +10 Punkte</p>':ok?'<p class="ok">Richtig, auch regelkonform! +10 Punkte. Generiert wurde: '+P.title+'.</p>':'<p class="bad">Nicht ganz. Das war ein '+P.title+'.</p>',
+   render({v:same?'<p class="ok">Richtig! +10 Punkte</p>':ok?'<p class="ok">Richtig! +10 Punkte. Alternativ passt auch: '+P.title+'.</p>':'<p class="bad">Nicht ganz. Das war ein '+P.title+'.</p>',
     d:(same?'':'<p>'+(ok?diffMsg(P,Q):why)+'</p>')+'<p>'+P.recog+'</p>'+(same?'':'<p class="mut">Deine Wahl war: '+Q.recog+'</p>')});
    $('#nxt').onclick=recogNormal;};
  };
@@ -893,14 +936,15 @@ function fitPts(Q,R,idx){
  const f=hardFails(Q,v);return f.length?{kind:'rules',f}:null;
 }
 const fitWhy=(Q,r,P)=>r.kind==='subs'?'Die Teilwellen passen nicht: Hier sind sie '+fmtSub(P.subs[0])+' aufgebaut, beim Muster „'+Q.title+'“ '+Q.subs.map(fmtSub).join(' oder ')+'.':
- r.kind==='struct'?'Die Richtung der Wellen passt nicht zum Muster „'+Q.title+'“.':'Verletzte Regel beim Muster „'+Q.title+'“: '+r.f.map(id=>'„'+Q.rules[id].name+'“ ('+tag(Q,id)+')').join(', ')+'.';
-function recogHard(D){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, siehe Abschnitt 6), sonst zufällig
+ r.kind==='struct'?'Die Richtung der Wellen passt nicht zum Muster „'+Q.title+'“.':'Verletzte Regel beim Muster „'+Q.title+'“: '+r.f.map(id=>'„'+mt(Q.rules[id].name)+'“ ('+tag(Q,id)+')').join(', ')+'.';
+function recogHard(D,fb0){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, siehe Abschnitt 6), sonst zufällig
  const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=D?D.P:PAT[keys[Math.floor(Math.random()*keys.length)]],R=D?D.R:makeRound(P,null),
-  m={z:null,sel:[],tips:D?D.tips:0,failed:D?D.tries>0:false,done:false};
+  m={z:D&&D.z!=null?D.z:null,sel:D&&D.sel?D.sel.slice():[],tips:D?D.tips:0,failed:D?D.tries>0:false,done:false};
  const Z=()=>ZW[m.z],pic=()=>draw({...R,P:{labels:Z()?Z().labels:[]}},m.sel,false,null); // nackter Chart, Beschriftung nur an gesetzten Punkten
  const fail=html=>{m.failed=true;m.sig=JSON.stringify([m.z,m.sel]);if(st.streak)st.streak=0,stats();if(D){D.tries++;D.save()}return html}; // m.sig: Prüfen bleibt gesperrt, bis sich etwas ändert (Doppeltipp kostet keinen Versuch) // Tagesaufgabe: jeder Fehlversuch zählt
  const render=(fb)=>{
   const z=Z(),n=z?z.labels.length:0;
+  if(D&&!m.done){D.z=m.z;D.sel=m.sel.slice();D.fb=(fb||'').replace(/<button id="tip">[^<]*<\/button>/,'');D.save()} // Stand der Tagesaufgabe merken
   $('#view').innerHTML='<p class="kick">'+(D?'Tagesaufgabe #'+D.no+' · Versuch '+Math.min(3,D.tries+1)+' von 3':'Muster erkennen · Schwer')+'</p><p class="task">'+(D?'':'Zähle den Chart selbst. ')+(z?'Zählweise '+z.name+': Tippe nacheinander die Punkte '+z.labels.join(', ')+' auf den Chart. Gesetzte Punkte kannst du anfassen und verschieben. Nächster Punkt: <span class="nextpt">'+(m.sel.length<n?z.labels[m.sel.length]:'fertig')+'</span>':'Wähle zuerst die Zählweise.')+'</p>'+
    '<div class="chart">'+pic()+'</div><div class="card"><b>Zählweise</b><br>'+ZW.map((w,i)=>'<button data-z="'+i+'" class="'+(m.z===i?'on':'')+'" '+(m.done?'disabled':'')+'>'+w.name+' · '+w.hint+'</button>').join('')+'</div>'+
    (z?'<div class="dock"><button class="p" id="chk" '+(m.sel.length<n||m.done||m.sig===JSON.stringify([m.z,m.sel])?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div>':'')+
@@ -916,6 +960,8 @@ function recogHard(D){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, 
  const verify=()=>{
   const z=Z(),n=z.labels.length;
   if(n!==R.piv.length)return render(fail('<p class="bad">Noch nicht ganz.</p><p>Die Zählweise '+z.name+' passt nicht zu diesem Chart. Zähle die großen Wendepunkte: Wie viele Wellen hat der Chart? Wähle dann eine andere Zählweise.</p>'));
+  // Passt die Zählweise grundsätzlich? Geprüft an den echten Wendepunkten, bevor es um einzelne Punkte geht (Lenny, 26.10.2026)
+  if(!z.pats.some(k=>!fitPts(PAT[k],R,R.piv)))return render(fail('<p class="bad">Noch nicht ganz.</p><p>Die Zählweise '+z.name+' passt nicht zu diesem Chart. Achte auf den Aufbau der Wellen: Welche sind dreiteilig, welche fünfteilig? Wähle dann eine andere Zählweise.</p>'));
   // Platzierung wie in „Chart durchzählen“: jeder Punkt am echten Extrem (Toleranz TOL Kerzen)
   const bad=m.sel.findIndex((i,k)=>k>0&&Math.abs(i-R.piv[k])>TOL);
   if(bad===n-1)return render(fail('<p class="bad">Noch nicht ganz.</p><p>Der Chart endet im Extrem der letzten Welle. Setze Punkt '+z.labels[n-1]+' an das letzte Hoch bzw. Tief des Charts.</p>'));
@@ -937,9 +983,9 @@ function recogHard(D){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, 
    if(m.tips>=3){const g={};z.pats.forEach(k=>{const s=PAT[k].subs.map(fmtSub).join(' oder ');(g[s]=g[s]||[]).push(PAT[k].title)}); // Muster mit gleicher Teilstruktur zusammenfassen
     lines.push('Tipp 3: Bei der Zählweise '+z.name+' sind sie '+Object.entries(g).map(([s,t])=>s+' ('+t.join(', ')+')').join(', ')+' aufgebaut. Wähle eine andere Zählweise.');}
   }else{const id=r.f[0],x=Q.rules[id];
-   if(m.tips>=1)lines.push('Tipp 1: '+x.hint);
-   if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+x.name+'“.');
-   if(m.tips>=3)lines.push('Tipp 3: '+tag(Q,id)+'. '+x.ex);}
+   if(m.tips>=1)lines.push('Tipp 1: '+mt(x.hint));
+   if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+mt(x.name)+'“.');
+   if(m.tips>=3)lines.push('Tipp 3: '+tag(Q,id)+'. '+mt(x.ex));}
   render('<p class="bad">Noch nicht ganz.</p>'+lines.map(tipLine).join('')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':''));
   const t=$('#tip');if(t)t.onclick=()=>{m.tips++;if(D){D.tips=m.tips;D.save()}tipUI({Q,r})}; // Tagesaufgabe: Tipps werden vermerkt
  };
@@ -950,28 +996,30 @@ function recogHard(D){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, 
   render(head+'<p><b>Bonusfrage (+10): Welches Muster genau?</b></p>'+z.pats.map(k=>'<button data-b="'+k+'">'+PAT[k].title+'</button>').join(''));
   document.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{const Q=PAT[b.dataset.b],ok=m.ok.includes(Q);
    if(ok){st.pts+=10;stats()}
-   end(head+(Q===P?'<p class="ok">Bonus richtig! +10 Punkte</p>':ok?'<p class="ok">Bonus richtig, auch regelkonform! +10 Punkte</p><p>'+diffMsg(P,Q)+'</p>':'<p class="bad">Bonus leider falsch.</p><p>'+fitWhy(Q,fitPts(Q,R,m.sel),P)+'</p>'),ok);});
+   end(head+(Q===P?'<p class="ok">Bonus richtig! +10 Punkte</p>':ok?'<p class="ok">Bonus richtig! +10 Punkte. Alternativ passt auch: '+P.title+'.</p><p>'+diffMsg(P,Q)+'</p>':'<p class="bad">Bonus leider falsch.</p><p>'+fitWhy(Q,fitPts(Q,R,m.sel),P)+'</p>'),ok);});
  };
  // Erst am Ende verraten, welches Muster generiert wurde (sonst wäre die Bonusfrage vorweggenommen)
  const end=(html,bonusOk)=>{if(D)return D.finish({solved:true,bonus:bonusOk,tips:m.tips});
   render(html+'<p>Generiert wurde: <b>'+P.title+'</b>. '+P.recog+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=()=>recogHard()};
- render();
+ render(fb0);
 }
 
 // Modus 4: Subwellen zählen. Längerer Chart; erst die Hauptpunkte, dann die Subwellen der Wellen einzeln.
 // Impuls: Subwellen von Welle 1, 3, 5 (je 5-teilig). Zigzag: A (5), B (3), C (5). Flats: A (3), B (3), C (5).
 // Fünfteilige Wellen sind selbst Impulse (W1-1, WA-1, WC-1): dafür gelten IMP-1 bis IMP-4. Dreiteilige Wellen: nur die App-Vorgabe zur Richtung,
 // denn B einer Flat darf jedes Korrekturmuster sein (WB-2), A ein Zigzag, eine Flat oder ein Double-Zigzag (WA-2). Offen: Diagonalen in Welle 1/5 bzw. C kommen hier noch nicht vor.
-// Muster der Wellen 2 und 4 im Impuls: Welle 2 nie ein Dreieck (DRE-1, W2-1), Welle 4 anders als Welle 2 (W4-3, Alternation). Flat-Varianten zählen hier als eine Art.
+// Muster der Wellen 2 und 4 im Impuls: Welle 2 nie ein Dreieck (DRE-1, W2-1), Welle 4 anders als Welle 2 (W4-3, Alternation).
+// Dieselbe Flat-Variante in beiden Wellen ist ein Regelbruch. Zwei verschiedene Flat-Varianten wären nur ein Warnsignal
+// (Lenny, 26.10.2026); diese Mischform kommt hier nicht vor, damit die Aufgabe eindeutig bleibt.
 function pickAlt(violate){
- const pk=a=>a[Math.floor(Math.random()*a.length)],A2=['Zigzag','Flat','Double Zigzag'],A4=A2.concat('Dreieck');
+ const pk=a=>a[Math.floor(Math.random()*a.length)],A2=['Zigzag','Regular Flat','Expanded Flat','Running Flat','Double Zigzag'],A4=A2.concat('Dreieck'),fl=a=>/Flat/.test(a);
  if(violate==='W4-3'){const x=pk(A2);return{2:x,4:x}}
  if(violate==='DRE-1')return{2:'Dreieck',4:pk(A2)};
- const w2=pk(A2);return{2:w2,4:pk(A4.filter(a=>a!==w2))};
+ const w2=pk(A2);return{2:w2,4:pk(A4.filter(a=>a!==w2&&!(fl(a)&&fl(w2))))};
 }
 function makeSubRound(P,plan,violate,named){
  plan=plan||{};
- const imp=P.key==='imp',dir=Math.random()<.5?1:-1,B=600;
+ const imp=P.key==='imp',dir=Math.random()<.5?1:-1,B=600;FLIP=dir<0;
  const num=!P.parts||!violate||/^WX/.test(violate),names=(named&&P.parts)?pickNames(P,violate):null; // dz/tz: Muster der Teile (nur Fehler finden)
  const v=imp?genImp(/^IMP-[123]$/.test(violate)?violate:null):P.gen(num?(violate||null):null);
  const legNames=(imp&&named)?pickAlt(violate):null; // Impuls im Fehler-finden-Modus: Muster von Welle 2 und 4 (Alternation W4-3)
@@ -979,30 +1027,31 @@ function makeSubRound(P,plan,violate,named){
  const LEN={imp:[20,10,28,12,30],zig:[28,16,32],fr:[22,22,34],fe:[22,22,34],fru:[22,22,34],trk:[16,16,16,16,16],tre:[16,16,16,16,16],dl:[22,12,22,12,24],db:[16,16,16,16,16],de:[16,16,16,16,16],dz:[30,26,30],tz:[18,16,18,16,18]};
  const base=LEN[P.key],frs=imp?[impF,abcF,impF,abcF,impF]:P.shape.fr;
  const len=base.map(l=>l+Math.round(rnd(-2,2))),mp=[0];len.forEach(l=>mp.push(mp[mp.length-1]+l));
- const x=[],sp={},spAll={},tri={};
+ const x=[],sp={},spAll={},tri={},wxy={};
  for(let k=1;k<=len.length;k++){
   const pi=names?P.partLeg.indexOf(k-1):-1,isTri=pi>=0&&names[pi]==='Dreieck',sp0=plan[k];
   const nm=legNames&&legNames[k],fr=sp0?(sp0.parts===3?abcF():sp0.viol?(()=>{const g=genImp(sp0.viol);return g.map(q=>q/g[5])})():impF()):nm?(nm==='Dreieck'?triF():abcF()):isTri?triF():frs[k-1]();
   const o=leg(v[k-1],v[k],len[k-1],fr);x.push(...o);
-  spAll[k]=o.idx.slice(1,-1).map(i=>mp[k-1]+i).concat(mp[k]);tri[k]=isTri||nm==='Dreieck';
+  spAll[k]=o.idx.slice(1,-1).map(i=>mp[k-1]+i).concat(mp[k]);tri[k]=isTri||nm==='Dreieck';wxy[k]=nm==='Double Zigzag'||(pi>=0&&names[pi]==='Double Zigzag'); // Double Zigzag: Teile heißen (w)(x)(y)
   if(!imp||k%2===1)sp[k]=spAll[k];} // sp: Wellen, die in „Subwellen zählen“ gezählt werden
  x.push(v[len.length]);
 const lab=legNames?P.labels.map((l,k)=>legNames[k]?l+' '+legNames[k]:l):names?P.labels.map((l,k)=>{const pi=P.partLeg.indexOf(k-1);return pi>=0?l+' '+names[pi]:l}):null;
- return{dir,pr:x.map(y=>B+dir*y),mp,sp,spAll,tri,lab,vwave:violate?P.lastVW:undefined};
+ return{dir,pr:x.map(y=>B+dir*y),mp,sp,spAll,tri,wxy,lab,vwave:violate?P.lastVW:undefined};
 }
 function drawS(R,pts,band){
- const N=R.pr.length-1,DXs=660/N,lo=Math.min(...R.pr),hi=Math.max(...R.pr),Y=p=>46+(hi-p)/(hi-lo)*250,X=i=>X0+i*DXs; // mehr Rand, damit die äußeren Hauptlabels nicht abgeschnitten werden
+ chartSize();const N=R.pr.length-1,DXs=(W-2*X0)/N,lo=Math.min(...R.pr),hi=Math.max(...R.pr),Y=p=>46+(hi-p)/(hi-lo)*(H-90),X=i=>X0+i*DXs; // mehr Rand, damit die äußeren Hauptlabels nicht abgeschnitten werden
  let s='<svg id="svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Preischart">';
  if(band)s+='<rect x="'+X(band[0])+'" y="0" width="'+(X(band[1])-X(band[0]))+'" height="'+H+'" fill="var(--line)" opacity=".35"/>';
- for(let g=0;g<7;g++)s+='<line x1="0" x2="'+W+'" y1="'+(20+g*50)+'" y2="'+(20+g*50)+'" stroke="var(--line)" stroke-width=".6"/>';
+ for(let g=0;20+g*50<H;g++)s+='<line x1="0" x2="'+W+'" y1="'+(20+g*50)+'" y2="'+(20+g*50)+'" stroke="var(--line)" stroke-width=".6"/>';
  s+='<polyline fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round" points="'+R.pr.map((p,i)=>X(i)+','+Y(p)).join(' ')+'"/>';
  pts.forEach(q=>{const i=q.i,up=R.pr[i]>=(R.pr[i-1]??-1e9)&&R.pr[i]>=(R.pr[i+1]??-1e9);
-  s+='<text class="lab" '+(q.sub?'style="font-size:12px;opacity:.85" ':'')+'x="'+X(i)+'" y="'+(Y(R.pr[i])+(up?-6-(q.far?13:0):14+(q.far?13:0)))+'">'+q.l+'</text>';});
+  if(q.set)s+='<circle cx="'+X(i)+'" cy="'+Y(R.pr[i])+'" r="6" fill="var(--text)" stroke="var(--surface)" stroke-width="1.5"/>';
+  s+='<text class="lab" '+(q.set?'style="font-size:20px;font-weight:800;paint-order:stroke;stroke:var(--surface);stroke-width:5px" ':q.sub?'style="font-size:12px;opacity:.85" ':'')+'x="'+X(i)+'" y="'+(Y(R.pr[i])+(up?(q.set?-11:-6)-(q.far?13:0):(q.set?24:14)+(q.far?13:0)))+'">'+q.l+'</text>';});
  return s+'</svg>';
 }
 function pickSub(){pick('sub')} // gleiche Musterliste wie bei den anderen Modi
 function sub(key){
- const P=PAT[key||'imp'],R=makeSubRound(P),N=R.pr.length-1,DXs=660/N,IM=PAT.imp;
+ const P=PAT[key||'imp'],R=makeSubRound(P),N=R.pr.length-1,IM=PAT.imp;let DXs=(W-2*X0)/N;
  const stages=[{labels:P.labels,lo:0,hi:N,truth:R.mp,t:'Zähle zuerst die Hauptwellen.'}];
  Object.keys(R.sp).forEach(k=>{k=+k;const t=R.sp[k],five=t.length===5,nm=P.waves[k-1];
   stages.push({w:k,nm,five,labels:five?['(1)','(2)','(3)','(4)','(5)']:['(a)','(b)','(c)'],lo:R.mp[k-1],hi:R.mp[k],truth:t,
@@ -1012,7 +1061,7 @@ function sub(key){
  const render=fb=>{
   const g=stages[m.s],n=g.labels.length,idxOf=x=>Math.max(0,Math.min(N,Math.round((x-X0)/DXs)));
   $('#view').innerHTML='<p class="kick">Subwellen zählen · '+P.title+' · Schritt '+(m.s+1)+' von '+stages.length+'</p><p class="task">'+g.t+' Nächster Punkt: <span class="nextpt">'+(m.sel.length<n?g.labels[m.sel.length]:'fertig')+'</span></p><div class="chart">'+
-   drawS(R,fx().concat(m.sel.map((i,k)=>({i,l:g.labels[k],sub:!!g.w}))),g.w?[g.lo,g.hi]:null)+'</div><div class="dock"><button class="p" id="chk" '+(m.sel.length<n||m.done?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
+   drawS(R,fx().concat(m.sel.map((i,k)=>({i,l:g.labels[k],sub:!!g.w,set:1}))),g.w?[g.lo,g.hi]:null)+'</div><div class="dock"><button class="p" id="chk" '+(m.sel.length<n||m.done?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
   const svg=$('#svg'),xAt=ev=>{const r=$('#svg').getBoundingClientRect();return (ev.clientX-r.left)/r.width*W};
   svg.style.touchAction='none';
   const top=g.w?Math.min(N,g.hi+TOL):N; // der letzte Subpunkt darf auf dem Hauptpunkt liegen
@@ -1037,16 +1086,16 @@ function sub(key){
  const msg=h=>{fail();render('<p class="bad">Noch nicht ganz.</p>'+h)};
  const tipUI=f=>{const r=IM.rules[f[0]],pre='In den Subwellen von Welle '+stages[m.s].nm+': ';
   const lines=['Die Zählung ist noch nicht regelkonform.'];
-  if(m.tips>=1)lines.push('Tipp 1: '+pre+r.hint);
-  if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+r.name+'“.');
+  if(m.tips>=1)lines.push('Tipp 1: '+pre+mt(r.hint));
+  if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+mt(r.name)+'“.');
   if(m.tips>=3)lines.push('Tipp 3: '+tag(IM,f[0])+'. '+r.ex);
   render('<p class="bad">Noch nicht ganz.</p>'+lines.map(tipLine).join('')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':''));
   const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipUI(f)};
  };
  const tipMain=f=>{const r=P.rules[f[0]];
   const lines=['Die Zählung ist noch nicht regelkonform.'];
-  if(m.tips>=1)lines.push('Tipp 1: '+r.hint);
-  if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+r.name+'“.');
+  if(m.tips>=1)lines.push('Tipp 1: '+mt(r.hint));
+  if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+mt(r.name)+'“.');
   if(m.tips>=3)lines.push('Tipp 3: '+tag(P,f[0])+'. '+r.ex);
   render('<p class="bad">Noch nicht ganz.</p>'+lines.map(tipLine).join('')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':''));
   const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipMain(f)};
@@ -1133,7 +1182,7 @@ function progn(key){
   $('#view').innerHTML='<p class="kick">Wie geht es weiter? · '+P.title+'</p><p class="task">Plane die fehlenden Wellen in der grauen Zone. '+
    (m.done?'':cu?(cu.needChar?'<b>Welche Art hat Welle '+wn(cu.k)+'?</b>':'Welle '+wn(cu.k)+': Nächster Punkt <span class="nextpt">'+subL(cu.n,cu.have)+(cu.have===cu.n-1?' = '+wn(cu.k):'')+'</span>. Punkte kannst du anfassen und verschieben.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
    '<div class="chart pgc">'+pic()+'</div>'+
-   (cu&&cu.needChar&&!m.done?'<div class="card"><b>Charakter von Welle '+wn(cu.k)+'</b><br><button class="p" data-ch="5">Impulsiv (5 Wellen)</button><button class="p" data-ch="3">Korrektiv (3 Wellen)</button></div>':'')+
+   (cu&&cu.needChar&&!m.done?'<div class="card"><b>Charakter von Welle '+wn(cu.k)+'</b><br><button data-ch="5">Impulsiv (5 Wellen)</button><button data-ch="3">Korrektiv (3 Wellen)</button></div>':'')+
    '<div class="dock">'+(m.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
     '<button class="p" id="chk" '+(cu?'disabled':'')+'>Prüfen</button><button id="und">Zurück</button><button id="rst">Neu setzen</button>')+'</div>'+
    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
@@ -1173,7 +1222,7 @@ function progn(key){
   gs.forEach(g=>{const k=g.k;
    if(key==='imp'&&k===3){const r=L(v,3)/L(v,1);if(r<1.236)out.push('<p class="rnote w">'+stufe('warn')+'Welle 3 erreicht nur '+pc(r)+' von Welle 1, sie sollte mindestens 123,6 % erreichen.</p>');
     fr(r>=1.618-.02&&r<=2.618+.02,'Welle 3 erreicht '+pc(r)+' von Welle 1. Am häufigsten sind 161,8 % bis 261,8 % (Faustregel).')}
-   if(key==='imp'&&k===4){const r=L(v,4)/L(v,3);fr(r>=.382-.02&&r<=.5+.02,'Welle 4 läuft '+pc(r)+' von Welle 3 zurück. Am häufigsten sind 38,2 % oder 50 % (Faustregel).')}
+   if(key==='imp'&&k===4){const r=L(v,4)/L(v,3);fr(Math.abs(r-.382)<=.02||Math.abs(r-.5)<=.02,'Welle 4 läuft '+pc(r)+' von Welle 3 zurück. Am häufigsten sind 38,2 % oder 50 % (Faustregel).')}
    if(key==='imp'&&k===5){const r=L(v,5)/Math.abs(v[3]-v[0]);if(r<.382)out.push('<p class="rnote w">'+stufe('warn')+'Welle 5 erreicht nur '+pc(r)+' (gemessen über Start von Welle 1 bis Ende von Welle 3), sie sollte mindestens 38,2 % erreichen.</p>');
     fr(r>=.618-.02&&r<=2.618+.02,'Welle 5 erreicht '+pc(r)+' (gemessen über Start von Welle 1 bis Ende von Welle 3). Am häufigsten sind 61,8 % bis 261,8 % (Faustregel).')}
    if(key==='zig'&&k===3){const r=L(v,3)/L(v,1);fr(r>=.618-.02&&r<=1.618+.02,'Welle C erreicht '+pc(r)+' von Welle A. Üblich sind 61,8 % bis 161,8 %, am häufigsten 100 % (Faustregel).')}});
@@ -1187,8 +1236,8 @@ function progn(key){
    if(m.tips>=3)lines.push('Tipp 3: '+(key==='imp'?'Buch S.38':'Buch S.42')+'. Welle '+w+' ist '+(five?'impulsiv (5 Wellen).':'korrektiv (3 Wellen).'));
    extra='<button class="p" id="redo">Welle '+w+' neu zeichnen</button>';
   }else{const IMr=x.kind==='sub';r=(IMr?IM:P).rules[x.id];
-   if(m.tips>=1)lines.push('Tipp 1: '+(IMr?'In den Subwellen von Welle '+w+': ':'')+r.hint);
-   if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+r.name+'“.');
+   if(m.tips>=1)lines.push('Tipp 1: '+(IMr?'In den Subwellen von Welle '+w+': ':'')+mt(r.hint));
+   if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+mt(r.name)+'“.');
    if(m.tips>=3)lines.push('Tipp 3: '+tag(IMr?IM:P,x.id)+'. '+r.ex);}
   render('<p class="bad">Noch nicht ganz.</p>'+lines.map(tipLine).join('')+(x.plan||'')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':'')+extra+note());
   const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipUI(x)};
@@ -1222,14 +1271,23 @@ const bzLoad=()=>{try{return JSON.parse(localStorage.getItem(BZKEY))||{}}catch(_
 const bzSave=o=>{try{localStorage.setItem(BZKEY,JSON.stringify(o))}catch(_){}};
 let BZ=0; // Nummer der laufenden Runde: alte Zeitgeber erkennen daran, dass sie nicht mehr gelten
 // opt: {id: Art der Runde (Bestleistung), name, keys: Muster}
-function blitz(opt){
+// Schwierigkeit (Lenny, 26.10.2026): Anzeigedauer am Start, kürzeste und längste Dauer, Rückmeldung in Sekunden (0 = bleibt, bis man „Weiter“ tippt).
+const BZLV={leicht:{name:'Leicht',start:7,min:3,max:10,fb:0,txt:'Chart 7 Sekunden, die Lösung bleibt stehen, bis du weitertippst.'},
+ mittel:{name:'Mittel',start:4,min:1.5,max:5,fb:1.2,txt:'Chart 4 Sekunden, wird schneller, wenn du gut bist.'},
+ schwer:{name:'Schwer',start:2.5,min:1,max:3.5,fb:.8,txt:'Chart 2,5 Sekunden, bis hinunter zu 1 Sekunde.'}};
+function blitz(opt,lvl,saved){
  if(typeof opt==='string')opt=opt==='easy'?{id:'einsteiger',name:'Einsteiger',keys:['imp','zig','fr','fe','fru']}:{id:'alle',name:'Alle Muster',keys:Object.keys(PAT).filter(k=>!PAT[k].noRecog)};
- const run=++BZ,pool=opt.keys,pick=a=>a[Math.floor(Math.random()*a.length)],q=[];
- for(let i=0;i<BZN;i++){let k;do k=pick(pool);while(pool.length>1&&k===q[i-1]);q.push(k)} // nie zweimal dasselbe direkt hintereinander
- const m={i:0,dur:4,row:0,ok:0,pts:0,times:[],minDur:4,conf:{},forced:new Set()};
+ if(!BZLV[lvl]){ // zuerst die Schwierigkeit wählen
+  $('#view').innerHTML='<div class="card"><p class="kick">Blitz-Erkennen · '+esc(opt.name)+'</p><h2>Wie schwer?</h2>'+
+   Object.entries(BZLV).map(([k,l])=>'<p><button class="p" data-lv="'+k+'">'+l.name+'</button> <span class="mut">'+l.txt+'</span></p>').join('')+'</div>';
+  document.querySelectorAll('[data-lv]').forEach(b=>{b.onclick=()=>blitz(opt,b.dataset.lv);lockTap(b)});window.scrollTo(0,0);return}
+ const LV=BZLV[lvl],bid=opt.id+(lvl==='mittel'?'':'-'+lvl); // Bestleistung je Stufe („Mittel“ behält die bisherigen Werte)
+ const run=++BZ,pool=opt.keys,pick=a=>a[Math.floor(Math.random()*a.length)],q=saved?saved.q:[];
+ if(!saved)for(let i=0;i<BZN;i++){let k;do k=pick(pool);while(pool.length>1&&k===q[i-1]);q.push(k)} // nie zweimal dasselbe direkt hintereinander
+ const m=saved?{...saved.m,forced:new Set(saved.m.forced)}:{i:0,dur:LV.start,row:0,ok:0,pts:0,times:[],minDur:LV.start,conf:{},forced:new Set()};
  const alive=()=>run===BZ&&$('#bz');
- const head=()=>'<div id="bz"><div class="bzhead"><span class="kick">'+esc(opt.name)+' · Chart '+(m.i+1)+'/'+BZN+' · Anzeige '+String(m.dur).replace('.',',')+' s</span><button id="bzx">Abbrechen</button></div><div class="bar"><i style="width:'+(m.i/BZN*100)+'%"></i></div>';
- const show=()=>{const P=PAT[q[m.i]],R=makeRound(P,null);
+ const head=()=>'<div id="bz"><div class="bzhead"><span class="kick">'+esc(opt.name)+' · '+LV.name+' · Chart '+(m.i+1)+'/'+BZN+' · Anzeige '+String(m.dur).replace('.',',')+' s</span><button id="bzx">Abbrechen</button></div><div class="bar"><i style="width:'+(m.i/BZN*100)+'%"></i></div>';
+ const show=()=>{resSave({t:'blitz',opt,lvl,q,m:{...m,forced:[...m.forced]}});const P=PAT[q[m.i]],R=makeRound(P,null);
   // Antworten: die richtige, mindestens ein Verwechslungspartner (falls es einen gibt), Rest aus der Runde, sonst aus allen Mustern
   const all=Object.keys(PAT).filter(k=>!PAT[k].noRecog),opts=[P.key],add=k=>{if(k&&!opts.includes(k))opts.push(k)};
   add(pick(bzPartners(P.key).length?bzPartners(P.key):[null]));
@@ -1237,7 +1295,7 @@ function blitz(opt){
   const ans=shuffle(opts);
   $('#view').innerHTML=head()+'<div class="chart bzc">'+draw(R,[],false,null)+'</div><div class="bztime"><i style="transition:width '+m.dur+'s linear"></i></div></div>'+
    '<div class="bzans"><p class="mut">Schau genau hin …</p></div>';
-  $('#bzx').onclick=()=>{BZ++;home()};
+  $('#bzx').onclick=()=>{BZ++;resDrop();home()};
   requestAnimationFrame(()=>requestAnimationFrame(()=>{const t=$('.bztime i');if(t)t.style.width='0%'})); // Zeitbalken läuft ab
   setTimeout(()=>{if(!alive())return;
    $('.bzc').innerHTML='<div class="bzq">?</div>';$('.bztime').style.visibility='hidden';
@@ -1249,22 +1307,24 @@ function blitz(opt){
   const ok=sel===P.key||!misfit(PAT[sel],R),fast=ok&&t<2,gain=ok?BZPTS+(fast?BZFAST:0):0;m.times.push(t);
   document.querySelectorAll('[data-bz]').forEach(b=>{b.disabled=true;if(b.dataset.bz===sel)b.classList.add(ok?'qok':'qbad');if(b.dataset.bz===P.key)b.classList.add('qok')});
   if(ok){m.ok++;m.pts+=gain;st.streak++;st.pts+=gain;stats();exSolved(P.key,0); // zählt für die Ränge
-   if(++m.row>=3){m.row=0;m.dur=Math.max(1.5,m.dur-.5)}
-   $('.bzc').innerHTML='<div class="bzq ok">✓ Richtig'+(sel!==P.key?' (auch regelkonform)':'')+'<br><small>+'+gain+(fast?' · schnell!':'')+'</small></div>';}
-  else{st.streak=0;stats();m.row=0;m.dur=Math.min(5,m.dur+.5);const c=P.title+' → als '+PAT[sel].title+' erkannt';m.conf[c]=(m.conf[c]||{n:0,k:P.key});m.conf[c].n++;
+   if(++m.row>=3){m.row=0;m.dur=Math.max(LV.min,m.dur-.5)}
+   $('.bzc').innerHTML='<div class="bzq ok">✓ Richtig'+(sel!==P.key?'<br><small>Alternativ passt auch: '+P.title+'</small>':'')+'<br><small>+'+gain+(fast?' · schnell!':'')+'</small></div>';}
+  else{st.streak=0;stats();m.row=0;m.dur=Math.min(LV.max,m.dur+.5);const c=P.title+' → als '+PAT[sel].title+' erkannt';m.conf[c]=(m.conf[c]||{n:0,k:P.key});m.conf[c].n++;
    // falsch erkanntes Muster kommt 1–2 Mal wieder (gemischt, nicht direkt danach)
    const free=j=>j>m.i+1&&j<BZN&&!m.forced.has(j)&&q[j-1]!==P.key&&q[j+1]!==P.key; // nie zweimal dasselbe Muster direkt hintereinander
    for(let n=1+(Math.random()<.5?1:0);n>0;n--){const s=shuffle([2,3,4,5,6,7].map(d=>m.i+d)).find(free);if(s!==undefined){q[s]=P.key;m.forced.add(s)}}
    $('.bzc').innerHTML=draw(R,[],true,P.tri?R.piv:null)+'<div class="bzq bad bzover">✗ Richtig wäre: '+P.title+'</div>';}
   m.minDur=Math.min(m.minDur,m.dur);
-  setTimeout(()=>{if(!alive())return;if(++m.i<BZN)show();else end()},1000); // Rückmeldung höchstens 1 Sekunde
+  const next=()=>{if(!alive())return;if(++m.i<BZN)show();else end()};
+  if(LV.fb)setTimeout(next,LV.fb*1000); // Rückmeldung kurz stehen lassen
+  else{$('.bzans').insertAdjacentHTML('beforeend','<button class="p" id="bzn">Weiter</button>');$('#bzn').onclick=next;lockTap($('#bzn'))} // Leicht: bleibt, bis man tippt
  };
  // Bestleistung: zuerst die Zahl der richtigen Antworten, bei gleicher Zahl entscheiden die Punkte (also das Tempo)
- const end=()=>{const o=bzLoad();o.best=o.best||{};const b=o.best[opt.id],acc=m.ok/BZN,avg=m.times.reduce((a,c)=>a+c,0)/m.times.length,
+ const end=()=>{resDrop();const o=bzLoad();o.best=o.best||{};const b=o.best[bid],acc=m.ok/BZN,avg=m.times.reduce((a,c)=>a+c,0)/m.times.length,
    bOk=b?(b.ok!==undefined?b.ok:Math.round(b.acc*BZN)):0,more=!b||m.ok>bOk,faster=b&&m.ok===bOk&&m.pts>b.pts,isBest=more||faster;
-  const bestTxt=!b?'Deine erste Bestleistung in „'+esc(opt.name)+'“.':more?'Neue Bestleistung: '+m.ok+' von '+BZN+' richtig (vorher '+bOk+').':
+  const bestTxt=!b?'Deine erste Bestleistung in „'+esc(opt.name)+' · '+LV.name+'“.':more?'Neue Bestleistung: '+m.ok+' von '+BZN+' richtig (vorher '+bOk+').':
    faster?'Neue Bestleistung: gleich viele richtig, aber schneller ('+m.pts+' statt '+b.pts+' Punkte).':'Bestleistung „'+esc(opt.name)+'“: '+bOk+' von '+BZN+' richtig, '+b.pts+' Punkte.';
-  if(isBest){o.best[opt.id]={ok:m.ok,pts:m.pts,acc,minDur:m.minDur};bzSave(o);if(b)toast(bestTxt)}
+  if(isBest){o.best[bid]={ok:m.ok,pts:m.pts,acc,minDur:m.minDur};bzSave(o);if(b)toast(bestTxt)}
   const kap=k=>(UEBEN.find(e=>e[1].includes(k))||[])[0],list=Object.entries(m.conf).sort((a,c)=>c[1].n-a[1].n);
   $('#view').innerHTML='<div class="card"><h2>Blitz-Runde geschafft</h2><p class="'+(acc>=.8?'ok':'')+'">'+m.ok+' von '+BZN+' richtig ('+Math.round(acc*100)+' %) · +'+m.pts+' Punkte</p>'+
    '<p>Durchschnittliche Antwortzeit: '+avg.toFixed(1).replace('.',',')+' s · Kürzeste Anzeigedauer: '+String(m.minDur).replace('.',',')+' s</p>'+
@@ -1272,7 +1332,7 @@ function blitz(opt){
    (list.length?'<div class="card"><b>Verwechselt</b>'+list.map(([c,v])=>'<p>'+c+': '+v.n+'× '+(kap(v.k)?'<a href="#" class="qlink" data-kap="'+kap(v.k)+'">Kapitel lesen →</a>':'')+'</p>').join('')+'</div>':'')+
    '<p><button class="p" id="bzagain">Neue Runde</button><button onclick="home()">Hauptmenü</button></p>';
   document.querySelectorAll('[data-kap]').forEach(a=>a.onclick=e=>{e.preventDefault();learn(a.dataset.kap)});
-  $('#bzagain').onclick=()=>blitz(opt);window.scrollTo(0,0);};
+  $('#bzagain').onclick=()=>blitz(opt,lvl);window.scrollTo(0,0);};
  window.scrollTo(0,0);show();
 }
 // Karte im Hauptmenü mit den Bestleistungen
@@ -1325,13 +1385,13 @@ function findSub(key){
  const R=o.main?makeSubRound(P,{},id,true):makeSubRound(P,{[o.k]:o.plan},null,true),m={w:null,r:null},wv=o.main?(R.vwave||o.wave):o.wave,alt=o.alt||null; // alt: gleichwertige Wellen (Alternation: 2 oder 4)
  // Beschriftung: alle Hauptpunkte (weiter außen) und alle Subpunkte jeder Welle, einschließlich des letzten ((5) bzw. (c))
  const pts=R.mp.map((i,q)=>({i,l:R.lab?R.lab[q]:P.labels[q],far:true}));
- Object.keys(R.spAll).forEach(q=>{const t=R.spAll[q],lab=t.length===5?(R.tri[q]?['(a)','(b)','(c)','(d)','(e)']:['(1)','(2)','(3)','(4)','(5)']):['(a)','(b)','(c)'];t.forEach((i,j)=>pts.push({i,l:lab[j],sub:true}))});
- const solution=()=>'Gesucht war: Welle '+(alt?alt.join(' oder '):wv)+', Regel „'+SR[id].name+'“ ('+tag({rules:SR},id)+'). '+SR[id].ex;
+ Object.keys(R.spAll).forEach(q=>{const t=R.spAll[q],lab=t.length===5?(R.tri[q]?['(a)','(b)','(c)','(d)','(e)']:['(1)','(2)','(3)','(4)','(5)']):R.wxy[q]?['(w)','(x)','(y)']:['(a)','(b)','(c)'];t.forEach((i,j)=>pts.push({i,l:lab[j],sub:true}))});
+ const solution=()=>'Gesucht war: Welle '+(alt?alt.join(' oder '):wv)+', Regel „'+mt(SR[id].name)+'“ ('+tag({rules:SR},id)+'). '+SR[id].ex;
  const render=fb=>{
   const rl=m.w?[...new Set(all.filter(x=>x.wave===m.w||x.wave==='*').map(x=>x.id))]:[];
-  $('#view').innerHTML='<p class="kick">Fehler finden · '+P.title+'</p><p class="task">Dieser Count enthält genau einen Regelverstoß, auf Hauptebene oder in den Subwellen. Wähle die fehlerhafte Welle und die verletzte Regel.</p><div class="chart">'+drawS(R,pts,null)+'</div>'+
+  $('#view').innerHTML='<p class="kick">Fehler finden · '+P.title+'</p><p class="task">Diese Zählung enthält genau einen Regelverstoß, auf Hauptebene oder in den Subwellen. Wähle die fehlerhafte Welle und die verletzte Regel.</p><div class="chart">'+drawS(R,pts,null)+'</div>'+
    '<div class="card"><b>Welche Welle?</b><br>'+P.waves.map(w=>'<button data-w="'+w+'" class="'+(m.w===w?'on':'')+'" '+(fb?'disabled':'')+'>Welle '+w+'</button>').join('')+
-   (m.w?'<br><b>Welche Regel?</b> <span class="mut">(Regeln zu Welle '+m.w+' und ihren Subwellen)</span><br>'+(rl.length?rl.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'" '+(fb?'disabled':'')+'>'+SR[x].name+'</button>').join(''):'<span class="mut">Zu dieser Welle gibt es in diesem Muster keinen Regelverstoß.</span>'):'<br><span class="mut">Klicke zuerst die Welle an, in der du den Fehler vermutest. Danach siehst du die Regeln zur Auswahl.</span>')+
+   (m.w?'<br><b>Welche Regel?</b> <span class="mut">(Regeln zu Welle '+m.w+' und ihren Subwellen)</span><br>'+(rl.length?rl.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'" '+(fb?'disabled':'')+'>'+mt(SR[x].name)+'</button>').join(''):'<span class="mut">Zu dieser Welle gibt es in diesem Muster keinen Regelverstoß.</span>'):'<br><span class="mut">Klicke zuerst die Welle an, in der du den Fehler vermutest. Danach siehst du die Regeln zur Auswahl.</span>')+
    '</div><div class="dock"><button class="p" id="go" '+(m.w&&m.r&&!fb?'':'disabled')+'>Auswerten</button><button id="dk" '+(fb?'disabled':'')+'>Ich weiß nicht</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
   if(fb)return;
   document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{m.w=b.dataset.w;if(!all.some(x=>(x.wave===m.w||x.wave==='*')&&x.id===m.r))m.r=null;render()});
@@ -1480,7 +1540,8 @@ function daily(){
  const {P,R}=dailyRound(today),no=dLabel(today);
  if(o.day.done)return dailyResult(o,P,R,no);
  const D={P,R,no,tries:o.day.tries,tips:o.day.tips,
-  save(){o.day.tries=D.tries;o.day.tips=D.tips;dSave(o)}, // Fehlversuche bleiben auch nach dem Neuladen gezählt
+  z:o.day.z,sel:o.day.sel,fb:o.day.fb,
+  save(){o.day.tries=D.tries;o.day.tips=D.tips;o.day.z=D.z;o.day.sel=D.sel;o.day.fb=D.fb;dSave(o)}, // Fehlversuche bleiben auch nach dem Neuladen gezählt
   // Gelöst wird sofort bei der regelkonformen Zählung gespeichert, nicht erst nach der Bonusfrage
   // (sonst fehlte der Tag in Kalender und Serie, wenn man vor der Bonusfrage die Seite verlässt). bonus: null = nicht beantwortet.
   solvedNow(tips){if(o.day.done)return;Object.assign(o.day,{done:true,solved:true,bonus:null,tries:D.tries,tips});
@@ -1488,15 +1549,15 @@ function daily(){
   finish(r){if(r.solved){D.solvedNow(r.tips);o.day.bonus=!!r.bonus;o.day.tips=r.tips}
    else{Object.assign(o.day,{done:true,solved:false,bonus:false,tries:D.tries,tips:r.tips});o.hist=o.hist||{};o.hist[today]='f';o.streak=0} // Verlauf für den Kalender
    dSave(o);dailyResult(o,P,R,no)}};
- recogHard(D);
+ recogHard(D,D.fb);
 }
 // Ergebnis: Lösung im Chart, Teilen, Countdown bis zur nächsten Aufgabe
 function dailyResult(o,P,R,no){const d=o.day,s=dStreak(o,d.date);window.scrollTo(0,0);
  $('#view').innerHTML='<div class="card daily"><h2>Tagesaufgabe #'+no+'</h2><p class="'+(d.solved?'ok':'bad')+'">'+(d.solved?'Gelöst im '+dAtt(d)+'. Versuch':'Heute nicht gelöst ('+dAtt(d)+' Versuche)')+'</p>'+
   '<p>'+(d.solved?'Bonusfrage: '+(d.bonus===null?'nicht beantwortet':d.bonus?'richtig':'falsch')+' · ':'')+tipTxt(d.tips)+' · Tages-Serie: '+s+(s===1?' Tag':' Tage')+'</p>'+
   '<p><button class="p" id="share">Ergebnis teilen</button></p><p id="shareMsg" class="mut"></p><p>Nächste Aufgabe in <b id="cd">…</b></p></div>'+
-  '<p class="mut">Die Lösung im Chart:</p><div class="chart">'+draw(R,[],true,P.tri?R.piv:null)+'</div><p>Generiert wurde: <b>'+P.title+'</b>. '+P.recog+'</p><div class="card" id="cal"></div>';
-  $('#share').onclick=()=>shareResult(o,no);countdown(d.date);calendar($('#cal'));}
+  '<p class="mut">Die Lösung im Chart:</p><div class="chart">'+draw(R,[],true,P.tri?R.piv:null)+'</div><p>Generiert wurde: <b>'+P.title+'</b>. '+P.recog+'</p><p><button class="p" id="dkap">Im Regelwerk nachlesen: '+RCAT[P.key]+'</button></p><div class="card" id="cal"></div>';
+  $('#dkap').onclick=()=>peek(qChap(RCAT[P.key]));$('#share').onclick=()=>shareResult(o,no);countdown(d.date);calendar($('#cal'));}
 // Teilen-Text verrät das Muster nicht
 function shareText(o,no){const d=o.day,s=dStreak(o,d.date);
  return 'Wave Checker Tagesaufgabe #'+no+'\n'+(d.solved?'✅ im '+dAtt(d)+'. Versuch · Bonus '+(d.bonus===null?'–':d.bonus?'✅':'❌'):'❌ nicht gelöst')+' · '+tipTxt(d.tips)+
@@ -1559,18 +1620,19 @@ async function quizMenu(){if(!await qReady())return;
  $('#view').innerHTML='<div class="card"><h2>Quiz zum Regelwerk</h2><p class="mut">Runden mit 5 Fragen. Wähle ein Kapitel oder „Gemischt“.</p>'+
   cats.map(k=>{const s=c[k];return '<p><button class="p" data-qc="'+esc(k)+'">'+esc(k)+'</button> <span class="mut">'+(s&&s.answered?s.correct+' von '+s.answered+' richtig':'noch nicht gespielt')+'</span></p>'}).join('')+
   '<p><button class="p" data-qc="">Gemischt</button></p><p><button onclick="showLearn()">← Zum Regelwerk</button></p></div>';
- document.querySelectorAll('[data-qc]').forEach(b=>b.onclick=()=>quizStart(b.dataset.qc||null));}
+ document.querySelectorAll('[data-qc]').forEach(b=>{b.onclick=()=>quizStart(b.dataset.qc||null);lockTap(b)});}
 // direct: von „Kapitel abfragen“ (man kommt gerade aus dem Kapitel), dann ohne Lese-Hinweis
 async function quizStart(cat,direct){if(!await qReady())return;
  if(cat&&!direct&&!(qLoad().seen||{})[cat]){ // vor dem ersten Quiz einer Kategorie
   $('#view').innerHTML='<div class="card"><h2>'+esc(cat)+'</h2><p>Lies zuerst das Kapitel, dann festigst du es im Quiz.</p><button class="p" id="qkap">Kapitel lesen</button><button class="p" id="qlos">Quiz starten</button><p><button onclick="quizMenu()">← Andere Kategorie</button></p></div>';
-  $('#qkap').onclick=()=>peek(qChap(cat));$('#qlos').onclick=()=>quizRound(cat);return}
+  $('#qkap').onclick=()=>peek(qChap(cat));$('#qlos').onclick=()=>quizRound(cat);document.querySelectorAll('#view button').forEach(lockTap);return}
  quizRound(cat);}
 function quizRound(cat){const o=qLoad(),rep=o.rep||{};o.seen=o.seen||{};if(cat)o.seen[cat]=true;qSave(o);
  const pool=QZ.filter(q=>!cat||q.kategorie===cat),due=shuffle(pool.filter(q=>rep[q.id])).slice(0,3); // Wiederholung: höchstens 3 je Runde
  const qs=shuffle([...due,...shuffle(pool.filter(q=>!due.includes(q)))].slice(0,5));
  quizAsk({cat,qs,i:0,res:[]});}
-function quizAsk(R){const q=R.qs[R.i],ord=q.typ==='mc'?shuffle(q.antworten.map((_,j)=>j)):q.antworten.map((_,j)=>j);let sel=null; // Multiple Choice: Antworten gemischt
+const quizKeep=(R,i)=>resSave({t:'quiz',cat:R.cat,ids:R.qs.map(q=>q.id),i,res:R.res.map(x=>({id:x.q.id,ok:x.ok}))});
+function quizAsk(R){quizKeep(R,R.i);const q=R.qs[R.i],ord=q.typ==='mc'?shuffle(q.antworten.map((_,j)=>j)):q.antworten.map((_,j)=>j);let sel=null; // Multiple Choice: Antworten gemischt
  const render=fb=>{const done=fb!==undefined;
   $('#view').innerHTML='<p class="kick">Quiz · '+(R.cat?esc(R.cat):'Gemischt')+' · Frage '+(R.i+1)+' von '+R.qs.length+'</p><div class="card"><p><b>'+esc(q.frage)+'</b></p>'+
    ord.map(j=>'<button class="qa'+(done?(j===q.richtig?' qok':j===sel?' qbad':''):sel===j?' on':'')+'" data-a="'+j+'" '+(done?'disabled':'')+'>'+esc(q.antworten[j])+'</button>').join('')+'</div>'+
@@ -1582,13 +1644,13 @@ function quizAsk(R){const q=R.qs[R.i],ord=q.typ==='mc'?shuffle(q.antworten.map((
    const c=o.cats[q.kategorie]=o.cats[q.kategorie]||{answered:0,correct:0,last:[]};
    c.answered++;if(ok)c.correct++;c.last=c.last.concat(ok?1:0).slice(-30); // letzte 30 für die Ränge, die Schwäche nutzt die letzten 10
    if(!ok)o.rep[q.id]=2;else if(o.rep[q.id]&&!--o.rep[q.id])delete o.rep[q.id]; // bis zweimal richtig beantwortet
-   qSave(o);if(ok){st.streak++;st.pts+=QPTS}else st.streak=0;stats();R.res.push({q,ok});rankCheck();
+   qSave(o);if(ok){st.streak++;st.pts+=QPTS}else st.streak=0;stats();R.res.push({q,ok});quizKeep(R,R.i+1);rankCheck();
    render((ok?'<p class="ok">Richtig! +'+QPTS+' Punkte</p>':'<p class="bad">Leider falsch.</p><p>'+(q.typ==='rf'?'Die Aussage ist <b>'+esc(q.antworten[q.richtig]).toLowerCase()+'</b>.':'Richtig ist: <b>'+esc(q.antworten[q.richtig])+'</b>')+'</p>')+
     '<p>'+esc(q.erklaerung)+'</p><p><a href="#" id="qr" class="qlink">Im Regelwerk nachlesen →</a></p>');};
  };
- render();window.scrollTo(0,0);}
+ render();window.scrollTo(0,0);document.querySelectorAll('[data-a]').forEach(lockTap);}
 // Rundenende. Schwäche: 2 Fehler einer Kategorie in dieser Runde oder unter 60 % in den letzten 10 Antworten (ab 5 Antworten)
-function quizEnd(R){const o=qLoad(),n=R.res.filter(x=>x.ok).length,wrong={};
+function quizEnd(R){resDrop();const o=qLoad(),n=R.res.filter(x=>x.ok).length,wrong={};
  R.res.forEach(x=>{if(!x.ok)wrong[x.q.kategorie]=(wrong[x.q.kategorie]||0)+1});
  const weak=[...new Set(R.res.map(x=>x.q.kategorie))].find(k=>{const l=(((o.cats||{})[k]||{}).last||[]).slice(-10);return (wrong[k]||0)>=2||(l.length>=5&&l.reduce((a,b)=>a+b,0)/l.length<.6)});
  $('#view').innerHTML='<div class="card"><h2>Runde geschafft</h2><p class="'+(n>=4?'ok':'')+'">'+n+' von '+R.res.length+' richtig · +'+n*QPTS+' Punkte</p></div>'+
@@ -1664,7 +1726,7 @@ const isDark=()=>document.documentElement.dataset.theme?document.documentElement
 function themeBtn(){const d=isDark(),b=$('#theme');
  b.innerHTML=d?ico('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'):ico('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>');
  b.setAttribute('aria-label',d?'Zu hellem Design wechseln':'Zu dunklem Design wechseln');b.title=b.getAttribute('aria-label');}
-$('#theme').onclick=()=>{const t=isDark()?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('waveChecker.theme',t)}catch(_){}themeBtn()};
+$('#theme').onclick=()=>{const t=isDark()?'light':'dark',h=document.documentElement;h.classList.add('notr');h.dataset.theme=t;setTimeout(()=>h.classList.remove('notr'),50);try{localStorage.setItem('waveChecker.theme',t)}catch(_){}themeBtn()};
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',themeBtn);themeBtn();
 $('#learn').onclick=()=>learn();
 // „← Zurück zum Regelwerk“: nur sichtbar, wenn man über „Jetzt üben“ in „Chart durchzählen“ gekommen ist

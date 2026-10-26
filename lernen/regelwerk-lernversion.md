@@ -14,6 +14,8 @@ Nicht jede Aussage über Elliott-Wellen ist gleich streng. Darum hat jede Aussag
 
 **Richtung:** Impulse und Diagonalen sind hier für steigende Kurse beschrieben, Korrekturen für fallende Kurse. Im umgekehrten Fall gilt alles spiegelbildlich: aus „Hoch“ wird „Tief“, aus „über“ wird „unter“. Jedes Muster kann in beide Richtungen auftreten. Auch Korrekturen können zu steigenden Kursen führen.
 
+**Berührung:** Erreichen zwei Wellen genau denselben Preis, zählt das so: Berührt Welle 4 das Ende von Welle 1, ist das schon eine Überlappung. Endet Welle C genau auf dem Tief von Welle A, ist das kein neues Tief. Sind Welle 3 und Welle 1 gleich lang, ist Welle 3 nicht die kürzeste.
+
 **Mehrere Zählungen sind möglich.** Eine Zählung ist entweder regelkonform oder nicht. Oft passen mehrere Zählungen zu einem Chart. Die Regeln sagen dir, welche ausscheiden, nicht welche die einzig richtige ist.
 
 ## Grundbegriffe und Fibonacci
@@ -21,7 +23,7 @@ Nicht jede Aussage über Elliott-Wellen ist gleich streng. Darum hat jede Aussag
 Mit diesen Begriffen arbeitet das ganze Regelwerk:
 
 - **Impulsiv:** fünfteilig, also aus den Subwellen 1-2-3-4-5 aufgebaut.
-- **Korrektiv:** dreiteilig, also aus den Subwellen A-B-C oder W-X-Y aufgebaut. Ausnahmen sind das Dreieck und die Dreifache Form (W-X-Y-X-Z): fünf Wellen, jede davon dreiteilig.
+- **Korrektiv:** dreiteilig, also aus den Subwellen A-B-C oder W-X-Y aufgebaut. Ausnahmen sind das Dreieck und die Dreifache Form (W-X-Y-X-Z): Sie haben fünf Wellen, sind aber trotzdem Korrekturen und kein Impuls.
 - **Subwellen:** Jede Welle besteht aus kleineren Wellen, und diese wieder aus noch kleineren. Das nennt man Fraktalität.
 - **Preisterritorium einer Welle:** der Preisbereich zwischen ihrem Start- und ihrem Endpunkt.
 - **Retracement:** wie weit eine Welle eine andere zurücklaufen lässt, in Prozent. Du ziehst das Fibonacci-Retracement über Start- und Endpunkt der Bezugswelle.
@@ -41,8 +43,8 @@ Elliott-Wellen bestehen aus Bewegungen mit dem Trend (Impulse, Diagonalen) und K
 
 | Muster | Aufbau (Teile je Welle) | Wo es vorkommt |
 | --- | --- | --- |
-| Impuls | 1, 3, 5 fünfteilig, 2 und 4 dreiteilig | Welle A und C, sowie 1, 3 und 5 |
-| Zigzag | A und C fünfteilig, B dreiteilig | Welle 2, 4, A, B, W, X, Y, X, Z und jeder Dreieckswelle |
+| Impuls | 1, 3, 5 fünfteilig, 2 und 4 dreiteilig | Welle 1, 3, 5 und C, Welle A nur im Zigzag (in Flats ist A dreiteilig) |
+| Zigzag | A und C fünfteilig, B dreiteilig | Welle 2, 4, A, B, W, X, Y, X, Z, jeder Dreieckswelle und jeder Welle einer Diagonale |
 | Regular Flat | 3-3-5 | Welle 2, 4, A, B, W, X, Y, X, Z und jeder Dreieckswelle |
 | Expanded Flat | 3-3-5 | Welle 2, 4, A, B, W, X, Y, X, Z und jeder Dreieckswelle |
 | Running Flat | 3-3-5 | Welle 2, 4, A, B, W, X, Y, X, Z und jeder Dreieckswelle |
@@ -88,6 +90,7 @@ Der Impuls ist die Grundbewegung mit dem Trend. Die Wellen 1, 3 und 5 laufen in 
 - Regel: korrektiv. Möglich sind Zigzag, jede Flat, Dreieck, Double- oder Triple-Zigzag.
 - Regel: darf Welle 1 nicht überlappen (Ausnahme: Diagonale).
 - Regel, **Alternation:** Welle 4 bildet ein anderes Korrekturmuster als Welle 2 derselben Wellenebene.
+- Warnsignal: Sind Welle 2 und 4 zwei verschiedene Flat-Varianten (zum Beispiel Regular und Expanded Flat), ist das erlaubt, aber nicht ganz sauber. Dieselbe Flat-Variante in beiden Wellen verstößt gegen die Alternation.
 - Faustregel: Am häufigsten läuft sie 38,2 % oder 50 % von Welle 3 zurück (Retracement über Start und Ende von Welle 3).
 
 **Welle 5**
@@ -113,7 +116,7 @@ Das Zigzag ist das bekannteste Korrekturmuster. Es verläuft zickzackförmig in 
 **Welle B**
 
 - Regel: dreiteilig, als Zigzag, Flat, Dreieck oder Double-Zigzag.
-- Regel: darf den **Start von Welle A nicht überschreiten**. Sie läuft also höchstens 99,99 % von Welle A zurück.
+- Regel: darf den **Start von Welle A nicht überschreiten**. Sie läuft also höchstens 99,9 % von Welle A zurück. 100 % wäre schon ein Regelbruch.
 
 **Welle C**
 
@@ -133,7 +136,7 @@ Alle drei Varianten haben denselben Aufbau 3-3-5. Sie unterscheiden sich darin, 
 
 - **Welle A:** dreiteilig, als Zigzag, Flat oder Double-Zigzag.
 - **Welle B:** dreiteilig, jedes Korrekturmuster ist möglich, ein Dreieck ist am unwahrscheinlichsten. Warnsignal: B sollte **mindestens 88,7 % und höchstens 161,8 %** von A zurücklaufen.
-- **Welle C:** ein klassischer Fünfteiler oder eine Beendende Diagonale. Faustregel: am häufigsten 61,8 % von A, bis zu 261,8 % möglich.
+- **Welle C:** ein klassischer Fünfteiler oder eine Beendende Diagonale. Faustregel: Am häufigsten erreicht C ein Kursziel von 100 % von A (C ist so lang wie A), bis zu 261,8 % sind möglich.
 
 **Die drei Varianten im Vergleich**
 
@@ -185,6 +188,7 @@ Diagonalen sind fünfteilige Bewegungen mit dem Trend, aber anders gebaut als de
 
 - Verbindest du die Hochs von 1, 3 und 5 und die Tiefs von 2 und 4 mit Trendlinien, entsteht die typische Diagonalform. Welle 5 kann die obere Trendlinie durchbrechen oder sie gar nicht erreichen.
 - Die Fibonacci-Niveaus der Diagonalen unterscheiden sich von denen des Impulses.
+- Regel: Welle 2 darf den **Start von Welle 1 nicht unterschreiten** (im Abwärtstrend: nicht überschreiten), genau wie beim Impuls.
 - Regel: Die Diagonale **kommt voran**: Welle 3 endet über dem Ende von Welle 1, und Welle 5 endet über dem Ende von Welle 3 (im Abwärtstrend: jeweils darunter).
 - Bei kontrahierenden Diagonalen (Leading und Beendende) werden die Wellen immer kürzer: Welle 1 ist länger als Welle 3, Welle 3 länger als Welle 5. Bei der Beendenden Diagonale ist das nicht ganz so streng.
 
@@ -192,7 +196,7 @@ Diagonalen sind fünfteilige Bewegungen mit dem Trend, aber anders gebaut als de
 
 - Kommt **nur in Welle 1** vor und ersetzt dort den Impuls.
 - Aufbau: 5-3-5-3-5 oder 3-3-3-3-3. Die Subwellen von 1, 3 und 5 sind Zigzags oder klassische Impulse.
-- Regel: Welle 1 ist die längste. Welle 3 ist nie die kürzeste. Welle 5 ist nie länger als Welle 3.
+- Regel: Welle 1 ist die längste der trendgebenden Wellen 1, 3 und 5. Welle 3 ist nie die kürzeste. Welle 5 ist **kürzer als Welle 3**, gleich lang reicht nicht.
 - Regel: Welle 2 und Welle 4 dürfen jedes Korrekturmuster sein, **außer einem Dreieck**.
 - Faustregel: Retracements und Expansionen liegen meist bei 61,8 %.
 
@@ -202,9 +206,10 @@ Diagonalen sind fünfteilige Bewegungen mit dem Trend, aber anders gebaut als de
 - Aufbau: 3-3-3-3-3. Die Wellen 1, 3 und 5 sind jeweils ein Zigzag.
 - Regel: Die Überlappung von Welle 1 und 4 ist auch hier Pflicht.
 - Regel: Welle 3 ist **kürzer als Welle 1**, aber nie die kürzeste Welle.
-- Regel: Welle 5 ist ein Zigzag und **nicht länger als Welle 3** (höchstens 99,99 % davon).
+- Regel: Welle 5 ist ein Zigzag und **nicht länger als Welle 3** (höchstens 99,9 % davon).
 - Regel: Welle 2 darf jedes Korrekturmuster außer einem Dreieck sein. Welle 4 darf jedes Korrekturmuster sein, auch ein Dreieck.
 - Faustregel: Welle 1 ist meistens die längste der fünf Wellen.
+- Faustregel: Welle 4 läuft oft 61,8 % zurück.
 
 ![Abbildung 7: Beendende Diagonale](bilder/abb7_beendende_diagonale.png)
 
@@ -238,7 +243,7 @@ Komplexe Korrekturen hängen mehrere Korrekturmuster aneinander, verbunden durch
 
 - Eine A-B-C- oder W-X-Y-Formation, auch ein Dreieck ist möglich.
 - Regel: X läuft **weniger als 100 %** von W zurück. 100 % oder mehr ist ein Regelbruch. Phantom lässt damit, anders als manche andere Elliott-Analysten, keine überschießende X-Welle zu.
-- Warnsignal: Mehr als 88,7 % (bis knapp unter 100 %, z. B. 99 %) ist erlaubt, aber ein starkes Warnsignal.
+- Warnsignal: Mehr als 88,7 % (bis knapp unter 100 %, z. B. 99,9 %) ist erlaubt, aber ein starkes Warnsignal.
 - Warnsignal: X sollte **mindestens 38,2 %** erreichen. Faustregel: am häufigsten 61,8 %.
 
 **Welle Y**
