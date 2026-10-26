@@ -143,6 +143,8 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .toc{position:sticky;top:0;z-index:5;display:flex;gap:6px;overflow-x:auto;padding:8px 0;margin:4px 0 8px;background:var(--bg);scrollbar-width:none}
 .toc a{flex:none;border-radius:999px;padding:8px 13px;background:var(--surface);border:1px solid var(--line);color:var(--text);text-decoration:none;font-size:.88rem;font-weight:500;white-space:nowrap;min-height:40px;display:inline-flex;align-items:center}
 .toc a.act{background:var(--accent);border-color:var(--accent);color:#fff}
+/* Desktop: Kapitelleiste breiter als die Textspalte und mehrzeilig, damit kein Kapitel abgeschnitten wird (Lenny, 26.10.2026) */
+@media(min-width:840px){.toc{flex-wrap:wrap;justify-content:center;overflow:visible;width:min(1300px,calc(100vw - 64px));margin-left:calc(50% - min(650px,50vw - 32px))}}
 .ueben{margin:14px 0 0}
 .lb{position:fixed;inset:0;z-index:50;background:rgba(11,27,58,.95);overflow:auto;padding:64px 12px 24px}
 .lb img{display:block;max-width:none;height:auto;margin:0 auto}.lb p{position:sticky;left:0;color:#fff;font-size:14px;margin:10px auto 0;text-align:center;max-width:760px}
@@ -782,12 +784,13 @@ const RSBTN='<button class="lnk" onclick="resetAsk()">Fortschritt zurücksetzen<
 function resetAsk(){$('#rs').innerHTML='<span class="mut">Punkte, Level und Serie wirklich auf 0 setzen? Das lässt sich nicht rückgängig machen.</span><br><button onclick="resetDo()">Ja, zurücksetzen</button><button class="p" onclick="$(\'#rs\').innerHTML=RSBTN">Abbrechen</button>'}
 function resetDo(){st.pts=0;st.streak=0;stats();$('#rs').innerHTML='<span class="mut">Fortschritt zurückgesetzt.</span>'}
 // Schwierigkeitsstufen sind nur eine Empfehlung: Jeder darf alles frei wählen. Die empfohlene Stufe folgt dem Level (alle 50 Punkte).
-// Stufe 1: Impuls, Zigzag. Stufe 2: Flats, Dreiecke, Diagonalen. Stufe 3: Subwellen zählen. Stufe 4: Double Zigzag, Dreifache Form.
+// Stufe 1: Impuls, Zigzag. Stufe 2: Flats, Dreiecke, Diagonalen. Stufe 3: Double Zigzag, Dreifache Form (Lenny, 26.10.2026: vorher „Stufe 4“).
+// Interne Nummern für die Empfehlung: 3 = „Subwellen zählen“ (eigener Modus, ohne Stufennummer), 4 = Stufe 3 der Musterliste.
 const STUFEN=[[1,'Stufe 1 · Einsteiger',[['imp','Impuls'],['zig','Zigzag']]],
  [2,'Stufe 2 · Fortgeschritten',[['fr','Regular Flat'],['fe','Expanded Flat'],['fru','Running Flat'],['trk','Kontrahierendes Dreieck'],['tre','Expandierendes Dreieck'],['dl','Leading Diagonale'],['db','Beendende Diagonale'],['de','Expandierende Diagonale']]],
- [4,'Stufe 4 · Profi',[['dz','Double Zigzag'],['tz','Dreifache Form']]]];
+ [4,'Stufe 3 · Profi',[['dz','Double Zigzag'],['tz','Dreifache Form']]]];
 const recStage=()=>{const lv=Math.floor(st.pts/50)+1;return lv<2?1:lv<4?2:lv<6?3:4};
-const STUFENNAME={1:'Stufe 1 (Impuls, Zigzag)',2:'Stufe 2 (Flats, Dreiecke, Diagonalen)',3:'Stufe 3 (Subwellen zählen)',4:'Stufe 4 (Double Zigzag, Dreifache Form)'};
+const STUFENNAME={1:'Stufe 1 (Impuls, Zigzag)',2:'Stufe 2 (Flats, Dreiecke, Diagonalen)',3:'Subwellen zählen',4:'Stufe 3 (Double Zigzag, Dreifache Form)'};
 // Musterwahl, gruppiert nach Stufe; die empfohlene Stufe ist markiert
 function pick(mode){
  const rec=recStage();
@@ -1387,8 +1390,10 @@ function findSub(key){
  const pts=R.mp.map((i,q)=>({i,l:R.lab?R.lab[q]:P.labels[q],far:true}));
  Object.keys(R.spAll).forEach(q=>{const t=R.spAll[q],lab=t.length===5?(R.tri[q]?['(a)','(b)','(c)','(d)','(e)']:['(1)','(2)','(3)','(4)','(5)']):R.wxy[q]?['(w)','(x)','(y)']:['(a)','(b)','(c)'];t.forEach((i,j)=>pts.push({i,l:lab[j],sub:true}))});
  const solution=()=>'Gesucht war: Welle '+(alt?alt.join(' oder '):wv)+', Regel „'+mt(SR[id].name)+'“ ('+tag({rules:SR},id)+'). '+SR[id].ex;
+ const FX={}; // aufgefüllte Regelauswahl je Welle
  const render=fb=>{
-  const rl=m.w?[...new Set(all.filter(x=>x.wave===m.w||x.wave==='*').map(x=>x.id))]:[];
+  let rl=m.w?[...new Set(all.filter(x=>x.wave===m.w||x.wave==='*').map(x=>x.id))]:[];
+  if(m.w&&rl.length<3)rl=FX[m.w]||(FX[m.w]=shuffle(rl.concat(shuffle([...new Set(all.map(x=>x.id))].filter(x=>!rl.includes(x))).slice(0,3-rl.length))));
   $('#view').innerHTML='<p class="kick">Fehler finden · '+P.title+'</p><p class="task">Diese Zählung enthält genau einen Regelverstoß, auf Hauptebene oder in den Subwellen. Wähle die fehlerhafte Welle und die verletzte Regel.</p><div class="chart">'+drawS(R,pts,null)+'</div>'+
    '<div class="card"><b>Welche Welle?</b><br>'+P.waves.map(w=>'<button data-w="'+w+'" class="'+(m.w===w?'on':'')+'" '+(fb?'disabled':'')+'>Welle '+w+'</button>').join('')+
    (m.w?'<br><b>Welche Regel?</b> <span class="mut">(Regeln zu Welle '+m.w+' und ihren Subwellen)</span><br>'+(rl.length?rl.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'" '+(fb?'disabled':'')+'>'+mt(SR[x].name)+'</button>').join(''):'<span class="mut">Zu dieser Welle gibt es in diesem Muster keinen Regelverstoß.</span>'):'<br><span class="mut">Klicke zuerst die Welle an, in der du den Fehler vermutest. Danach siehst du die Regeln zur Auswahl.</span>')+
