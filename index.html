@@ -145,7 +145,7 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .toc a{flex:none;border-radius:999px;padding:8px 13px;background:var(--surface);border:1px solid var(--line);color:var(--text);text-decoration:none;font-size:.88rem;font-weight:500;white-space:nowrap;min-height:40px;display:inline-flex;align-items:center}
 .toc a.act{background:var(--accent);border-color:var(--accent);color:#fff}
 /* Kapitelleiste: eine Zeile, genau so breit wie der Text. Es stehen nur Kapitel darin, die ganz hineinpassen (tocWatch) */
-.toc{overflow:hidden}.toc a.out{display:none}
+.toc{overflow:hidden}.toc a.out{display:none}.toc .ts{display:none}@media(max-width:600px){.toc .tl{display:none}.toc .ts{display:inline}}
 .ueben{margin:14px 0 0}
 .lb{position:fixed;inset:0;z-index:50;background:rgba(11,27,58,.95);overflow:auto;padding:64px 12px 24px}
 .lb img{display:block;max-width:none;height:auto;margin:0 auto}.lb p{position:sticky;left:0;color:#fff;font-size:14px;margin:10px auto 0;text-align:center;max-width:760px}
@@ -1492,7 +1492,7 @@ async function showLearn(kap){const v=$('#view');
  if(!LEARN)return; // inzwischen woandershin gewechselt
  const {html,toc,title}=mdToHtml(md),back='<button onclick="learnBack()">'+(PEEK?'← Zurück zum Quiz':'← Zurück')+'</button>';
  v.innerHTML='<div class="learn">'+back+(PEEK?'':'<button class="p" onclick="quizMenu()">Quiz</button><button onclick="ranks(true)">Meine Ränge</button>')+title+'<nav class="toc" aria-label="Kapitel">'+
-  toc.map((t,j)=>'<a href="#lk-'+(j+1)+'" data-j="'+(j+1)+'">'+inl(t)+'</a>').join('')+'</nav>'+html+'<p>'+back+'</p></div>';
+  toc.map((t,j)=>{const k=t.replace(/\s*\(.*?\)/g,'').replace(/:.*$/,''); /* Handy: Kurzname ohne Klammern (Lenny, 26.10.2026) */return '<a href="#lk-'+(j+1)+'" data-j="'+(j+1)+'">'+(k===t?inl(t):'<span class="tl">'+inl(t)+'</span><span class="ts">'+inl(k)+'</span>')+'</a>'}).join('')+'</nav>'+html+'<p>'+back+'</p></div>';
  tocWatch(v); // aktiver Reiter folgt dem Kapitel, das man gerade liest
  v.querySelectorAll('[data-j]').forEach(a=>a.onclick=e=>{e.preventDefault();$('#lk-'+a.dataset.j).scrollIntoView({behavior:'smooth'})});
  v.querySelectorAll('.learn figure img').forEach(im=>im.onclick=()=>zoom(im));
