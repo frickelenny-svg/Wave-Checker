@@ -723,7 +723,7 @@ const STN=[ // w: Welle, f: Lage innerhalb der Welle (0 bis 1)
  {w:3,f:.63,id:'recog',t:'Muster erkennen',d:'Normal oder schwer',ic:'eye',act:'recognize()'},
  {w:3,f:.88,id:'sub',t:'Subwellen zählen',d:'Haupt- und Subwellen',ic:'layers',act:'pickSub()'},
  {w:4,f:.5,wn:'Tempo',id:'blitz',t:'Blitz-Erkennen',d:'Muster in Sekunden',ic:'bolt',act:'pathBlitz()'},
- {w:5,f:.3,wn:'Meistern',id:'progn',t:'Wie geht es weiter?',d:'Fehlende Wellen planen',ic:'trend',act:'pathProgn()'},
+ {w:5,f:.3,wn:'Meistern',id:'progn',t:'Wie geht es weiter?',d:'Fehlende Wellen planen',ic:'trend',act:'progn()'},
  {w:5,f:.8,id:'ranks',t:'Meine Ränge',d:'',ic:'medal',act:'ranks()',gold:true}];
 // Der Pfad-Chart: Hauptpunkte eines regelkonformen Impulses (Welle 2 bleibt über dem Start, Welle 3 ist die längste,
 // Welle 4 bleibt über dem Ende von Welle 1, Welle 3 ≥ 123,6 % von Welle 1, Welle 5 ≥ 38,2 %) und Kerzen je Welle.
@@ -766,9 +766,8 @@ function wpDraw(cur,done){const box=$('#wp');if(!box)return;
    '<div class="stl'+(lft?' lft':'')+(st.gold?' gold':'')+'" style="'+(lft?'right:'+(Wd-x+gap):'left:'+(x+gap))+'px;top:'+y+'px;max-width:'+Math.max(120,Math.round(lft?x-gap-6:Wd-x-gap-6))+'px;--d:'+d+'ms" onclick="'+st.act+'">'+
    (st.wn?'<small>Welle '+st.w+' · '+st.wn+'</small>':'')+'<b>'+st.t+'</b>'+(sub?'<span>'+sub+'</span>':'')+(isCur?'<span class="here">Hier weitermachen</span>':'')+'</div>'});
  box.style.height=H+'px';box.innerHTML=s;}
-// Stationen mit Auswahl: Blitz (welche Muster) und „Wie geht es weiter?“ (Impuls oder Zigzag)
+// Station mit Auswahl: Blitz (welche Muster)
 function pathBlitz(){$('#view').innerHTML='<div class="card"><h2>Blitz-Erkennen</h2><p class="mut">Muster in Sekunden erkennen. Welche Muster?</p><p><button class="p" onclick="blitz(\'easy\')">Einsteiger</button><button class="p" onclick="blitz(\'all\')">Alle Muster</button></p></div>';window.scrollTo(0,0)}
-function pathProgn(){$('#view').innerHTML='<div class="card"><h2>Wie geht es weiter?</h2><p class="mut">Plane die fehlenden Wellen nach den Regeln. Welches Muster?</p><p><button class="p" onclick="progn(\'imp\')">Impuls</button><button class="p" onclick="progn(\'zig\')">Zigzag</button></p></div>';window.scrollTo(0,0)}
 const isPath=()=>innerWidth<700;let HOMEW=isPath();
 addEventListener('resize',()=>{const p=isPath();if(p!==HOMEW&&($('.home')||$('.wph'))&&!G){HOMEW=p;home()}else if(p&&$('#wp')&&!G){const done=pLoad();wpDraw(STN.findIndex(s=>!done[s.id]),done)}HOMEW=p});
 function home(){if(isPath())return pathHome();
@@ -784,7 +783,7 @@ function home(){if(isPath())return pathHome();
    isl('eye','Muster erkennen','Normal per Auswahl oder schwer selbst zählen','recognize()')+
    isl('layers','Subwellen zählen','Erst Hauptwellen, dann Subwellen','pickSub()')+'</div>'+
   '<div class="hb">'+isl('trend','Wie geht es weiter?','Plane die fehlenden Wellen nach den Regeln',null,
-    '<span class="sb"><button class="p" onclick="progn(\'imp\')">Impuls</button><button class="p" onclick="progn(\'zig\')">Zigzag</button></span>')+blitzIsl('desk')+'</div>'+
+    '<span class="sb"><button class="p" onclick="progn()">Starten</button></span>')+blitzIsl('desk')+'</div>'+
   '</section>';
  intro();
 }
@@ -882,7 +881,7 @@ function pick(mode){
 }
 function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key):find(PAT[key])}
 // Hauptmenü-Button: erscheint, sobald ein Modus gestartet wird (pick, recognize, pickSub), und verschwindet im Hauptmenü
-['pick','recognize','pickSub','daily','ranks','dailyCal','progn','blitz','blitzKap','pathBlitz','pathProgn'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;window.scrollTo(0,0);return f.apply(this,arguments)}});
+['pick','recognize','pickSub','daily','ranks','dailyCal','progn','blitz','blitzKap','pathBlitz'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;window.scrollTo(0,0);return f.apply(this,arguments)}});
 {const h0=home;window.home=function(){$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
 $('#menu').onclick=()=>home();
 $('#home').onclick=()=>home();$('#home').onkeydown=e=>{if(e.key==='Enter')home()};
@@ -1218,14 +1217,30 @@ function sub(key){
  render();
 }
 
-// Modus 6: „Wie geht es weiter?“ (Prognose-Training). Der Chart ist nach einer Welle abgeschnitten, der Rest wird regelkonform
-// geplant: je fehlende Welle erst der Charakter (impulsiv 5 / korrektiv 3), dann ihre Subwellen-Punkte in der grauen Zukunftszone.
-// Geprüft wird nur nach dem Regelwerk: Charakter (IMP-4, W2-1/W4-1 bzw. ZZ-1/ZZ-2), harte Regeln des Musters für die ganze Zählung,
-// Impulsregeln für fünfteilige Subwellen, nur die Richtung für dreiteilige (wie „Subwellen zählen“).
-// Bewusst noch nicht: Welle 5 oder C als Diagonale, Welle 4 als Dreieck.
-const PG={imp:{cuts:[2,3,4],five:[1,0,1,0,1]},zig:{cuts:[2],five:[1,0,1]}}; // five: 1 = Welle impulsiv (fünfteilig)
-function progn(key){
- const P=PAT[key],IM=PAT.imp,R=makeSubRound(P),cut=PG[key].cuts[Math.floor(Math.random()*PG[key].cuts.length)],c0=R.mp[cut],N=R.pr.length-1;
+// Modus 6: „Wie geht es weiter?“ (Prognose-Training). Umbau vom 10.11.2026 (Lenny), Grundlage: Regelwerk Version 15.
+// Zufälliges Muster, zufälliger Schnittpunkt, kein Mustername. Für jede fehlende Welle wählt man die Zählweise ihrer Unterteilung
+// (1-2-3-4-5, A-B-C, A-B-C-D-E, W-X-Y, W-X-Y-X-Z) und setzt die Wendepunkte in die graue Zukunftszone; der letzte ist das Ende der Hauptwelle.
+// Richtig ist jede Fortsetzung, die zu irgendeinem Muster mit derselben Beschriftung regelkonform ist (z. B. nach A-B: Zigzag oder eine Flat).
+// Geprüft wird nur nach dem Regelwerk: erlaubte Unterteilung je Welle, Richtung der Subwellen, harte Regeln der Haupt- und der Teilmuster.
+const PGK={N:{t:'1-2-3-4-5',l:['(1)','(2)','(3)','(4)','(5)']},ABC:{t:'A-B-C',l:['(a)','(b)','(c)']},TRI:{t:'A-B-C-D-E',l:['(a)','(b)','(c)','(d)','(e)']},
+ WXY:{t:'W-X-Y',l:['(w)','(x)','(y)']},TZ:{t:'W-X-Y-X-Z',l:['(w)','(x)','(y)','(x)','(z)']}};
+const PGKOF={imp:'N',dl:'N',db:'N',de:'N',zig:'ABC',fr:'ABC',fe:'ABC',fru:'ABC',trk:'TRI',tre:'TRI',dz:'WXY',tz:'TZ'}; // Zählweise je Muster
+// Welche Teilmuster darf eine Welle ausbilden? Je Muster eine oder mehrere Varianten (Leading Diagonale: 5-3-5-3-5 oder 3-3-3-3-3), je Welle eine Liste.
+// Quelle: Impuls W1-1 bis W5-2 (Welle 2 kein Dreieck, Welle 4 auch Dreieck, 1 und 5 auch Diagonale), Zigzag WA-1/WB-1/WC-1, Flats WA-2/WB-2/WC-2,
+// Dreieck DRE-4/DRE-5, Diagonalen DL-2/5/7/9, DB-5/7/9/10, DE-4/5/6, komplexe Korrekturen WW-1/WX-1/WY-1/WZ-1, Dreifache Form KOM-2.
+// Im Regelwerk nicht eindeutig (bis zur Klärung mit Lenny nicht als Fehler gewertet): W-X-Y-X-Z in Welle B einer Flat und in Welle 2/4 einer
+// Diagonale („jedes Korrekturmuster“ gegen KOM-2 „Welle 2 und 4“), W-X-Y in einer Dreieckswelle („dreiteilig“, DRE-5 nennt nur Zigzag und Flat).
+const PGSUB=(()=>{const F=['zig','fr','fe','fru'],T=['trk','tre'],K=[...F,'dz'],K2=[...K,'tz'],KT=[...K,...T],M5=['imp','db','de'],Z=['zig'],I=['imp'];
+ const flat=[[K,[...KT,'tz'],M5]],tri=[[K,K,K,K,K]],diag=[[Z,K2,Z,[...K2,...T],Z]];
+ return{imp:[[['imp','dl','de'],K2,I,[...K2,...T],M5]],zig:[[I,KT,M5]],fr:flat,fe:flat,fru:flat,trk:tri,tre:tri,
+  dl:[[I,K2,I,K2,I],[Z,K2,Z,K2,Z]],db:diag,de:diag,dz:[[K,KT,KT]],tz:[[K,KT,KT,KT,KT]]}})();
+let PGS=null; // Stand der laufenden Runde (liest der automatische Dauertest)
+// arg: leer = alle Muster; sonst ein Muster oder mehrere mit Komma (von „Prognose üben“ aus einem Kapitel)
+function progn(arg){
+ const pool=arg?String(arg).split(','):Object.keys(PAT),key=pool[Math.floor(Math.random()*pool.length)],P=PAT[key];
+ const R=makeSubRound(P),cuts=P.waves.length===5?[2,3,4]:[2],cut=cuts[Math.floor(Math.random()*cuts.length)],c0=R.mp[cut];
+ const frs=key==='imp'?[impF,abcF,impF,abcF,impF]:P.shape.fr,vk=frs.slice(0,cut).map(f=>f===impF?'N':'ABC'); // Unterteilung der sichtbaren Wellen
+ const fam=Object.keys(PAT).filter(k=>PAT[k].labels.join()===P.labels.join()).map(k=>PAT[k]); // Muster mit derselben Beschriftung
  const waves=[];for(let k=cut+1;k<=P.waves.length;k++)waves.push(k); // fehlende Hauptwellen (1 = erste Welle)
  // Breite: Der vorgegebene Teil nimmt 1/4 (3 fehlende Wellen) bis 1/3 (1 fehlende Welle) ein, der Rest ist Zukunftszone.
  // Am Handy im Hochformat eine schmalere, dafür höhere Zeichenfläche: Punkte und Beschriftungen liegen weniger eng.
@@ -1234,10 +1249,10 @@ function progn(key){
  // Preisbereich: sichtbarer Teil mit viel Rand zum Planen, dazu der echte Verlauf (für den Vergleich)
  const vis=R.pr.slice(0,c0+1),vlo=Math.min(...vis),vhi=Math.max(...vis),rg=vhi-vlo,lo=Math.min(vlo-.6*rg,...R.pr),hi=Math.max(vhi+.6*rg,...R.pr);
  const Y=p=>30+(hi-p)/(hi-lo)*(VH-60),Pof=y=>hi-(y-30)/(VH-60)*(hi-lo);
- const m={ch:{},pts:[],tips:0,failed:false,done:false,chErr:false,shown:false,zones:[],noted:false};
- const segs=()=>{let o=0;return waves.filter(k=>m.ch[k]).map(k=>{const n=m.ch[k],g={k,n,pts:m.pts.slice(o,o+n)};o+=n;return g})};
- const cur=()=>{for(const g of segs())if(g.pts.length<g.n)return{k:g.k,n:g.n,have:g.pts.length};const k=waves.find(k=>!m.ch[k]);return k?{k,needChar:true}:null};
- const subL=(n,j)=>n===5?'('+(j+1)+')':'('+'abc'[j]+')';
+ const m={ch:{},pts:[],tips:0,failed:false,done:false,chErr:false,shown:false,zones:[]};
+ PGS={P,R,cut,m,X,Y,VW,frs};
+ const segs=()=>{let o=0;return waves.filter(k=>m.ch[k]).map(k=>{const kind=m.ch[k],n=PGK[kind].l.length,g={k,kind,n,pts:m.pts.slice(o,o+n)};o+=n;return g})};
+ const cur=()=>{for(const g of segs())if(g.pts.length<g.n)return{k:g.k,kind:g.kind,n:g.n,have:g.pts.length};const k=waves.find(k=>!m.ch[k]);return k?{k,needChar:true}:null};
  const mainP=()=>R.mp.slice(0,cut+1).map(i=>R.pr[i]).concat(segs().map(g=>g.pts[g.n-1].p)); // Hauptpunkte: echt + gezeichnet
  const pic=()=>{let s='<svg id="svg" viewBox="0 0 '+VW+' '+VH+'" role="img" aria-label="Preischart mit Zukunftszone"><defs><pattern id="hz" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--dn)" stroke-width="2" opacity=".45"/></pattern></defs>';
   s+='<rect x="'+X(c0)+'" y="0" width="'+(X(ZE)-X(c0))+'" height="'+VH+'" fill="var(--line)" opacity=".35"/>';
@@ -1259,20 +1274,21 @@ function progn(key){
   const all=[{x:c0,p:R.pr[c0]}].concat(m.pts);
   if(m.pts.length)s+='<polyline fill="none" stroke="var(--up)" stroke-width="2" stroke-dasharray="6 4" points="'+all.map(q=>X(q.x)+','+Y(q.p)).join(' ')+'"/>';
   let j=0;segs().forEach(g=>g.pts.forEach((q,t)=>{j++;const prv=all[j-1],nx=all[j+1],up=q.p>=prv.p&&(!nx||q.p>=nx.p)||(!nx&&q.p>=prv.p);
-   s+='<circle cx="'+X(q.x)+'" cy="'+Y(q.p)+'" r="4" fill="var(--up)"/>';lab(X(q.x),Y(q.p)+(up?-8:17),up,subL(g.n,t),'font-size:12px');
+   s+='<circle cx="'+X(q.x)+'" cy="'+Y(q.p)+'" r="4" fill="var(--up)"/>';lab(X(q.x),Y(q.p)+(up?-8:17),up,PGK[g.kind].l[t],'font-size:12px');
    if(t===g.n-1)lab(X(q.x),Y(q.p)+(up?-22:31),up,P.labels[g.k]);})); // letzter Subpunkt = Ende der Hauptwelle (zwei Beschriftungen)
   put();
   return s+'</svg>';};
- const render=fb=>{const cu=cur(),wn=k=>P.waves[k-1];
-  $('#view').innerHTML='<p class="kick">Wie geht es weiter? · '+P.title+'</p><p class="task">Plane die fehlenden Wellen in der grauen Zone. '+
-   (m.done?'':cu?(cu.needChar?'<b>Welche Art hat Welle '+wn(cu.k)+'?</b>':'Welle '+wn(cu.k)+': Nächster Punkt <span class="nextpt">'+subL(cu.n,cu.have)+(cu.have===cu.n-1?' = '+wn(cu.k):'')+'</span>. Punkte kannst du anfassen und verschieben.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
+ const wn=k=>P.waves[k-1];
+ const render=fb=>{const cu=cur();
+  $('#view').innerHTML='<p class="kick">Wie geht es weiter?</p><p class="task">Der Chart bricht nach Welle '+wn(cut)+' ab. Plane '+(waves.length>1?'die fehlenden Wellen '+waves.map(wn).join(', '):'die fehlende Welle '+wn(waves[0]))+' in der grauen Zone. '+
+   (m.done?'':cu?(cu.needChar?'<b>Wie unterteilt sich Welle '+wn(cu.k)+'?</b>':'Welle '+wn(cu.k)+' als '+PGK[cu.kind].t+': Nächster Punkt <span class="nextpt">'+PGK[cu.kind].l[cu.have]+(cu.have===cu.n-1?' = '+wn(cu.k):'')+'</span>. Punkte kannst du anfassen und verschieben.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
+   (cu&&cu.needChar&&!m.done?'<div class="card pgk"><b>Zählweise von Welle '+wn(cu.k)+'</b><br>'+Object.keys(PGK).map(k=>'<button data-ch="'+k+'">'+PGK[k].t+'</button>').join('')+'</div>':'')+
    '<div class="chart pgc">'+pic()+'</div>'+
-   (cu&&cu.needChar&&!m.done?'<div class="card"><b>Charakter von Welle '+wn(cu.k)+'</b><br><button data-ch="5">Impulsiv (5 Wellen)</button><button data-ch="3">Korrektiv (3 Wellen)</button></div>':'')+
    '<div class="dock">'+(m.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
     '<button class="p" id="chk" '+(cu?'disabled':'')+'>Prüfen</button><button id="und">Zurück</button><button id="rst">Neu setzen</button>')+'</div>'+
    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
-  if(m.done){$('#real').onclick=()=>{m.shown=true;render(fb+'<p class="mut">Grau: der tatsächliche Verlauf, im selben Maßstab. Nur zum Vergleich: Punkte gibt es für regelkonformes Planen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(key);return}
-  document.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{m.ch[cu.k]=+b.dataset.ch;render()});
+  if(m.done){$('#real').onclick=()=>{m.shown=true;render(fb+'<p class="mut">Grau: der tatsächliche Verlauf, im selben Maßstab. Nur zum Vergleich: Punkte gibt es für regelkonformes Planen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(arg);return}
+  document.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{m.ch[cu.k]=b.dataset.ch;render()});
   $('#und').onclick=()=>{const g=segs().pop();if(!g)return;if(g.pts.length)m.pts.pop();else delete m.ch[g.k];m.zones=[];render()};
   $('#rst').onclick=()=>{m.ch={};m.pts=[];m.zones=[];render()};
   $('#chk').onclick=verify;
@@ -1292,56 +1308,76 @@ function progn(key){
     m.pts.push({x,p:Pof(py)});m.zones=[];render();}};
  };
  const fail=()=>{m.failed=true;if(st.streak)st.streak=0,stats()};
- const note=()=>{if(m.noted)return'';m.noted=true;return'<p class="mut">Diagonalen und Dreiecke als Teilwellen kommen in einer späteren Stufe.</p>'};
- // Welche Bereiche wären für die gezeichneten Wellen ungültig? (nur harte Regeln: IMP-3, IMP-2, ZZ-3)
- const zones=(v,mp,gs)=>{const s=P.sign(mp),p0=mp[0],z=[],span=k=>{const g=gs.find(x=>x.k===k);if(!g)return null;const st=k-1>cut?gs.find(x=>x.k===k-1).pts.slice(-1)[0].x:c0;return[st,g.pts[g.n-1].x,g]};
+ // Passt eine Variante V des Musters zum sichtbaren Teil? (sichtbare dreiteilige Wellen können A-B-C oder W-X-Y sein)
+ const fitsVis=V=>vk.every((kd,i)=>V[i].some(d=>PGKOF[d]===kd||(kd==='ABC'&&PGKOF[d]==='WXY')));
+ // Zählung gegen ein Muster Q prüfen: null = regelkonform, sonst der Befund der Variante, die am weitesten kommt.
+ // Reihenfolge: 1) Unterteilung je Welle erlaubt, 2) Richtung und harte Regeln der Hauptwellen, 3) Richtung und harte Regeln jeder Unterteilung.
+ const evalQ=(Q,gs,mp)=>{const v=norm(Q,mp);let best={st:0};
+  for(const V of PGSUB[Q.key]){if(!fitsVis(V))continue;let r=null;
+   const bad=gs.find(g=>!V[g.k-1].some(d=>PGKOF[d]===g.kind));
+   if(bad)r={st:1,kind:'unt',g:bad};
+   else if(Q.struct&&!Q.struct(v))r={st:2,kind:'struct'};
+   else{const f=hardFails(Q,v);if(f.length)r={st:3,kind:'main',id:f[0]};
+    else for(const g of gs){const ps=[mp[g.k-1]].concat(g.pts.map(q=>q.p));
+     if(Math.sign(ps[1]-ps[0])!==Math.sign(ps[ps.length-1]-ps[0])){r={st:4,kind:'dir',g};break} // erste Subwelle läuft wie die Welle selbst
+     const res=V[g.k-1].filter(d=>PGKOF[d]===g.kind).map(d=>{const D=PAT[d],u=norm(D,ps),s=!(D.struct&&!D.struct(u));return{D,s,f:s?hardFails(D,u):[]}});
+     if(!res.some(x=>x.s&&!x.f.length)){const b=res.sort((a,c)=>(a.s?a.f.length:99)-(c.s?c.f.length:99))[0];r={st:4,kind:'sub',g,D:b.D,id:b.s?b.f[0]:null};break}}}
+   if(!r)return null;if(r.st>best.st)best=r}
+  return best};
+ // Zählweisen, die für eine Welle erlaubt sind (über alle Muster, die zum sichtbaren Teil passen)
+ const allowed=k=>{const s=new Set();fam.forEach(Q=>PGSUB[Q.key].filter(fitsVis).forEach(V=>V[k-1].forEach(d=>s.add(PGKOF[d]))));return Object.keys(PGK).filter(x=>s.has(x))};
+ // Welche Bereiche wären für die gezeichneten Wellen ungültig? (nur harte Regeln: IMP-3, IMP-2, ZZ-3; je nach Muster, zu dem die Zählung passt)
+ const zones=(Q,v,mp,gs)=>{const s=Q.sign(mp),p0=mp[0],z=[],span=k=>{const g=gs.find(x=>x.k===k);if(!g)return null;const st=k-1>cut?gs.find(x=>x.k===k-1).pts.slice(-1)[0].x:c0;return[st,g.pts[g.n-1].x,g]};
   const band=(price,beyond,x1,x2,t)=>{const top=s*beyond>0;z.push({a:price,b:top?hi:lo,x1,x2,t,top})}; // beyond: Richtung (im normierten Maß), in die es ungültig wird
   const t='Hier wäre die|Zählung ungültig';
-  if(key==='imp'){const w4=span(4);if(w4)band(mp[1],-1,w4[0],w4[1],t); // IMP-3: Welle 4 nicht ins Gebiet von Welle 1
+  if(Q.key==='imp'){const w4=span(4);if(w4)band(mp[1],-1,w4[0],w4[1],t); // IMP-3: Welle 4 nicht ins Gebiet von Welle 1
    const w5=span(5);if(w5&&L(v,3)<L(v,1))band(p0+s*(v[4]+L(v,3)),1,w5[0],w5[1],t);} // IMP-2: Welle 5 nicht länger als Welle 3
-  else{const wc=span(3);if(wc){const g=wc[2],x1=g.n>1?g.pts[g.n-2].x:wc[0];band(mp[1],1,x1,wc[1],'Ende von C|hier ungültig')}} // ZZ-3
+  else if(Q.key==='zig'||Q.key==='fr'){const wc=span(3);if(wc){const g=wc[2],x1=g.n>1?g.pts[g.n-2].x:wc[0];band(mp[1],1,x1,wc[1],'Ende von C|hier ungültig')}} // ZZ-3, FR-3
   return z};
  // Faustregeln und Warnsignale für die gezeichneten Wellen (nur Hinweise, kein Fehler)
- const hints=(v,gs)=>{const out=[];let inR=true,pc=x=>pct(x);
+ const hints=(Q,v,gs)=>{const out=[];let inR=true,pc=x=>pct(x);const key=Q.key;
   const fr=(ok,txt)=>{if(!ok){inR=false;out.push('<p class="rnote f">'+stufe('faust')+txt.replace(' (Faustregel)','')+'</p>')}};
   gs.forEach(g=>{const k=g.k;
-   if(key==='imp'&&k===3){const r=L(v,3)/L(v,1);if(r<1.236)out.push('<p class="rnote w">'+stufe('warn')+'Welle 3 erreicht nur '+pc(r)+' von Welle 1, sie sollte mindestens 123,6 % erreichen.</p>');
+   if(key==='imp'&&k===3){const r=L(v,3)/L(v,1);if(r<1.236){inR=false;out.push('<p class="rnote w">'+stufe('warn')+'Welle 3 erreicht nur '+pc(r)+' von Welle 1, sie sollte mindestens 123,6 % erreichen.</p>')}
     fr(r>=1.618-.02&&r<=2.618+.02,'Welle 3 erreicht '+pc(r)+' von Welle 1. Am häufigsten sind 161,8 % bis 261,8 % (Faustregel).')}
    if(key==='imp'&&k===4){const r=L(v,4)/L(v,3);fr(Math.abs(r-.382)<=.02||Math.abs(r-.5)<=.02,'Welle 4 läuft '+pc(r)+' von Welle 3 zurück. Am häufigsten sind 38,2 % oder 50 % (Faustregel).')}
-   if(key==='imp'&&k===5){const r=L(v,5)/Math.abs(v[3]-v[0]);if(r<.382)out.push('<p class="rnote w">'+stufe('warn')+'Welle 5 erreicht nur '+pc(r)+' (gemessen über Start von Welle 1 bis Ende von Welle 3), sie sollte mindestens 38,2 % erreichen.</p>');
+   if(key==='imp'&&k===5){const r=L(v,5)/Math.abs(v[3]-v[0]);if(r<.382){inR=false;out.push('<p class="rnote w">'+stufe('warn')+'Welle 5 erreicht nur '+pc(r)+' (gemessen über Start von Welle 1 bis Ende von Welle 3), sie sollte mindestens 38,2 % erreichen.</p>')}
     fr(r>=.618-.02&&r<=2.618+.02,'Welle 5 erreicht '+pc(r)+' (gemessen über Start von Welle 1 bis Ende von Welle 3). Am häufigsten sind 61,8 % bis 261,8 % (Faustregel).')}
    if(key==='zig'&&k===3){const r=L(v,3)/L(v,1);fr(r>=.618-.02&&r<=1.618+.02,'Welle C erreicht '+pc(r)+' von Welle A. Üblich sind 61,8 % bis 161,8 %, am häufigsten 100 % (Faustregel).')}});
+  if(key!=='imp')warns(Q,v).forEach(id=>{inR=false;out.push(lvlNote(Q,id))}); // übrige Muster: Warnsignale und Faustregeln aus den Regeltabellen
   return{html:out.join(''),inR}};
  // Planungs-Hinweis für Regeln, die erst mit der ganzen Zählung prüfbar sind (IMP-2)
- const plan=v=>key==='imp'&&waves.includes(5)&&L(v,3)<L(v,1)?'<p>Weil Welle 3 kürzer als Welle 1 ist, darf Welle 5 nicht länger als Welle 3 werden (Welle 3 ist nie die kürzeste).</p>':'';
- const tipUI=x=>{const lines=['Die Planung ist noch nicht regelkonform.'],w=x.g?P.waves[x.g.k-1]:'';let r,id,src,extra='';
-  if(x.kind==='char'){const five=PG[key].five[x.g.k-1];
-   if(m.tips>=1)lines.push('Tipp 1: '+(key==='imp'?'Welle '+w+(five?' verläuft in Trendrichtung.':' läuft gegen den Trend.'):'Welle C verläuft wie Welle A in Richtung der Korrektur.')+' Welchen Charakter hat sie?');
-   if(m.tips>=2)lines.push('Tipp 2: '+(key==='imp'?'Welle 1, 3 und 5 sind impulsiv (fünfteilig), Welle 2 und 4 korrektiv (dreiteilig).':'Beim Zigzag sind A und C impulsiv fünfteilig, B ist dreiteilig.'));
-   if(m.tips>=3)lines.push('Tipp 3: '+(key==='imp'?'Buch S.38':'Buch S.42')+'. Welle '+w+' ist '+(five?'impulsiv (5 Wellen).':'korrektiv (3 Wellen).'));
-   extra='<button class="p" id="redo">Welle '+w+' neu zeichnen</button>';
-  }else{const IMr=x.kind==='sub';r=(IMr?IM:P).rules[x.id];
-   if(m.tips>=1)lines.push('Tipp 1: '+(IMr?'In den Subwellen von Welle '+w+': ':'')+mt(r.hint));
-   if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+mt(r.name)+'“.');
-   if(m.tips>=3)lines.push('Tipp 3: '+tag(IMr?IM:P,x.id)+'. '+r.ex);}
-  render('<p class="bad">Noch nicht ganz.</p>'+lines.map(tipLine).join('')+(x.plan||'')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':'')+extra+note());
-  const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipUI(x)};
-  const rd=$('#redo');if(rd)rd.onclick=()=>{const gs=segs(),i=gs.findIndex(g=>g.k===x.g.k),keep=gs.slice(0,i).reduce((a,g)=>a+g.n,0); // diese und alle späteren Wellen neu
-   gs.slice(i).forEach(g=>delete m.ch[g.k]);m.pts=m.pts.slice(0,keep);m.zones=[];render()};
- };
- const verify=()=>{const gs=segs(),mp=mainP(),v=norm(P,mp);
-  m.zones=zones(v,mp,gs);
-  const wc=gs.find(g=>g.n!==(PG[key].five[g.k-1]?5:3)); // 1) Charakter der Wellen
-  if(wc){m.chErr=true;fail();m.zones=[];return tipUI({kind:'char',g:wc})}
-  if(P.struct&&!P.struct(v)){fail();return render('<p class="bad">Noch nicht ganz.</p><p>'+P.structMsg+'</p>'+note())} // 2) Hauptwellen
-  const f=hardFails(P,v);if(f.length){fail();return tipUI({kind:'main',id:f[0],plan:plan(v)})}
-  for(const g of gs){const p0=mp[g.k-1],ps=[p0].concat(g.pts.map(q=>q.p)),sg=Math.sign(ps[ps.length-1]-p0)||1,u=ps.map(p=>sg*(p-p0)); // 3) Subwellen, in Richtung der Welle gemessen
-   if(g.n===5){const ff=hardFails(IM,u);if(ff.length){fail();return tipUI({kind:'sub',g,id:ff[0]})}}
-   else if(!(u[1]>u[0]&&u[2]<u[1]&&u[3]>u[2])){fail();return render('<p class="bad">Noch nicht ganz.</p><p>Welle '+P.waves[g.k-1]+' ist dreiteilig: (a) läuft in Richtung der Welle, (b) dagegen und (c) wieder in Richtung der Welle. Prüfe die Richtung deiner Punkte.</p>'+note())}}
-  const h=hints(v,gs),gain=Math.max(4,10-3*m.tips)-(m.failed?2:0),bF=h.inR?5:0,bC=m.chErr?0:5;
+ const plan=(Q,v)=>Q.key==='imp'&&waves.includes(5)&&L(v,3)<L(v,1)?'<p>Weil Welle 3 kürzer als Welle 1 ist, darf Welle 5 nicht länger als Welle 3 werden (Welle 3 ist nie die kürzeste).</p>':'';
+ const redoBtn=g=>'<button class="p" id="redo" data-k="'+g.k+'">Welle '+wn(g.k)+' neu zeichnen</button>';
+ const tipUI=x=>{const lines=['Die Planung ist noch nicht regelkonform.'],r=x.r,w=r.g?wn(r.g.k):'';let extra='';
+  if(r.kind==='unt'){const al=allowed(r.g.k).map(k=>PGK[k].t);
+   if(m.tips>=1)lines.push('Tipp 1: Überlege, wie sich Welle '+w+' unterteilen darf. Läuft sie mit der Bewegung des Musters oder dagegen?');
+   if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Welle '+w+' kann sich hier nicht als '+PGK[r.g.kind].t+' unterteilen.');
+   if(m.tips>=3)lines.push('Tipp 3: Regelwerk. Für Welle '+w+' '+(al.length>1?'sind diese Zählweisen möglich: ':'ist nur diese Zählweise möglich: ')+al.join(', ')+'.');
+   extra=redoBtn(r.g);
+  }else{const sub=r.kind==='sub',X=sub?r.D:x.Q,rl=X.rules[r.id];
+   if(m.tips>=1)lines.push('Tipp 1: '+(sub?'In den Subwellen von Welle '+w+': ':'')+mt(rl.hint));
+   if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+mt(rl.name)+'“.');
+   if(m.tips>=3)lines.push('Tipp 3: '+tag(X,r.id)+'. '+mt(rl.ex));
+   if(sub)extra=redoBtn(r.g);}
+  render('<p class="bad">Noch nicht ganz.</p>'+lines.map(tipLine).join('')+(x.plan||'')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':'')+extra);
+  const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipUI(x)};bindRedo()};
+ const bindRedo=()=>{const rd=$('#redo');if(rd)rd.onclick=()=>{const gs=segs(),i=gs.findIndex(g=>g.k===+rd.dataset.k),keep=gs.slice(0,i).reduce((a,g)=>a+g.n,0); // diese und alle späteren Wellen neu
+   gs.slice(i).forEach(g=>delete m.ch[g.k]);m.pts=m.pts.slice(0,keep);m.zones=[];render()}};
+ const verify=()=>{const gs=segs(),mp=mainP(),res=fam.map(Q=>({Q,r:evalQ(Q,gs,mp)})),ok=res.filter(x=>!x.r);
+  if(!ok.length){ // Befund des Musters, das am weitesten kommt (bei Gleichstand das generierte)
+   const x=res.sort((a,b)=>(b.r.st+(b.Q===P?.5:0))-(a.r.st+(a.Q===P?.5:0)))[0],r=x.r,v=norm(x.Q,mp);fail();
+   m.zones=r.kind==='main'||r.kind==='sub'||r.kind==='dir'?zones(x.Q,v,mp,gs):[];
+   if(r.kind==='unt')m.chErr=true;
+   if(r.kind==='struct')return render('<p class="bad">Noch nicht ganz.</p><p>'+(x.Q.structMsg||'Die Hauptwellen wechseln von Welle zu Welle die Richtung. Prüfe, wo deine Wellen enden.')+'</p>');
+   if(r.kind==='dir'||(r.kind==='sub'&&!r.id)){render('<p class="bad">Noch nicht ganz.</p><p>Welle '+wn(r.g.k)+' als '+PGK[r.g.kind].t+': Die erste Subwelle läuft in dieselbe Richtung wie Welle '+wn(r.g.k)+' selbst, danach wechselt die Richtung von Punkt zu Punkt. Prüfe die Richtung deiner Punkte.</p>'+redoBtn(r.g));return bindRedo()}
+   return tipUI({Q:x.Q,r,plan:r.kind==='main'?plan(x.Q,v):''})}
+  const Q=(ok.find(x=>x.Q===P)||ok[0]).Q,v=norm(Q,mp);m.zones=zones(Q,v,mp,gs);
+  const h=hints(Q,v,gs),gain=Math.max(4,10-3*m.tips)-(m.failed?2:0),bF=h.inR?5:0,bC=m.chErr?0:5;
   m.done=true;if(!m.failed)st.streak++;st.pts+=gain+bF+bC;stats();exSolved(key,m.tips);pathMark('progn'); // zählt für die Ränge
-  render('<p class="ok">Regelkonform! +'+gain+' Punkte</p>'+(bF?'<p class="ok">Bonus +5: Alle gezeichneten Wellen liegen in den Faustregel-Bereichen.</p>':'')+(bC?'<p class="ok">Bonus +5: Charakter aller Wellen beim ersten Versuch richtig.</p>':'')+
-   h.html+plan(v)+(m.zones.length?'<p class="mut">Rot: Bereiche, in denen die Zählung ungültig wäre.</p>':'')+note());
+  render('<p class="ok">Regelkonform! +'+gain+' Punkte</p><p>Generiert wurde übrigens: <b>'+P.title+'</b>.'+(Q!==P?' Deine Fortsetzung passt zum Muster „'+Q.title+'“.':'')+'</p>'+
+   (bF?'<p class="ok">Bonus +5: Keine Warnsignale, alle gezeichneten Wellen liegen in den Faustregel-Bereichen.</p>':'')+(bC?'<p class="ok">Bonus +5: Zählweise aller Wellen beim ersten Versuch passend.</p>':'')+
+   h.html+plan(Q,v)+(m.zones.length?'<p class="mut">Rot: Bereiche, in denen die Zählung ungültig wäre.</p>':''));
  };
  render();
 }
@@ -1529,7 +1565,7 @@ function mdToHtml(md){
  const L=md.replace(/\r/g,'').split('\n'),out=[],toc=[];let i=0,chap=null,title='';
  const ueben=()=>{const e=chap&&UEBEN.find(([p])=>chap.toLowerCase().startsWith(p)),q=chap&&QUIZKAP.find(([p])=>chap.toLowerCase().startsWith(p));
   if(e||q)out.push('<p class="ueben">'+(e?e[1].map(k=>'<button class="p" data-ueben="'+k+'" data-kap="lk-'+toc.length+'">Jetzt üben'+(e[1].length>1?': '+PAT[k].title:'')+'</button>').join(''):'')+
-   (e?'<button data-blitz="'+e[0]+'" data-kap="lk-'+toc.length+'">Blitz-Training</button>':'')+(e&&PG[e[1][0]]?'<button class="p" data-progn="'+e[1][0]+'" data-kap="lk-'+toc.length+'">Prognose üben</button>':'')+(q?'<button data-quiz="'+esc(q[1])+'">Kapitel abfragen</button>':'')+'</p>')};
+   (e?'<button data-blitz="'+e[0]+'" data-kap="lk-'+toc.length+'">Blitz-Training</button>':'')+(e?'<button class="p" data-progn="'+e[1].join(',')+'" data-kap="lk-'+toc.length+'">Prognose üben</button>':'')+(q?'<button data-quiz="'+esc(q[1])+'">Kapitel abfragen</button>':'')+'</p>')};
  const isBlock=l=>/^(#{1,3} |\||!\[|- |\d+\. )/.test(l);
  while(i<L.length){const l=L[i];
   if(!l.trim()){i++;continue}
