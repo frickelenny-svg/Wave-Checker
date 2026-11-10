@@ -62,7 +62,7 @@ Elliott-Wellen bestehen aus Bewegungen mit dem Trend (Impulse, Diagonalen) und K
 | Regular Flat | 3-3-5 | Welle 2, 4, A, B, W, X, Y, X, Z und jeder Dreieckswelle |
 | Expanded Flat | 3-3-5 | Welle 2, 4, A, B, W, X, Y, X, Z und jeder Dreieckswelle |
 | Running Flat | 3-3-5 | Welle 2, 4, A, B, W, X, Y, X, Z und jeder Dreieckswelle |
-| Dreieck | 5 Wellen A-B-C-D-E, jede dreiteilig | oft Welle 4, auch B und X, selten Y; nie 2, C, W, Z |
+| Dreieck | 5 Wellen A-B-C-D-E, jede dreiteilig | oft Welle 4, auch B und X, selten Y und Z; nie 2, C, W |
 | Leading Diagonale | 5-3-5-3-5 oder 3-3-3-3-3 | nur Welle 1 |
 | Beendende Diagonale | 3-3-3-3-3 | nur Welle 5 und C |
 | Expandierende Diagonale | 3-3-3-3-3 | nur Welle 1, 5 und C (äußerst selten) |
@@ -179,7 +179,7 @@ Dreiecke erkennst du an ihren Trendlinien. Ein Dreieck hat fünf Wellen A-B-C-D-
 **Wo Dreiecke vorkommen**
 
 - Regel: **nie** in Welle 2, C, W oder Z.
-- In den Wellen B und X, selten auch in Welle Y.
+- In den Wellen B und X, selten auch in den Wellen Y und Z.
 - Faustregel: häufig in Welle 4.
 - Faustregel: Dreiecke verlaufen meist flach.
 
@@ -267,7 +267,7 @@ Komplexe Korrekturen hängen mehrere Korrekturmuster aneinander, verbunden durch
 
 **Welle Z**
 
-- Regel: eine A-B-C- oder W-X-Y-Formation, **nie ein Dreieck**.
+- Eine A-B-C- oder W-X-Y-Formation, auch ein Dreieck ist möglich (selten).
 - Faustregel: am häufigsten 100 %. Spielraum von 61,8 % bis 161,8 %.
 
 ## Quelle

@@ -434,9 +434,7 @@ const CXR={
 const DRE1={page:50,hard:1,wave:'W',name:'Dreieck in Welle W',hint:'Schau, welches Muster in Welle W steht. Gibt es ein Muster, das dort nie vorkommt?',
  ex:'Dreiecke treten niemals in Welle 2, C und W auf.',ok:()=>true};
 CXR.dz['DRE-1']=DRE1;CXR.tz['DRE-1']=DRE1;
-// Welle Z bildet kein Dreieck aus (WZ-1, Entscheidung Lenny 20.10.2026). Geprüft wie DRE-1 über die Beschriftung der Teile.
-CXR.tz['WZ-1']={page:null,where:'Regelwerk, Abschnitt Welle Z',hard:1,wave:'Z',name:'Dreieck in Welle Z',hint:'Schau, welches Muster in Welle Z steht. Gibt es ein Muster, das dort nicht vorkommen darf?',
- ex:'Welle Z darf kein Dreieck ausbilden.',ok:()=>true};
+// Welle Z darf (selten) ein Dreieck sein (WZ-1, Lenny 10.11.2026, Regelwerk Version 15). Die Regel „Dreieck in Welle Z“ vom 20.10.2026 entfällt.
 // Fortschritt (KOM-4): Y sollte unter W enden, Z unter Y. Seit 22.10.2026 nur harte Orientierung (Lenny: in seltenen Fällen
 // bilden Y und Z kein neues Tief), also Warnung statt Fehler. Der Generator (genCx) erzeugt solche Charts selten (ca. 5 %).
 CXR.tz['KOM-4']={page:null,where:'Regelwerk, Abschnitt Komplexe Korrekturen',hard:0,wave:'Y',name:'Die Dreifache Form kommt nicht voran',
@@ -457,7 +455,7 @@ PAT.dz={key:'dz',title:'Double Zigzag (W-X-Y)',labels:['0','W','X','Y'],waves:['
  sign:PAT.zig.sign,struct:PAT.zig.struct,structMsg:'Bei W-X-Y laufen W und Y in dieselbe Richtung, X läuft dagegen. Prüfe die Richtung deiner Punkte.',
  endMsg:'Der Chart endet im Extrem von Welle Y. Setze Punkt Y an das letzte Tief (bei steigenden Preisen: Hoch) des Charts.',
  info:v=>'<p class="mut">Orientierung: Welle X lief '+pct(L(v,2)/L(v,1))+' von W zurück (häufig 61,8 %, mindestens 38,2 %, unter 100 %). Welle Y erreicht '+pct(L(v,3)/L(v,1))+' von W (häufig 100 %, zwischen 61,8 % und 261,8 %).</p>'+HCX};
-PAT.tz={key:'tz',title:'Dreifache Form (W-X-Y-X-Z)',labels:['0','W','X1','Y','X2','Z'],waves:['W','X1','Y','X2','Z'],rules:CXR.tz,viol:['WX-2','WX-2b','DRE-1','WZ-1'],parts:['W','Y','Z'],partLeg:[0,2,4],
+PAT.tz={key:'tz',title:'Dreifache Form (W-X-Y-X-Z)',labels:['0','W','X1','Y','X2','Z'],waves:['W','X1','Y','X2','Z'],rules:CXR.tz,viol:['WX-2','WX-2b','DRE-1'],parts:['W','Y','Z'],partLeg:[0,2,4],
  sign:PAT.zig.sign,struct:u=>u[1]<u[0]&&u[2]>u[1]&&u[3]<u[2]&&u[4]>u[3]&&u[5]<u[4],
  structMsg:'Bei W-X-Y-X-Z laufen W, Y und Z in eine Richtung, die beiden X dagegen. Prüfe die Richtung deiner Punkte.',
  endMsg:'Der Chart endet im Extrem von Welle Z. Setze Punkt Z an das letzte Tief (bei steigenden Preisen: Hoch) des Charts.',
@@ -590,12 +588,12 @@ PAT.tz.gen=v=>genCx('tz',v);PAT.tz.shape={piv:[0,9,18,27,36,45],fr:[abcF,abcF,ab
 PAT.imp.subs=['53535'];PAT.dl.subs=['53535','33333'];PAT.zig.subs=['535'];PAT.fr.subs=PAT.fe.subs=PAT.fru.subs=['335'];PAT.dz.subs=['333'];
 PAT.trk.subs=PAT.tre.subs=PAT.db.subs=PAT.de.subs=PAT.tz.subs=['33333'];
 // Wo das Muster im größeren Trend vorkommt (Regelwerk). Nur daran lassen sich Muster unterscheiden, zu denen derselbe Chart regelkonform ist.
-PAT.trk.ctx=PAT.tre.ctx='nie in Welle 2, C, W und Z';PAT.dl.ctx='nur in Welle 1';PAT.db.ctx='nur in Welle 5 und C';PAT.de.ctx='nur in Welle 1, 5 und C';PAT.tz.ctx='kann in Welle 2 und 4 vorkommen';
+PAT.trk.ctx=PAT.tre.ctx='nie in Welle 2, C und W';PAT.dl.ctx='nur in Welle 1';PAT.db.ctx='nur in Welle 5 und C';PAT.de.ctx='nur in Welle 1, 5 und C';PAT.tz.ctx='kann in Welle 2 und 4 vorkommen';
 const triF=()=>[0,1,.5,.85,.65,1]; // fünfteiliges Dreieck (Teil A-B-C-D-E), endet auf dem Teilziel
 // Muster der Teile wählen (nur Fehler finden): frei wählbar, nur W darf kein Dreieck sein; mit DRE-1 steht ein Dreieck in W
 function pickNames(P,violate){
  const pk=a=>a[Math.floor(Math.random()*a.length)],nonTri=ARTEN.filter(a=>a!=='Dreieck');
- return[violate==='DRE-1'?'Dreieck':pk(nonTri),pk(ARTEN),P.key==='tz'?(violate==='WZ-1'?'Dreieck':pk(nonTri)):pk(ARTEN)]; // W nie Dreieck (DRE-1), Z nie Dreieck (WZ-1), X und Y frei
+ return[violate==='DRE-1'?'Dreieck':pk(nonTri),pk(ARTEN),pk(ARTEN)]; // W nie Dreieck (DRE-1); X, Y und Z frei (Z darf seit 10.11.2026 wieder ein Dreieck sein, WZ-1)
 }
 // Zeitachse variieren: Jede Welle dauert zufällig 70 % bis 140 % ihrer Grundlänge, zusammen bleiben es 45 Kerzen.
 // So sehen auch Charts desselben Musters jedes Mal anders aus (Lenny, 26.10.2026). Jede Welle behält mindestens mn Kerzen.
@@ -618,7 +616,7 @@ function makeRound(P,violate,named){
   x.push(v[nl]);
   if(names){ // Beschriftung der Pivotpunkte mit dem Muster des Teils
    lab=P.labels.map((l,k)=>{const pi=P.partLeg.indexOf(k-1);return pi>=0?l+' '+names[pi]:l});
-   if(violate==='DRE-1')vw='W';if(violate==='WZ-1')vw='Z';}}
+   if(violate==='DRE-1')vw='W';}}
  return{P,dir,pr:x.map(y=>B+dir*y),piv,violate,vwave:violate?(vw||P.lastVW):undefined,alt,lab};
 }
 

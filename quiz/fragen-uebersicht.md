@@ -380,7 +380,7 @@ Abschnitt: Dreiecke (A-B-C-D-E)
 - Welle B
 - Welle X
 
-Erklärung: Dreiecke kommen nie in Welle 2, C, W oder Z vor.  
+Erklärung: Dreiecke kommen nie in Welle 2, C oder W vor.  
 Abschnitt: Dreiecke (A-B-C-D-E) › Wo Dreiecke vorkommen
 
 **3. Dreiecke verlaufen immer flach.** _(Richtig/Falsch, dr-04)_
@@ -436,15 +436,15 @@ Abschnitt: Dreiecke (A-B-C-D-E)
 - Welle X
 - Welle 4
 
-Erklärung: Dreiecke kommen in B und X vor, selten auch in Y. In Welle 4 sind sie sogar häufig.  
+Erklärung: Dreiecke kommen in B und X vor, selten auch in Y und Z. In Welle 4 sind sie sogar häufig.  
 Abschnitt: Dreiecke (A-B-C-D-E) › Wo Dreiecke vorkommen
 
 **9. Ein Dreieck kann in Welle Z vorkommen.** _(Richtig/Falsch, dr-11)_
 
-- Richtig
-- Falsch ✅
+- Richtig ✅
+- Falsch
 
-Erklärung: Nein: Dreiecke kommen nie in Welle 2, C, W oder Z vor.  
+Erklärung: Richtig. Dreiecke kommen selten auch in den Wellen Y und Z vor.  
 Abschnitt: Dreiecke (A-B-C-D-E) › Wo Dreiecke vorkommen
 
 ## Diagonalen
@@ -617,14 +617,14 @@ Abschnitt: Komplexe Korrekturen: W-X-Y und W-X-Y-X-Z › Welle W
 Erklärung: Richtig. Welle X ist eine A-B-C- oder W-X-Y-Formation, auch ein Dreieck ist möglich.  
 Abschnitt: Komplexe Korrekturen: W-X-Y und W-X-Y-X-Z › Welle X
 
-**9. Was darf Welle Z nie sein?** _(Multiple Choice, ko-10)_
+**9. Welche Form kann Welle Z haben?** _(Multiple Choice, ko-10)_
 
-- Ein Dreieck ✅
-- Ein Zigzag
-- Eine A-B-C-Formation
-- Eine W-X-Y-Formation
+- Eine A-B-C- oder W-X-Y-Formation, auch ein Dreieck (selten) ✅
+- Nur ein Dreieck
+- Nur eine A-B-C-Formation, nie ein Dreieck
+- Einen klassischen Fünfteiler
 
-Erklärung: Welle Z ist eine A-B-C- oder W-X-Y-Formation, aber nie ein Dreieck.  
+Erklärung: Welle Z ist eine A-B-C- oder W-X-Y-Formation, auch ein Dreieck ist möglich (selten).  
 Abschnitt: Komplexe Korrekturen: W-X-Y und W-X-Y-X-Z › Welle Z
 
 **10. Was gilt bei der Dreifachen Form für Y und Z (bei fallenden Kursen)?** _(Multiple Choice, ko-11)_
