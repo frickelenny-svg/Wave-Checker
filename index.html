@@ -229,14 +229,14 @@ button.isl:hover{border-color:var(--accent)}
 .pgend{position:absolute;right:10px;bottom:40px;margin:0;min-height:44px;font-size:.88rem;box-shadow:var(--shadow)}
 .pgtf{position:absolute;left:8px;top:8px;display:flex;gap:4px}.pgtf button{margin:0;min-height:40px;min-width:44px;padding:4px 10px;font-size:.85rem;border-radius:12px}
 .pgtf button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-.pgcd line{stroke:var(--accent);stroke-width:1}.pgcd rect.u{fill:var(--accent)}.pgcd rect.d{fill:var(--surface);stroke:var(--accent);stroke-width:1}.pgcd.fut{opacity:.4}
+.pgcd line{stroke:var(--accent);stroke-width:1}.pgcd rect.u{fill:var(--accent)}.pgcd rect.d{fill:var(--surface);stroke:var(--accent);stroke-width:1}.pgfc line{stroke:var(--accent);stroke-width:1;stroke-dasharray:2 2;opacity:.8}.pgfc rect{fill:none;stroke:var(--accent);stroke-width:1.1;stroke-dasharray:3 2;opacity:.9}.pgfc rect.u{fill:var(--accent);fill-opacity:.12}
 .pgc .lab.ax{font-size:11px;font-weight:500;fill:var(--mut)}
 .pgc1{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}.pgc .lab.l1{font-weight:800;font-size:12px}
 .pgcut{stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 4;opacity:.7}.pgc .lab.pgcutt{text-anchor:start;font-size:12px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:3px}
 .pgfoc{fill:var(--accent);opacity:.07}
 .pgbar{display:flex;flex-direction:column;gap:6px;margin:0 0 10px}.pgbar button{min-height:40px;padding:5px 10px;font-size:.88rem}.pgbar .pgk{margin:0;align-items:center}.pgbar .pgk button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .pgbar .c1,.pgsel .c1{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 3px;border:1.4px solid currentColor;border-radius:50%;font-weight:800;font-size:12px;line-height:1}
-.pgnx .mut{font-size:13px;margin-right:2px}.pgsel{margin:8px 0}.pgsel p{margin:6px 0}.pgsel button.on{background:var(--accent);color:#fff;border-color:var(--accent)}.dock .pghint{font-size:13px}
+.pgnx .mut{font-size:13px;margin-right:2px}.pgnx .pgst{font-size:13px;margin-left:4px}.pgsel{margin:8px 0}.pgsel p{margin:6px 0}.pgsel button.on{background:var(--accent);color:#fff;border-color:var(--accent)}.dock .pghint{font-size:13px}
 .task .c1{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 3px;border:1.4px solid var(--text);border-radius:50%;font-weight:800;font-size:12px;line-height:1;vertical-align:1px}
 .pgil{stroke:var(--dn);stroke-width:1.6;stroke-dasharray:7 5}.pgc .lab.pgilt{fill:var(--dn);font-size:11px;font-weight:700;text-anchor:start;paint-order:stroke;stroke:var(--surface);stroke-width:3px}
 .pglg{font-size:13px;color:var(--muted);margin:6px 2px 0}.pglg .c1{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1.4px solid var(--text);border-radius:50%;font-weight:800;font-size:11px;color:var(--text)}
@@ -1355,8 +1355,8 @@ const pgRuleMax=r=>{if(r._mx!==undefined)return r._mx;const s=String(r.ok),re=/\
 function progn(arg,lvl){
  if(lvl!=='leicht'&&lvl!=='schwer'){ // zuerst die Schwierigkeit wählen
   $('#view').innerHTML='<div class="card"><p class="kick">Wie geht es weiter?</p><h2>Wie schwer?</h2>'+
-   '<p><button class="p" data-pl="leicht">Leicht</button> <span class="mut">Der sichtbare Verlauf ist auf allen Ebenen beschriftet. Du setzt nur fort.</span></p>'+
-   '<p><button class="p" data-pl="schwer">Schwer</button> <span class="mut">Keine Beschriftung: Du zählst frei auf den Ebenen, die du willst, und setzt mindestens die nächste Welle in die Zukunftszone.</span></p></div>';
+   '<p><button class="p" data-pl="leicht">Leicht</button> <span class="mut">Der sichtbare Verlauf ist in allen Wellengrößen beschriftet. Du setzt nur fort.</span></p>'+
+   '<p><button class="p" data-pl="schwer">Schwer</button> <span class="mut">Keine Beschriftung: Du zählst frei, so grob oder fein du willst, und setzt mindestens die nächste Welle in die Zukunftszone. Welche Zählung die größere Welle ist, erkennt die App selbst.</span></p></div>';
   document.querySelectorAll('[data-pl]').forEach(b=>{b.onclick=()=>progn(arg,b.dataset.pl);lockTap(b)});window.scrollTo(0,0);return}
  const pool=arg?String(arg).split(','):Object.keys(PAT),key=pool[Math.floor(Math.random()*pool.length)],P=PAT[key],R=pgData(P);
  const cuts=P.waves.length===5?[2,3,4]:[2],cut0=cuts[Math.floor(Math.random()*cuts.length)],c0=R.mp[cut0],N=R.N;
@@ -1366,7 +1366,9 @@ function progn(arg,lvl){
   return{lab:P.labels,key0:P.key,t:L1,p:L1.map(i=>R.pr[i]),vk:R.tree.kids?R.tree.kids.slice(0,cut0).map(x=>PGKOF[x.key]):[],cut:cut0,wp,
    sub:R.piv.filter(q=>q.lev>1&&q.t<=c0).map(q=>({lev:q.lev,t:q.t,p:q.p,l:pgTxt(q.lev,q.l)}))}};
  let CNT=lvl==='leicht'?truthCount():null; // Schwer: keine Vorgabe, frei zählen (FR)
- const FR=lvl==='schwer'?{pts:[],n:0,lev:1,z:'N',i:0,sel:null,err:{},errs:[],tips:0,done:false}:null;
+ // FR.pts: Punkte mit Zählung c; FR.ac = Zählung, die gerade fortgesetzt wird (null: das nächste Tippen beginnt eine neue), FR.cn = Zähler der Zählungen
+ const FR=lvl==='schwer'?{pts:[],n:0,cn:0,ac:null,z:'N',i:0,sel:null,err:{},errs:[],tips:0,done:false}:null;
+ const fseed=Math.random()*1e4,hrn=i=>{const x=Math.sin((i+fseed)*12.9898)*43758.5453;return 2*(x-Math.floor(x))-1}; // fester Zufall je Stunde (Prognose-Kerzen)
  const m={ch:{},pts:[],tips:0,failed:false,done:false,chErr:false,shown:false,lines:[],cz:null,cs:null,cw:[],cfail:0,cntShown:false};
  const fam=()=>Object.keys(PAT).filter(k=>PAT[k].labels.join()===CNT.lab.join()).map(k=>PAT[k]); // Muster mit derselben Beschriftung
  const waves=()=>{const o=[];for(let k=CNT.cut+1;k<CNT.lab.length;k++)o.push(k);return o}; // fehlende Hauptwellen (1 = erste Welle)
@@ -1382,6 +1384,24 @@ function progn(arg,lvl){
  const AG={},agg=all=>{const id=tf+(all?'a':'v');if(AG[id])return AG[id];const n=all?N:c0,o=[],h=[],l=[],c=[];
   for(let i=0;i<=n;i++){const g=Math.floor(i/tf);if(o[g]===undefined){o[g]=R.o[i];h[g]=R.h[i];l[g]=R.l[i]}else{if(R.h[i]>h[g])h[g]=R.h[i];if(R.l[i]<l[g])l[g]=R.l[i]}c[g]=R.c[i]}
   return AG[id]={o,h,l,c}};
+ // Prognose-Kerzen (seit 11.11.2026, Lenny): Stundenwerte von der letzten echten Kerze durch die eigenen Prognose-Punkte (zeitlich sortiert),
+ // mit leichtem Rauschen (Brownsche Brücke, fester Zufall je Stunde, damit nichts flackert). Zwischen zwei Punkten bleibt der Kurs in deren
+ // Preisspanne, so ist jeder Punkt das Hoch bzw. Tief seiner Kerze. Zusammengefasst wie agg, gezeichnet als gestrichelte Umrisse.
+ const fcNodes=()=>FR?FR.pts.filter(q=>q.t>c0+.5).map(q=>({t:q.t,p:q.p})).sort((a,b)=>a.t-b.t):m.pts.map(q=>({t:q.x,p:q.p}));
+ let FC={};
+ const fcAgg=nodes=>{const id=tf+':'+nodes.map(q=>q.t.toFixed(2)+','+q.p).join(';');if(FC.id===id)return FC.a;
+  const v=[],sl=[],sh=[];let pt={t:c0,p:R.c[c0]};
+  nodes.forEach(q=>{const t1=Math.round(q.t);if(t1<=pt.t)return; // zweiter Punkt in derselben Stunde: übergehen
+   const n=t1-pt.t,d=q.p-pt.p,lo=Math.min(pt.p,q.p),hi=Math.max(pt.p,q.p),w=[0];let s=0;
+   for(let j=1;j<=n;j++){s+=hrn(pt.t+j);w.push(s)}
+   const br=w.map((x,j)=>x-j/n*s),mx=Math.max(...br.map(Math.abs))||1,amp=.16*Math.abs(d);
+   for(let j=1;j<=n;j++){const i=pt.t+j;v[i]=Math.max(lo,Math.min(hi,pt.p+d*j/n+br[j]/mx*amp));sl[i]=lo;sh[i]=hi}
+   pt={t:t1,p:q.p}});
+  const o=[],h=[],l=[],c=[];
+  for(let i=c0+1;i<v.length;i++){const op=i>c0+1?v[i-1]:R.c[c0],cl=v[i],wk=Math.abs(hrn(i*7.3))*.04*(sh[i]-sl[i]);
+   const hh=Math.min(sh[i],Math.max(op,cl)+wk),ll=Math.max(sl[i],Math.min(op,cl)-wk),g=Math.floor(i/tf);
+   if(o[g]===undefined){o[g]=op;h[g]=hh;l[g]=ll}else{if(hh>h[g])h[g]=hh;if(ll<l[g])l[g]=ll}c[g]=cl}
+  FC={id,a:{o,h,l,c}};return FC.a};
  // Preisbereich passend zu den Kerzen im Ausschnitt; ist die Zukunftszone im Bild, bleibt oben und unten Platz zum Planen
  let core=[patLo,patHi];
  const fitY=()=>{const t0=Math.max(0,Tof(0)),t1=Tof(W),a=agg(m.shown),g0=Math.floor(t0/tf),g1=Math.min(a.c.length-1,Math.floor(t1/tf));let lo=1e9,hi=-1e9;const add=p=>{if(p<lo)lo=p;if(p>hi)hi=p};
@@ -1396,7 +1416,7 @@ function progn(arg,lvl){
   const pad=(hi-lo)*.05||1;yr=[lo-pad,hi+pad]};
  const truthPlan=()=>{const o=[];for(let k=cut0+1;k<P.labels.length;k++){const kid=R.tree.kids&&R.tree.kids[k-1];
   o.push({k,kind:kid?PGKOF[kid.key]:'ABC',pts:R.piv.filter(q=>q.lev===2&&q.w1===k).sort((a,b)=>a.t-b.t).map(q=>({t:q.t,p:q.p}))})}return o};
- PGS={P,R,cut:cut0,m,lvl,X:t=>X(t),Y:p=>Y(p),plot:()=>({W,H:H-BP}),tf:()=>tf,setTf:h=>{const b=document.querySelector('[data-tf="'+h+'"]');if(b)b.click()},truth:truthPlan,FR:()=>FR,fadd:(lev,z,i,t,p)=>{FR.pts.push({id:++FR.n,lev,z,i,t,p});frRender()},
+ PGS={P,R,cut:cut0,m,lvl,X:t=>X(t),Y:p=>Y(p),plot:()=>({W,H:H-BP}),tf:()=>tf,setTf:h=>{const b=document.querySelector('[data-tf="'+h+'"]');if(b)b.click()},truth:truthPlan,FR:()=>FR,fadd:(z,i,t,p,c)=>{const r=frAdd(z,i,t,p,c);frRender();return r},levels:()=>{const o={};frSeries().forEach(S=>o[S.c]=S.lev);return o},fc:()=>fcAgg(fcNodes()),
   show:(t,p)=>{sc=clampSc((t+.5)*BW/tf-W/2);peek=p===undefined?null:p;fitY();redraw($('#svg'),pic())}}; // show: Stelle (und Preis) ins Bild holen
  const segs=()=>{let o=0;return waves().filter(k=>m.ch[k]).map(k=>{const kind=m.ch[k],n=PGK[kind].l.length,g={k,kind,n,pts:m.pts.slice(o,o+n)};o+=n;return g})};
  const cur=()=>{for(const g of segs())if(g.pts.length<g.n)return{k:g.k,kind:g.kind,n:g.n,have:g.pts.length};const k=waves().find(k=>!m.ch[k]);return k?{k,needChar:true}:null};
@@ -1430,10 +1450,11 @@ function progn(arg,lvl){
   for(let y=20;y<H-BP;y+=50)s+='<line x1="0" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width=".6"/>';
   s+='<line x1="0" x2="'+W+'" y1="'+(H-BP+4)+'" y2="'+(H-BP+4)+'" stroke="var(--line)" stroke-width="1"/>'+axis();
   // Kerzen: steigend blau gefüllt, fallend weiß mit blauem Rand (wie im Wellen-Pfad); der wahre Rest nach dem Auflösen blass
-  const candles=(a,g0,g1,cls)=>{let o='<g class="pgcd'+cls+'">';for(let g=Math.max(0,g0);g<=Math.min(a.c.length-1,g1);g++){const x=(g+.5)*BW-sc,up=a.c[g]>=a.o[g],yt=Y(Math.max(a.o[g],a.c[g])),yb=Y(Math.min(a.o[g],a.c[g]));
+  const candles=(a,g0,g1,cls)=>{let o='<g class="'+cls+'">';for(let g=Math.max(0,g0);g<=Math.min(a.c.length-1,g1);g++){if(a.c[g]===undefined)continue;const x=(g+.5)*BW-sc,up=a.c[g]>=a.o[g],yt=Y(Math.max(a.o[g],a.c[g])),yb=Y(Math.min(a.o[g],a.c[g]));
     o+='<line x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+Y(a.h[g]).toFixed(1)+'" y2="'+Y(a.l[g]).toFixed(1)+'"/><rect class="'+(up?'u':'d')+'" x="'+(x-bw/2).toFixed(1)+'" y="'+yt.toFixed(1)+'" width="'+bw+'" height="'+Math.max(1,yb-yt).toFixed(1)+'"/>'}return o+'</g>'};
-  const gc=Math.floor(c0/tf);s+=candles(agg(false),Math.floor(t0/tf),Math.min(gc,Math.floor(t1/tf)),'');
-  if(m.shown)s+=candles(agg(true),gc+1,Math.floor(t1/tf),' fut');
+  const gc=Math.floor(c0/tf);s+=candles(agg(false),Math.floor(t0/tf),Math.min(gc,Math.floor(t1/tf)),'pgcd');
+  s+=candles(fcAgg(fcNodes()),Math.max(gc+1,Math.floor(t0/tf)),Math.floor(t1/tf),'pgfc'); // Prognose: gestrichelte Kerzen
+  if(m.shown)s+=candles(agg(true),gc+1,Math.floor(t1/tf),'pgcd fut'); // echter Verlauf darüber
   // Invalidierungslinien: gestrichelt ab dem Pivot nach rechts, kurzes Etikett an der Linie
   m.lines.forEach(z=>{const x1=X(z.t),y=Y(z.p),x2=Math.max(x1+40,X(ZE+.5));
    s+='<line class="pgil" x1="'+x1+'" x2="'+x2+'" y1="'+y+'" y2="'+y+'"/><circle cx="'+x1+'" cy="'+y+'" r="3.5" fill="var(--dn)"/>'+
@@ -1448,8 +1469,10 @@ function progn(arg,lvl){
    const L=CNT.t.map((t,k)=>({t,p:CNT.p[k]}));L.forEach((q,k)=>{const up=upAt(k,L);lab(X(q.t),Y(q.p)+(up?-14:22),up,pgLab(CNT.key0,k),'',1)});
    CNT.sub.forEach(q=>{if(!showLev(q.lev))return;const nb=CNT.sub.concat(L).filter(x=>Math.abs(x.t-q.t)>0).sort((a,b)=>Math.abs(a.t-q.t)-Math.abs(b.t-q.t))[0],up=!nb||q.p>=nb.p;
     lab(X(q.t),Y(q.p)+(up?-8:16),up,q.l,q.lev===3?'font-size:11px;fill:var(--mut)':'')})}
-   else if(FR){ // Schwer: frei gesetzte Punkte; Fehler rot, ausgewählter Punkt mit Ring. Labels auf allen Ebenen immer sichtbar (es sind die eigenen)
-    const byT=FR.pts.slice().sort((a,b)=>a.t-b.t||a.lev-b.lev);
+   else if(FR){ // Schwer: frei gesetzte Punkte; Fehler rot, ausgewählter Punkt mit Ring. Labels aller Wellengrößen immer sichtbar (es sind die eigenen).
+    // Die Wellengröße (lev) jeder Zählung bestimmt frSeries automatisch, die Beschriftung folgt ihr.
+    const lv={};frSeries().forEach(S=>S.pts.forEach(q=>lv[q.id]=S.lev));
+    const byT=FR.pts.map(q=>({...q,lev:lv[q.id]||1,o:q})).sort((a,b)=>a.t-b.t||a.lev-b.lev);
     byT.forEach(q=>{const x=X(q.t),y=Y(q.p),er=FR.err[q.id],sl=FR.sel===q.id;
      s+='<circle cx="'+x+'" cy="'+y+'" r="'+(sl?7:4.5)+'" fill="'+(er?'var(--dn)':'var(--accent)')+'" stroke="'+(sl?'var(--ink)':'var(--surface)')+'" stroke-width="'+(sl?2:1.5)+'"/>';
      if(er)s+='<circle cx="'+x+'" cy="'+y+'" r="11" fill="none" stroke="var(--dn)" stroke-width="2"/>';
@@ -1469,9 +1492,9 @@ function progn(arg,lvl){
  const focus=()=>{if(!CNT)return null;
   if(m.done)return null;const c=cur();if(!c)return null;const g=segs().filter(x=>x.k<c.k).pop();return[g?g.pts.slice(-1)[0].x:CNT.t[CNT.cut],ZE]};
  const C1=l=>'<span class="c1">'+l+'</span>'; // Beschriftung der Ebene 1 im Kreis (wie im Chart)
- const SUBS='Ebene 2: (1)–(5), (a)–(c), (a)–(e), (w)–(y) oder (w)–(z)';
+ const SUBS='mittlere Wellen: (1)–(5), (a)–(c), (a)–(e), (w)–(y) oder (w)–(z)';
  const tfBar=()=>'<div class="pgtf" role="group" aria-label="Zeiteinheit">'+PGTF.map(([n,h])=>'<button data-tf="'+h+'" class="'+(h===tf?'on':'')+'" aria-pressed="'+(h===tf)+'">'+n+'</button>').join('')+'</div>';
- const legend='<p class="pglg" aria-label="Beschriftung der Wellenebenen"><span class="c1">1</span> Ebene 1 (W, D) · <b>(1)</b> Ebene 2 (ab 4h) · <span class="mut">1</span> Ebene 3 (1h)</p>';
+ const legend='<p class="pglg" aria-label="Beschriftung der Wellengrößen"><span class="c1">1</span> große Welle · <b>(1)</b> mittlere · <span class="mut">1</span> kleine'+(FR?'':' <span class="mut">(mittlere ab 4h, kleine im 1h-Chart)</span>')+'</p>';
  const wn=k=>pgLab(fam()[0].key,k);
  // Ansicht einrichten (Breite am fertigen Rahmen messen; beim ersten Mal Zeiteinheit und Kerzenbreite wählen)
  const initView=()=>{size();
@@ -1482,7 +1505,7 @@ function progn(arg,lvl){
  const render=fb=>{if(FR)return frRender(fb);fbLast=fb;
   {const cu=cur(),ws=waves();
    $('#view').innerHTML='<p class="kick">Wie geht es weiter?'+(lvl==='schwer'?' · Schwer':'')+'</p><p class="task">Der Chart bricht nach Welle '+wn(CNT.cut)+' ab. Plane '+(ws.length>1?'die fehlenden Wellen '+ws.map(wn).join(', '):'die fehlende Welle '+wn(ws[0]))+' in der grauen Zone. '+
-    (m.done?'':cu?(cu.needChar?'<b>Jetzt Welle '+C1(wn(cu.k))+' (Ebene 1).</b> Wie unterteilt sie sich ('+SUBS+')?':'Welle '+C1(wn(cu.k))+' (Ebene 1) als '+PGK[cu.kind].t+': Setze ihre Ebene-2-Punkte rechts der Grenze. Nächster Punkt <span class="nextpt">'+PGK[cu.kind].l[cu.have]+'</span>'+(cu.have===cu.n-1?', er ist zugleich das Ende von Welle '+C1(wn(cu.k))+'.':'.')+' Tippen setzt den Punkt, Wischen verschiebt den Chart.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
+    (m.done?'':cu?(cu.needChar?'<b>Jetzt die große Welle '+C1(wn(cu.k))+'.</b> Wie unterteilt sie sich ('+SUBS+')?':'Große Welle '+C1(wn(cu.k))+' als '+PGK[cu.kind].t+': Setze ihre mittleren Wellen rechts der Grenze. Nächster Punkt <span class="nextpt">'+PGK[cu.kind].l[cu.have]+'</span>'+(cu.have===cu.n-1?', er ist zugleich das Ende von Welle '+C1(wn(cu.k))+'.':'.')+' Tippen setzt den Punkt, Wischen verschiebt den Chart.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
     (cu&&cu.needChar&&!m.done?'<div class="pgk">'+Object.keys(PGK).map(k=>'<button data-ch="'+k+'">'+PGK[k].t+'</button>').join('')+'</div>':'')+
     '<div class="chart pgc" id="pgc"></div>'+legend+
     '<div class="dock">'+(m.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
@@ -1491,7 +1514,7 @@ function progn(arg,lvl){
   initView();
   $('#pgc').innerHTML=pic()+tfBar()+'<button id="pgend" class="pgend" hidden>Zum Ende springen</button>';
   bindChart();
-  if(m.done){$('#real').onclick=()=>{m.shown=true;render(fb+'<p class="mut">Blass: der tatsächliche Verlauf, im selben Maßstab. Nur zum Vergleich: Punkte gibt es für regelkonformes Planen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(arg,lvl);return}
+  if(m.done){$('#real').onclick=()=>{m.shown=true;render(fb+'<p class="mut">Darübergelegt: der tatsächliche Verlauf, im selben Maßstab. Gestrichelt darunter: deine Prognose. Nur zum Vergleich: Punkte gibt es für regelkonformes Planen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(arg,lvl);return}
   const cu=cur();
   document.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{m.ch[cu.k]=b.dataset.ch;render()});
   $('#und').onclick=()=>{const g=segs().pop();if(!g)return;if(g.pts.length)m.pts.pop();else delete m.ch[g.k];m.lines=[];render()};
@@ -1583,31 +1606,62 @@ function progn(arg,lvl){
    if(!r)return null;if(r.st>best.st)best=r}
   return best};
  // ---- Schwer (Neubau 11.11.2026, Lenny): frei zählen und prognostizieren. Die App gibt nichts vor und schließt nichts selbst ab.
- // FR.pts: {id, lev (Ebene 1–3), z (Zählweise), i (Label-Index), t, p}. Ein Wendepunkt darf Labels mehrerer Ebenen tragen.
- // Reihen: je Ebene die Punkte nach Zeit; aufeinanderfolgende Labels derselben Zählweise bilden eine Reihe. Eine Reihe beginnt mit 0
- // oder mit 1 (dann ist ihr Start der letzte Punkt einer höheren Ebene davor). Unterteilungen dürfen unvollständig sein; das letzte Label
- // einer Unterteilung darf fehlen, wenn das Ende der Welle darüber gesetzt ist.
+ // Seit dem zweiten Umbau am selben Tag wählt man keine Ebene mehr: Man wählt nur die Zählweise und setzt Punkte. Jede Folge von Punkten,
+ // die man hintereinander setzt, ist eine Zählung (FR.pts[].c). Welche Zählung die größere Welle ist, bestimmt frSeries aus der Lage:
+ // Liegt eine Zählung ganz in einer Welle einer anderen, ist sie eine Wellengröße kleiner. Die Beschriftung folgt automatisch
+ // (größte ①, mittlere (1), kleinste 1) und stellt sich um, wenn später eine größere Zählung dazukommt.
  const frSeq=z=>PAT[PGZL[z]].labels; // Labels 0..n einer Zählweise
  const frTxt=(lev,z,i)=>pgTxt(lev,pgLab(PGZL[z],i)),frHtml=(lev,z,i)=>lev===1?C1(frTxt(lev,z,i)):frTxt(lev,z,i);
- const frSeries=()=>{const out=[];[1,2,3].forEach(L=>{let cur=null;FR.pts.filter(q=>q.lev===L).sort((a,b)=>a.t-b.t||a.i-b.i).forEach(q=>{const l=cur&&cur.pts[cur.pts.length-1];
-   if(cur&&cur.z===q.z&&q.i===l.i+1&&q.t>l.t)cur.pts.push(q);else{cur={lev:L,z:q.z,pts:[q]};out.push(cur)}})});
-  out.forEach(S=>{const f=S.pts[0],own=S.pts.map(q=>({t:q.t,p:q.p,id:q.id}));S.ps=null;
-   if(f.i===0)S.ps=own;else if(f.i===1){const par=FR.pts.filter(q=>q.lev<S.lev&&q.t<f.t).sort((a,b)=>b.t-a.t)[0];if(par)S.ps=[{t:par.t,p:par.p,impl:1}].concat(own)}});
+ const SIZE=['','große Welle','mittlere Welle','kleine Welle'];
+ // Zählungen mit Wellengröße. Je Zählung: own = eigene Punkte (nach Zeit), ps = Punkte ab Start 0 (fehlender Start bzw. fehlendes letztes Label
+ // aus der Welle darüber ergänzt, impl), par/pk = Zählung und Welle darüber, lev = Wellengröße (1 = größte), bad = Labels folgen nicht aufeinander.
+ const frSeries=()=>{const by={};FR.pts.forEach(q=>(by[q.c]=by[q.c]||[]).push(q));
+  const out=Object.keys(by).map(c=>{const pts=by[c].slice().sort((a,b)=>a.t-b.t||a.i-b.i);
+   return{c:+c,z:pts[0].z,pts,own:pts.map(q=>({t:q.t,p:q.p,id:q.id})),par:null,pk:0,open:false,ps:null,endImpl:false,bad:null,lev:1}});
+  out.forEach(S=>{for(let j=1;j<S.pts.length;j++)if(S.pts[j].i!==S.pts[j-1].i+1){S.bad={a:S.pts[j-1],b:S.pts[j]};break}});
+  const P_=S=>S.ps||S.own,i0=S=>S.ps?0:S.pts[0].i,len=S=>{const a=P_(S);return a[a.length-1].t-a[0].t};
+  // Welle von S (Label-Index ihres Endes), in der C ganz liegt; 0 = keine. Beginnt C mit 0, darf C am Start der Welle beginnen, sonst danach.
+  const waveOf=(C,S)=>{if(C===S||C.bad||S.bad)return 0;const P=P_(S),f=C.own[0].t,l=C.own[C.own.length-1].t,z0=C.pts[0].i===0;
+   for(let j=1;j<P.length;j++){const a=P[j-1].t,b=P[j].t;if((z0?a<=f:a<f)&&l<=b&&(f>a||l<b||C.own.length>2))return i0(S)+j}return 0};
+  // Durchschnittliche Wellendauer: Liegen zwei Zählungen je in einer Welle der anderen (möglich, solange ergänzte Start- und Endpunkte noch
+  // aus einer zu großen Welle stammen), ist die mit den längeren Wellen die größere.
+  const gw=S=>{const a=S.own.length>1?S.own:P_(S);return a.length>1?(a[a.length-1].t-a[0].t)/(a.length-1):0};
+  for(let it=0;it<6;it++){
+   out.forEach(C=>{let best=null;C.open=false;
+    out.forEach(S=>{const k=waveOf(C,S);if(!k||(waveOf(S,C)&&gw(S)<=gw(C)))return;const P=P_(S),j=k-i0(S),d=P[j].t-P[j-1].t;if(!best||d<best.d)best={S,k,d}});
+    if(!best&&!C.bad&&C.pts[0].i<=1){ // offene Welle: C setzt eine unfertige, mindestens so lange Zählung fort (z. B. Unterteilung der nächsten Welle in der Prognose)
+     const f=C.own[0].t;let o=null;
+     out.forEach(S=>{if(S===C||S.bad||S.endImpl||waveOf(S,C))return;const n=frSeq(S.z).length-1,li=S.pts[S.pts.length-1].i;if(li>=n)return;
+      const P=P_(S),lt=P[P.length-1].t;if(len(S)<len(C))return;if(C.pts[0].i?lt<f:lt===f)if(!o||lt>o.lt)o={S,lt,k:li+1}});
+     if(o){best=o;C.open=true}}
+    C.par=best?best.S:null;C.pk=best?best.k:0});
+   out.forEach(C=>{const own=C.own;let ps=null;C.endImpl=false;
+    const P=C.par&&P_(C.par),j=C.par&&C.pk-i0(C.par);
+    if(C.pts[0].i===0)ps=own.slice();
+    else if(C.pts[0].i===1&&C.par){const st=C.open?P[P.length-1]:P[j-1];if(st)ps=[{t:st.t,p:st.p,impl:1}].concat(own)}
+    // letztes Label weggelassen: Die Zählung endet am Ende der Welle darüber
+    if(ps&&C.par&&!C.open&&!C.bad&&P[j]&&C.pts[C.pts.length-1].i===frSeq(C.z).length-2&&own[own.length-1].t<P[j].t){ps=ps.concat({t:P[j].t,p:P[j].p,impl:1});C.endImpl=true}
+    C.ps=ps})}
+  out.forEach(C=>{let d=1,x=C.par;const seen=new Set([C]);while(x&&!seen.has(x)){seen.add(x);d++;x=x.par}if(x){C.cyc=true;d=1}C.depth=d;C.lev=Math.min(3,d)});
+  // Nicht eindeutig: Zeiträume überschneiden sich, aber keine Zählung liegt in einer Welle der anderen
+  const sp=S=>{const a=P_(S);return[a[0].t,a[a.length-1].t]},anc=(A,B)=>{let x=A.par;const seen=new Set();while(x&&!seen.has(x)){if(x===B)return true;seen.add(x);x=x.par}return false};
+  out.conf=[];out.forEach((A,x)=>out.forEach((B,y)=>{if(y<=x||A.bad||B.bad)return;const[a0,a1]=sp(A),[b0,b1]=sp(B);if(Math.min(a1,b1)-Math.max(a0,b0)<=.5)return;
+   if(A.cyc||B.cyc||!(anc(A,B)||anc(B,A)))out.conf.push([A,B])}));
   return out};
- // Höchste gezählte Ebene braucht eine Prognose: mindestens ein Punkt dieser Ebene in der Zukunftszone
- const frReady=()=>{if(!FR.pts.length)return false;const Lh=Math.min(...FR.pts.map(q=>q.lev));return FR.pts.some(q=>q.lev===Lh&&q.t>c0)};
- // Eine Reihe gegen das Regelwerk prüfen: null = regelkonform, sonst der Befund (pid = betroffener Punkt) der Musterart, die am weitesten kommt
+ // Prüfen geht, sobald eine Zählung der größten Wellengröße mindestens einen Punkt in der Zukunftszone hat
+ const frReady=()=>FR.pts.length>0&&frSeries().some(S=>S.lev===1&&S.pts.some(q=>q.t>c0+.5));
+ // Eine Zählung gegen das Regelwerk prüfen: null = regelkonform, sonst der Befund (pid = betroffener Punkt) der Musterart, die am weitesten kommt
  const frCheck=(S,all)=>{const lab=frSeq(S.z),n=lab.length-1,nm=j=>frHtml(S.lev,S.z,j);
-  if(!S.ps){const f=S.pts[0];return{st:0,pid:f.id,msg:f.i>1?'Die Reihe beginnt mit '+nm(f.i)+', davor fehlt '+nm(f.i-1)+'. Eine Reihe beginnt mit '+nm(0)+' oder '+nm(1)+'.':'Vor '+nm(1)+' fehlt der Startpunkt: Setze '+nm(0)+' oder zähle zuerst die Welle der Ebene darüber.'}}
-  const ps=S.ps,last=ps.length-1,pr=ps.map(q=>q.p),idOf=j=>ps[j].id||(ps[j+1]&&ps[j+1].id)||S.pts[0].id;
+  if(S.bad)return{st:0,pid:S.bad.b.id,msg:'In einer Zählung folgt auf '+nm(S.bad.a.i)+' nicht '+nm(S.bad.a.i+1)+', sondern '+nm(S.bad.b.i)+'. Benenne den Punkt um, setze das fehlende Label oder beginne eine neue Zählung (Zählweise antippen).'};
+  if(!S.ps){const f=S.pts[0];return{st:0,pid:f.id,msg:f.i>1?'Die Zählung beginnt mit '+nm(f.i)+', davor fehlt '+nm(f.i-1)+'. Eine Zählung beginnt mit '+nm(0)+' oder '+nm(1)+'.':'Vor '+nm(1)+' fehlt der Startpunkt: Setze '+nm(0)+', oder zähle auch die größere Welle, in der diese Zählung liegt.'}}
+  const ps=S.ps,last=ps.length-1,pr=ps.map(q=>q.p),idOf=j=>ps[j].id||(ps[j+1]&&ps[j+1].id)||(ps[j-1]&&ps[j-1].id)||S.pts[0].id;
   for(let j=1;j<=last;j++){const d=Math.sign(pr[j]-pr[j-1]);if(!d||(j>1&&d===Math.sign(pr[j-1]-pr[j-2])))return{st:1,pid:idOf(j),msg:'Bei '+nm(j)+' wechselt die Richtung nicht. Hoch und Tief müssen sich abwechseln.'}}
   // Jeder sichtbare Punkt ist das Hoch bzw. Tief seiner Umgebung (je ein Fünftel der angrenzenden Wellen). Weiter weg darf eine Teilwelle
   // überschießen (z. B. B eines Expanded Flat über den Start hinaus), das ist regelkonform.
   for(let j=0;j<=last;j++){const q=ps[j];if(q.impl||q.t>c0)continue;const a=j?Math.floor(q.t-.2*(q.t-ps[j-1].t)):q.t,b=Math.min(c0+1,j<last?Math.ceil(q.t+.2*(ps[j+1].t-q.t))+1:q.t),peak=j?q.p>pr[j-1]:(last?q.p>pr[1]:true);
    for(let t=a+(j?1:0);t<b;t++)if(t<=c0&&(peak?R.h[t]>q.p+1e-9:R.l[t]<q.p-1e-9))return{st:1,pid:q.id,msg:nm(j)+' sitzt nicht am '+(peak?'Hoch':'Tief')+' zwischen seinen Nachbarn. Setze ihn dorthin, wo die Bewegung wirklich dreht.'}}
-  // Unterteilungen der Welle k: Reihen der Ebene darunter, die am Start der Welle beginnen (fehlendes letztes Label = Ende der Welle)
-  const kids=k=>all.filter(C=>C.lev===S.lev+1&&C.ps&&C.ps[0].t===ps[k-1].t&&(!ps[k]||C.ps[C.ps.length-1].t<=ps[k].t)).map(C=>{const nC=frSeq(C.z).length-1;let full=C.ps;
-   if(ps[k]&&C.ps.length===nC&&C.ps[C.ps.length-1].t<ps[k].t)full=C.ps.concat({t:ps[k].t,p:ps[k].p,impl:1});return{C,full,complete:full.length===nC+1}});
+  // Unterteilungen der Welle k: Zählungen eine Wellengröße kleiner, die in Welle k liegen und an ihrem Start beginnen
+  const kids=k=>all.filter(C=>C.par===S&&C.pk===k&&C.ps&&ps[k-1]&&C.ps[0].t===ps[k-1].t).map(C=>({C,full:C.ps,complete:C.ps.length===frSeq(C.z).length}));
   const okKind=(V,k,z)=>V[k-1].some(d=>PGKOF[d]===z||(z==='ABC'&&PGKOF[d]==='WXY')||(z==='WXY'&&PGKOF[d]==='ABC'));
   const fam=Object.keys(PAT).filter(k=>PAT[k].labels.join()===lab.join()).map(k=>PAT[k]),Q0=PAT[PGZL[S.z]];let best=null,prim=null;
   for(const Q of fam){const v=norm(Q,pr),s=Q.sign(pr);
@@ -1615,7 +1669,7 @@ function progn(arg,lvl){
     const f=Object.keys(Q.rules).filter(id=>{const r=Q.rules[id],mx=pgRuleMax(r);return r.hard&&(mx<=last?!r.ok(v):!pgCanHold(r,v,last,mx))});
     if(f.length){const w=Math.min(last,Q.waves.indexOf(Q.rules[f[0]].wave)+1||last);e={st:3,pid:idOf(w),Q,id:f[0],w,S}}
     if(!e)for(const [w,b,id,must] of PGTER[Q.key]||[]){if(w>last)continue;const d=Math.sign(pr[w]-pr[w-1]);let ext;
-     if(ps[w].t<=c0){ext=pr[w];for(let t=ps[w-1].t;t<=ps[w].t;t++)ext=d>0?Math.max(ext,R.h[t]):Math.min(ext,R.l[t])}
+     if(ps[w].t<=c0){ext=pr[w];for(let t=Math.ceil(ps[w-1].t);t<=ps[w].t;t++)ext=d>0?Math.max(ext,R.h[t]):Math.min(ext,R.l[t])}
      else{const pts=[pr[w-1],pr[w]].concat(...kids(w).map(x=>x.full.map(q=>q.p)));ext=d>0?Math.max(...pts):Math.min(...pts)}
      if(!pgTerOk(Math.sign(v[w]-v[w-1]),s*(ext-pr[0]),v[b],must)){e={st:3,pid:idOf(w),Q,id,w,S};break}}
     if(!e)for(let k=1;k<=Math.min(n,last+1)&&!e;k++)for(const x of kids(k)){const z=x.C.z,fp=x.full.map(q=>q.p),dk=k<=last?Math.sign(pr[k]-pr[k-1]):(last?-Math.sign(pr[last]-pr[last-1]):0);
@@ -1635,47 +1689,60 @@ function progn(arg,lvl){
   const o=(PGLINE[e.Q.key]||[]).filter(z=>z.w===e.w).map(z=>{let p=null;try{p=z.j!==undefined?pr[z.j]:(z.f(v)===null?null:pr[0]+s*z.f(v))}catch(_){}
    if(p===null||isNaN(p)||!ps[z.j!==undefined?z.j:z.w-1])return null;return{t:ps[z.j!==undefined?z.j:z.w-1].t,p,txt:mt(z.t),below:Math.sign(pr[z.w]-pr[z.w-1])<0}}).filter(Boolean);
   FLIP=fl;return o};
- const frVerify=()=>{const all=frSeries(),errs=all.map(S=>frCheck(S,all)).filter(Boolean);FR.err={};m.lines=[];
-  if(errs.length){m.failed=true;if(st.streak)st.streak=0,stats();FR.errs=errs;errs.forEach(e=>{FR.err[e.pid]=1;if(e.Q)m.lines.push(...frLines(e))});FR.tips=0;return frTips()}
-  const lv=new Set(FR.pts.map(q=>q.lev)).size,gain=Math.min(40,4+FR.pts.length+3*(lv-1))-(m.failed?3:0);
+ const frName=S=>{const a=S.pts[0],b=S.pts[S.pts.length-1];return frHtml(S.lev,S.z,a.i)+(b!==a?'–'+frHtml(S.lev,S.z,b.i):'')};
+ const frVerify=()=>{const all=frSeries(),errs=[];FR.err={};m.lines=[];
+  // Zuordnung nicht eindeutig: freundlich darauf hinweisen, nicht raten
+  all.conf.forEach(([A,B])=>errs.push({st:0,pids:[A.pts[0].id,B.pts[0].id],msg:'Die Zählungen '+frName(A)+' ('+PGK[A.z].t+') und '+frName(B)+' ('+PGK[B.z].t+') überschneiden sich nur teilweise. So ist nicht klar, welche die größere Welle ist. Lege die kleinere Zählung ganz in eine Welle der größeren (Start und Ende dürfen auf deren Punkten liegen), oder lass die beiden nacheinander folgen.'}));
+  const deep=all.find(S=>S.depth>3);if(deep)errs.push({st:0,pid:deep.pts[0].id,msg:'Hier liegen mehr als drei Wellengrößen ineinander. Die App unterscheidet große, mittlere und kleine Wellen: Lass die feinste Zählung weg.'});
+  all.forEach(S=>{const e=frCheck(S,all);if(e)errs.push(e)});
+  if(errs.length){m.failed=true;if(st.streak)st.streak=0,stats();FR.errs=errs;errs.forEach(e=>{(e.pids||[e.pid]).forEach(id=>FR.err[id]=1);if(e.Q)m.lines.push(...frLines(e))});FR.tips=0;return frTips()}
+  const lv=new Set(all.map(S=>S.lev)).size,gain=Math.min(40,4+FR.pts.length+3*(lv-1))-(m.failed?3:0);
   m.done=FR.done=true;if(!m.failed)st.streak++;st.pts+=gain;stats();exSolved(key,FR.tips||0);pathMark('progn');
-  frRender('<p class="ok">Regelkonform! +'+gain+' Punkte</p><p>Deine Zählung: '+FR.pts.length+' Punkte auf '+lv+(lv>1?' Ebenen':' Ebene')+'. Mehr korrekt gezählte Wellen und Ebenen geben mehr Punkte. Generiert wurde übrigens: <b>'+P.title+'</b>.</p>')};
+  frRender('<p class="ok">Regelkonform! +'+gain+' Punkte</p><p>Deine Zählung: '+FR.pts.length+' Punkte in '+(lv>1?lv+' Wellengrößen':'einer Wellengröße')+'. Mehr korrekt gezählte Wellen und feinere Unterteilungen geben mehr Punkte. Generiert wurde übrigens: <b>'+P.title+'</b>.</p>')};
  // Befunde mit gestuften Tipps (Regelbefunde: Hinweis, Regelname, Quelle)
  const frTips=()=>{const e=FR.errs[0],more=FR.errs.length-1,lines=[e.msg||('Diese Zählung verletzt eine Regel'+(e.Q?' des Musters „'+e.Q.title+'“':'')+'.')];
   if(e.Q){const rl=e.Q.rules[e.id];if(FR.tips>=1)lines.push('Tipp 1: '+mt(rl.hint));if(FR.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „'+mt(rl.name)+'“.');if(FR.tips>=3)lines.push('Tipp 3: '+tag(e.Q,e.id)+'. '+mt(rl.ex))}
   else if(FR.tips>=1)lines.push('Tipp: Der rot markierte Punkt gehört zu der Stelle, die nicht passt. Ändere ihn, benenne ihn um oder lösche ihn.');
   frRender('<p class="bad">Noch nicht ganz.</p>'+lines.map(tipLine).join('')+(more?'<p class="mut">Dazu '+more+(more>1?' weitere Stellen':' weitere Stelle')+', ebenfalls rot markiert.</p>':'')+((e.Q?FR.tips<3:FR.tips<1)?'<button id="ftip">Tipp anzeigen</button>':''));
   const b=$('#ftip');if(b)b.onclick=()=>{FR.tips++;frTips()}};
+ // Punkt setzen. c: Zahl = an diese Zählung anhängen, 'neu' = neue Zählung, sonst automatisch: Der Punkt setzt die laufende Zählung fort,
+ // wenn er deren nächstes Label trägt und rechts von ihr liegt; sonst beginnt er eine neue. Nach dem letzten Label endet die Zählung.
+ const frAdd=(z,i,t,p,c)=>{if(typeof c!=='number'){const ac=FR.ac!==null?FR.pts.filter(q=>q.c===FR.ac):null,lst=ac&&ac.length?ac.reduce((a,b)=>b.i>a.i?b:a):null;
+   c=c!=='neu'&&ac&&(!lst||(lst.z===z&&lst.i===i-1&&t>lst.t))?FR.ac:++FR.cn}
+  FR.pts.push({id:++FR.n,c,z,i,t,p});
+  if(i>=frSeq(z).length-1){FR.ac=null;FR.i=1}else{FR.ac=c;FR.i=i+1}FR.z=z;
+  FR.sel=null;FR.err={};m.lines=[];return c};
  // Tippen auf freie Fläche: das markierte Label setzen (im sichtbaren Teil am nächsten Hoch oder Tief, in der Zukunftszone frei)
  const frTap=(px,py)=>{if(FR.done)return;const t=Tof(px);let q;
   if(t<=c0+.5){q=snap(px,py);if(!q)return}else{if(t>ZE)return toast('Setze den Punkt in den Chart oder in die graue Zone.');q={t,p:Pof(Math.max(6,Math.min(H-BP-2,py)))}}
-  FR.pts.push({id:++FR.n,lev:FR.lev,z:FR.z,i:FR.i,t:q.t,p:q.p});FR.i=FR.i+1<frSeq(FR.z).length?FR.i+1:1; // die Leiste springt weiter (nach dem letzten Label auf 1)
-  FR.sel=null;FR.err={};m.lines=[];frRender()};
- const frBar=()=>'<div class="pgbar"><div class="pgk" role="group" aria-label="Ebene">'+[1,2,3].map(L=>'<button data-flv="'+L+'" class="'+(FR.lev===L?'on':'')+'" aria-pressed="'+(FR.lev===L)+'">'+(L===1?C1('1'):L===2?'(1)':'1')+' Ebene '+L+'</button>').join('')+'</div>'+
-  '<div class="pgk" role="group" aria-label="Zählweise">'+Object.keys(PGK).map(z=>'<button data-fz="'+z+'" class="'+(FR.z===z?'on':'')+'" aria-pressed="'+(FR.z===z)+'">'+PGK[z].t+'</button>').join('')+'</div>'+
-  '<div class="pgk pgnx" role="group" aria-label="Nächstes Label"><span class="mut">Nächstes Label:</span>'+frSeq(FR.z).map((_,i)=>'<button data-fi="'+i+'" class="'+(FR.i===i?'on':'')+'" aria-pressed="'+(FR.i===i)+'">'+frHtml(FR.lev,FR.z,i)+'</button>').join('')+'</div></div>';
- const frSelUI=()=>{const q=FR.pts.find(x=>x.id===FR.sel);if(!q)return'';const same=q.lev===FR.lev&&q.z===FR.z&&q.i===FR.i;
-  return'<div class="card pgsel"><p><b>Punkt '+frHtml(q.lev,q.z,q.i)+'</b> <span class="mut">(Ebene '+q.lev+', '+PGK[q.z].t+')</span></p>'+
-   (same?'':'<p><button class="p" id="fadd">'+frHtml(FR.lev,FR.z,FR.i)+' hier zusätzlich setzen</button></p>')+
-   '<p><span class="mut">Umbenennen:</span> '+frSeq(q.z).map((_,i)=>'<button data-fren="'+i+'" class="'+(q.i===i?'on':'')+'">'+frHtml(q.lev,q.z,i)+'</button>').join('')+'</p>'+
+  frAdd(FR.z,FR.i,q.t,q.p);frRender()};
+ // Leiste: Zählweise (antippen = neue Zählung beginnen) und nächstes Label. Keine Wellengröße: die erkennt die App.
+ const frBar=()=>{const S=FR.ac!==null&&frSeries().find(x=>x.c===FR.ac),lv=S?S.lev:1,cont=S&&S.z===FR.z&&S.pts[S.pts.length-1].i===FR.i-1,lb=i=>S?frHtml(lv,FR.z,i):pgLab(PGZL[FR.z],i);
+  return'<div class="pgbar"><div class="pgk" role="group" aria-label="Zählweise (antippen beginnt eine neue Zählung)">'+Object.keys(PGK).map(z=>'<button data-fz="'+z+'" class="'+(FR.z===z?'on':'')+'" aria-pressed="'+(FR.z===z)+'">'+PGK[z].t+'</button>').join('')+'</div>'+
+  '<div class="pgk pgnx" role="group" aria-label="Nächstes Label"><span class="mut">Nächstes Label:</span>'+frSeq(FR.z).map((_,i)=>'<button data-fi="'+i+'" class="'+(FR.i===i?'on':'')+'" aria-pressed="'+(FR.i===i)+'">'+lb(i)+'</button>').join('')+
+  '<span class="mut pgst">'+(cont?'setzt die Zählung '+frName(S)+' fort':'beginnt eine neue Zählung')+'</span></div></div>'};
+ const frSelUI=()=>{const q=FR.pts.find(x=>x.id===FR.sel);if(!q)return'';const S=frSeries().find(x=>x.c===q.c),lv=S?S.lev:1,n=frSeq(q.z).length-1,top=S?S.pts[S.pts.length-1].i:q.i;
+  return'<div class="card pgsel"><p><b>Punkt '+frHtml(lv,q.z,q.i)+'</b> <span class="mut">('+SIZE[lv]+', '+PGK[q.z].t+')</span></p>'+
+   '<p><button class="p" id="fadd">'+pgLab(PGZL[FR.z],FR.i)+' hier zusätzlich setzen</button>'+(top<n?' <button id="fcont">Diese Zählung ab '+frHtml(lv,q.z,top+1)+' fortsetzen</button>':'')+'</p>'+
+   '<p><span class="mut">Umbenennen:</span> '+frSeq(q.z).map((_,i)=>'<button data-fren="'+i+'" class="'+(q.i===i?'on':'')+'">'+frHtml(lv,q.z,i)+'</button>').join('')+'</p>'+
    '<p><button id="fdel">Löschen</button><button id="fsx">Schließen</button></p></div>'};
  const frRender=fb=>{fbLast=fb;const ready=frReady();
-  $('#view').innerHTML='<p class="kick">Wie geht es weiter? · Schwer</p><p class="task">'+(FR.done?'Geprüft.':FR.pts.length?'<b>Zähle frei und plane die Fortsetzung.</b> Ebene und Zählweise wählen, auf den Chart tippen. Punkt antippen: löschen oder umbenennen.':'<b>Zähle frei und plane die Fortsetzung.</b> Wähle Ebene und Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, danach springt die Leiste weiter. Im sichtbaren Teil rastet der Punkt am nächsten Hoch oder Tief ein, in der grauen Zone setzt du frei. Einen Punkt antippen: löschen oder umbenennen, ziehen: verschieben.')+'</p>'+
+  $('#view').innerHTML='<p class="kick">Wie geht es weiter? · Schwer</p><p class="task">'+(FR.done?'Geprüft.':FR.pts.length?'<b>Zähle frei und plane die Fortsetzung.</b> Zählweise antippen beginnt eine neue Zählung, Tippen auf den Chart setzt das nächste Label. Welche Zählung die größere Welle ist, erkennt die App. Punkt antippen: löschen, umbenennen, fortsetzen.':'<b>Zähle frei und plane die Fortsetzung.</b> Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, danach springt die Leiste weiter. Im sichtbaren Teil rastet der Punkt am nächsten Hoch oder Tief ein, in der grauen Zone setzt du frei. Für eine weitere Zählung (größer oder kleiner) tippst du wieder eine Zählweise an. Die Wellengröße erkennt die App selbst: Liegt eine Zählung in einer Welle einer anderen, ist sie kleiner.')+'</p>'+
    (FR.done?'':frBar())+'<div class="chart pgc" id="pgc"></div>'+legend+(FR.sel&&!FR.done?frSelUI():'')+
    '<div class="dock">'+(FR.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
-    '<button class="p" id="fchk" '+(ready?'':'disabled')+'>Prüfen</button><button id="fund">Zurück</button><button id="frst">Neu setzen</button>'+(ready?'':'<p class="mut pghint">Prüfen geht, sobald mindestens die nächste Welle der höchsten gezählten Ebene in der grauen Zone steht.</p>'))+'</div>'+
+    '<button class="p" id="fchk" '+(ready?'':'disabled')+'>Prüfen</button><button id="fund">Zurück</button><button id="frst">Neu setzen</button>'+(ready?'':'<p class="mut pghint">Prüfen geht, sobald mindestens die nächste große Welle in der grauen Zone steht.</p>'))+'</div>'+
    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
   initView();$('#pgc').innerHTML=pic()+tfBar()+'<button id="pgend" class="pgend" hidden>Zum Ende springen</button>';bindChart();
-  if(FR.done){$('#real').onclick=()=>{m.shown=true;frRender(fb+'<p class="mut">Blass: der tatsächliche Verlauf mit der erzeugten Zählung der Ebene 1. Nur zum Vergleich: Punkte gibt es für regelkonformes Zählen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(arg,lvl);return}
-  document.querySelectorAll('[data-flv]').forEach(b=>b.onclick=()=>{FR.lev=+b.dataset.flv;frRender(fbLast)});
-  document.querySelectorAll('[data-fz]').forEach(b=>b.onclick=()=>{FR.z=b.dataset.fz;FR.i=Math.min(FR.i,frSeq(FR.z).length-1);frRender(fbLast)});
+  if(FR.done){$('#real').onclick=()=>{m.shown=true;frRender(fb+'<p class="mut">Darübergelegt: der tatsächliche Verlauf mit der erzeugten Zählung der großen Welle. Gestrichelt darunter: deine Prognose. Nur zum Vergleich: Punkte gibt es für regelkonformes Zählen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(arg,lvl);return}
+  document.querySelectorAll('[data-fz]').forEach(b=>b.onclick=()=>{FR.z=b.dataset.fz;FR.ac=null;FR.i=FR.pts.length?1:0;frRender(fbLast)}); // neue Zählung
   document.querySelectorAll('[data-fi]').forEach(b=>b.onclick=()=>{FR.i=+b.dataset.fi;frRender(fbLast)});
   const q=FR.pts.find(x=>x.id===FR.sel);
-  if(q){const ad=$('#fadd');if(ad)ad.onclick=()=>{FR.pts.push({id:++FR.n,lev:FR.lev,z:FR.z,i:FR.i,t:q.t,p:q.p});FR.i=FR.i+1<frSeq(FR.z).length?FR.i+1:1;FR.sel=null;FR.err={};m.lines=[];frRender()};
+  if(q){$('#fadd').onclick=()=>{frAdd(FR.z,FR.i,q.t,q.p);frRender()};
+   const fc=$('#fcont');if(fc)fc.onclick=()=>{const top=FR.pts.filter(x=>x.c===q.c).reduce((a,b)=>Math.max(a,b.i),0);FR.ac=q.c;FR.z=q.z;FR.i=top+1;FR.sel=null;frRender(fbLast)};
    document.querySelectorAll('[data-fren]').forEach(b=>b.onclick=()=>{q.i=+b.dataset.fren;FR.sel=null;FR.err={};m.lines=[];frRender()});
    $('#fdel').onclick=()=>{FR.pts=FR.pts.filter(x=>x!==q);FR.sel=null;FR.err={};m.lines=[];frRender()};$('#fsx').onclick=()=>{FR.sel=null;frRender(fbLast)}}
-  $('#fund').onclick=()=>{FR.pts.pop();FR.sel=null;FR.err={};m.lines=[];frRender()};
-  $('#frst').onclick=()=>{FR.pts=[];FR.sel=null;FR.err={};m.lines=[];frRender()};
+  $('#fund').onclick=()=>{const q=FR.pts.pop();if(q){FR.ac=q.c;FR.z=q.z;FR.i=q.i}FR.sel=null;FR.err={};m.lines=[];frRender()}; // Zurück: das Label kommt wieder dran
+  $('#frst').onclick=()=>{FR.pts=[];FR.ac=null;FR.i=0;FR.sel=null;FR.err={};m.lines=[];frRender()};
   $('#fchk').onclick=frVerify};
  // Faustregeln und Warnsignale für die gezeichneten Wellen (nur Hinweise, kein Fehler)
  const hints=(Q,v,gs)=>{const out=[];let inR=true,pc=x=>pct(x);const key=Q.key;
