@@ -232,6 +232,9 @@ button.isl:hover{border-color:var(--accent)}
 .pgcd line{stroke:var(--accent);stroke-width:1}.pgcd rect.u{fill:var(--accent)}.pgcd rect.d{fill:var(--surface);stroke:var(--accent);stroke-width:1}.pgcd.fut{opacity:.4}
 .pgc .lab.ax{font-size:11px;font-weight:500;fill:var(--mut)}
 .pgc1{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}.pgc .lab.l1{font-weight:800;font-size:12px}
+.pgcut{stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 4;opacity:.7}.pgc .lab.pgcutt{text-anchor:start;font-size:12px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:3px}
+.pgfoc{fill:var(--accent);opacity:.07}
+.task .c1{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 3px;border:1.4px solid var(--text);border-radius:50%;font-weight:800;font-size:12px;line-height:1;vertical-align:1px}
 .pgil{stroke:var(--dn);stroke-width:1.6;stroke-dasharray:7 5}.pgc .lab.pgilt{fill:var(--dn);font-size:11px;font-weight:700;text-anchor:start;paint-order:stroke;stroke:var(--surface);stroke-width:3px}
 .pglg{font-size:13px;color:var(--muted);margin:6px 2px 0}.pglg .c1{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1.4px solid var(--text);border-radius:50%;font-weight:800;font-size:11px;color:var(--text)}
 </style>
@@ -1377,7 +1380,7 @@ function progn(arg,lvl){
   if(lo<=hi)core=[lo,hi];else{lo=core[0];hi=core[1]}
   const cl=lo,ch=hi,rg=(ch-cl)||patRg*.1;
   m.pts.forEach(q=>{if(q.x>=t0-tf&&q.x<=t1+tf){add(q.p-.35*rg);add(q.p+.35*rg)}});
-  if(t1>c0){add(cl-.6*rg);add(ch+.6*rg)}
+  if(t1>c0){add(cl-.6*rg);add(ch+.6*rg);room().forEach(add)}
   m.lines.forEach(z=>add(z.p));
   if(peek!==null){add(peek);peek=null}
   const pad=(hi-lo)*.05||1;yr=[lo-pad,hi+pad]};
@@ -1385,11 +1388,18 @@ function progn(arg,lvl){
   o.push({k,kind:kid?PGKOF[kid.key]:'ABC',pts:R.piv.filter(q=>q.lev===2&&q.w1===k).sort((a,b)=>a.t-b.t).map(q=>({t:q.t,p:q.p}))})}return o};
  const truthCnt=()=>({z:Object.keys(PGZL).find(z=>PAT[PGZL[z]].labels.join()===P.labels.join()),start:{t:R.mp[0],p:R.pr[R.mp[0]]}, // erzeugte Zählung (für den Dauertest)
   waves:(R.tree.kids||[]).slice(0,cut0).map((kid,i)=>({kind:PGKOF[kid.key],pts:R.piv.filter(q=>q.lev===2&&q.w1===i+1).sort((a,b)=>a.t-b.t).map(q=>({t:q.t,p:q.p}))}))});
- PGS={P,R,cut:cut0,m,lvl,X:t=>X(t),Y:p=>Y(p),tf:()=>tf,setTf:h=>{const b=document.querySelector('[data-tf="'+h+'"]');if(b)b.click()},truth:truthPlan,ctruth:truthCnt,phase:()=>CNT?'plan':'count',
+ PGS={P,R,cut:cut0,m,lvl,X:t=>X(t),Y:p=>Y(p),plot:()=>({W,H:H-BP}),tf:()=>tf,setTf:h=>{const b=document.querySelector('[data-tf="'+h+'"]');if(b)b.click()},truth:truthPlan,ctruth:truthCnt,phase:()=>CNT?'plan':'count',
   show:(t,p)=>{sc=clampSc((t+.5)*BW/tf-W/2);peek=p===undefined?null:p;fitY();redraw($('#svg'),pic())}}; // show: Stelle (und Preis) ins Bild holen
  const segs=()=>{let o=0;return waves().filter(k=>m.ch[k]).map(k=>{const kind=m.ch[k],n=PGK[kind].l.length,g={k,kind,n,pts:m.pts.slice(o,o+n)};o+=n;return g})};
  const cur=()=>{for(const g of segs())if(g.pts.length<g.n)return{k:g.k,kind:g.kind,n:g.n,have:g.pts.length};const k=waves().find(k=>!m.ch[k]);return k?{k,needChar:true}:null};
- const mainP=()=>CNT.p.concat(segs().map(g=>g.pts[g.n-1].p)); // Hauptpunkte: gezählt + geplant
+ const mainP=()=>CNT.p.concat(segs().filter(g=>g.pts.length===g.n).map(g=>g.pts[g.n-1].p)); // Hauptpunkte: gezählt + fertig geplante Wellen
+ const room=()=>{if(!CNT||m.done)return[];const c=cur();if(!c)return[];const mp=mainP(),k=c.k,Lj=j=>Math.abs(mp[j]-mp[j-1]),d=-Math.sign(mp[k-1]-mp[k-2])||1,b=fam()[0].key;
+  const f=/^(imp|dl|db|de)$/.test(b)?[0,0,Lj(1),3.5*Lj(1),Lj(3),2.618*Math.abs(mp[3]-mp[0])][k]:/^(zig|fr|fe|fru)$/.test(b)?[0,0,1.618*Lj(1),2.618*Lj(1)][k]:
+   /^tr/.test(b)?1.618*Lj(k-1):[0,0,Lj(1),2.618*Lj(1),Lj(3),1.618*Lj(1)][k];
+  const F=f||Lj(k-1),s0=mp[k-1];
+  // Ziel in Wellenrichtung, dazu etwas Platz gegen die Richtung (Teilwellen dürfen über den Start hinauslaufen, z. B. B eines Expanded Flat),
+  // der Start selbst und alle schon geplanten Punkte, damit der Maßstab beim Weiterplanen nicht springt
+  return[s0,s0+d*1.45*F,s0-d*.8*F] /* 45 % Reserve über die Zielzone hinaus, für überschießende Teilwellen */.concat(m.pts.map(q=>q.p),m.pts.slice(-1).map(q=>q.p+d*.3*F))};
  // ---- Schwer: Zählung des sichtbaren Teils. cz = Zählweise der Ebene 1, cs = Punkt 0, cw = Wellen mit Unterteilung und Punkten
  const czLab=()=>PAT[PGZL[m.cz]].labels,nW=()=>czLab().length-1;
  const cAll=()=>[m.cs].concat(...m.cw.map(w=>w.pts)).filter(Boolean);
@@ -1398,7 +1408,9 @@ function progn(arg,lvl){
   const last=cAll().pop();if(last.t>=c0)return{need:'done'};if(m.cw.length>=nW())return{need:'over'};return{need:'kind',k:m.cw.length+1}};
  // Punkt am Chart einrasten: Hoch oder Tief (je nachdem, was näher am Finger liegt) im Umkreis von anderthalb Kerzen der Zeiteinheit
  const snap=(px,py)=>{const t=Math.round(Tof(px)),wv=Math.max(2,Math.round(1.5*tf)),lo=Math.max(0,t-wv),hi=Math.min(c0,t+wv);if(lo>c0)return null;let ih=lo,il=lo;
-  for(let i=lo;i<=hi;i++){if(R.h[i]>R.h[ih]||(R.h[i]===R.h[ih]&&Math.abs(i-t)<Math.abs(ih-t)))ih=i;if(R.l[i]<R.l[il]||(R.l[i]===R.l[il]&&Math.abs(i-t)<Math.abs(il-t)))il=i}
+  // Gleich hohe Dochte: zuerst die Kerze, deren Schluss genau auf dem Extrem liegt (der Wendepunkt), dann die nächste am Finger
+  const pref=(i,j,v,w,ci,cj)=>v!==w?v>w:(ci!==cj?ci:Math.abs(i-t)<Math.abs(j-t));
+  for(let i=lo;i<=hi;i++){if(i!==ih&&pref(i,ih,R.h[i],R.h[ih],R.c[i]===R.h[i],R.c[ih]===R.h[ih]))ih=i;if(i!==il&&pref(i,il,-R.l[i],-R.l[il],R.c[i]===R.l[i],R.c[il]===R.l[il]))il=i}
   return Math.abs(Y(R.h[ih])-py)<=Math.abs(Y(R.l[il])-py)?{t:ih,p:R.h[ih]}:{t:il,p:R.l[il]}};
  // Zeitachse: Abstand der Beschriftung je Zeiteinheit (in Stunden), Datum bzw. Uhrzeit in deutscher Schreibweise (Zeiten in UTC, ohne Sommerzeit)
  const MON=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],p2=n=>(n<10?'0':'')+n;
@@ -1411,6 +1423,8 @@ function progn(arg,lvl){
  const pic=()=>{const t0=Math.max(0,Tof(0)),t1=Tof(W),bw=Math.max(1,BW-2);
   let s='<svg id="svg" class="pgsvg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Kerzenchart mit Zukunftszone, seitlich verschiebbar">';
   const zx=Math.max(0,X(c0+.5)),zw=Math.min(W,X(ZE+.5))-zx;if(zw>0)s+='<rect x="'+zx+'" y="0" width="'+zw+'" height="'+(H-BP)+'" fill="var(--line)" opacity=".35"/>';
+  const hl=focus();if(hl){const a=Math.max(0,X(hl[0])),b=Math.min(W,X(hl[1]));if(b>a)s+='<rect class="pgfoc" x="'+a+'" y="0" width="'+(b-a)+'" height="'+(H-BP)+'"/>'} // Welle, die gerade dran ist
+  const cx=X(c0+.5);if(cx>-2&&cx<W+2)s+='<line class="pgcut" x1="'+cx+'" x2="'+cx+'" y1="0" y2="'+(H-BP)+'"/><text class="lab pgcutt" x="'+(cx+165<W?cx+6:cx-6)+'" y="'+(TP+30)+'"'+(cx+165<W?'':' style="text-anchor:end"')+'>Ab hier: deine Prognose</text>';
   for(let y=20;y<H-BP;y+=50)s+='<line x1="0" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width=".6"/>';
   s+='<line x1="0" x2="'+W+'" y1="'+(H-BP+4)+'" y2="'+(H-BP+4)+'" stroke="var(--line)" stroke-width="1"/>'+axis();
   // Kerzen: steigend blau gefüllt, fallend weiß mit blauem Rand (wie im Wellen-Pfad); der wahre Rest nach dem Auflösen blass
@@ -1446,13 +1460,23 @@ function progn(arg,lvl){
   put();
   return s+'</svg>';};
  const zoneMsg='Setze den Punkt in die graue Zone, rechts vom vorherigen Punkt.';
+ // Zeitbereich der Welle, die gerade dran ist (leicht hinterlegt): beim Zählen ab ihrem Startpunkt bis zum Ende des sichtbaren Teils,
+ // beim Planen ab ihrem Start bis zum Ende der Zukunftszone
+ const focus=()=>{if(!CNT){if(!m.cs||!m.cz)return null;const c=ccur();if(c.need==='done'||c.need==='over')return null;const w=c.need==='pt'?m.cw.length-1:m.cw.length;
+   const st=w?m.cw[w-1].pts.slice(-1)[0].t:m.cs.t;return[st,c0]}
+  if(m.done)return null;const c=cur();if(!c)return null;const g=segs().filter(x=>x.k<c.k).pop();return[g?g.pts.slice(-1)[0].x:CNT.t[CNT.cut],ZE]};
+ const C1=l=>'<span class="c1">'+l+'</span>'; // Beschriftung der Ebene 1 im Kreis (wie im Chart)
+ const SUBS='Ebene 2: (1)–(5), (a)–(c), (a)–(e), (w)–(y) oder (w)–(z)';
  const tfBar=()=>'<div class="pgtf" role="group" aria-label="Zeiteinheit">'+PGTF.map(([n,h])=>'<button data-tf="'+h+'" class="'+(h===tf?'on':'')+'" aria-pressed="'+(h===tf)+'">'+n+'</button>').join('')+'</div>';
  const legend='<p class="pglg" aria-label="Beschriftung der Wellenebenen"><span class="c1">1</span> Ebene 1 (W, D) · <b>(1)</b> Ebene 2 (ab 4h) · <span class="mut">1</span> Ebene 3 (1h)</p>';
  const wn=k=>pgLab(fam()[0].key,k);
  const render=fb=>{fbLast=fb;let task,pick='';
   if(!CNT){const c=ccur(),zl=m.cz?czLab():null;
-   task='<b>Schwer: Zähle zuerst den sichtbaren Verlauf.</b> '+(c.need==='cz'?'Wie ist das große Muster beschriftet (Ebene 1)?':c.need==='start'?'Tippe auf den Start des großen Musters (Punkt 0). Punkte rasten am nächsten Hoch oder Tief ein.':
-    c.need==='kind'?'<b>Wie unterteilt sich Welle '+pgLab(PGZL[m.cz],c.k)+'?</b>':c.need==='pt'?'Welle '+pgLab(PGZL[m.cz],c.k)+' als '+PGK[c.kind].t+': Nächster Punkt <span class="nextpt">'+PGK[c.kind].l[c.have]+(c.have===PGK[c.kind].l.length-1?' = '+pgLab(PGZL[m.cz],c.k):'')+'</span>.':
+   const L=k=>C1(pgLab(PGZL[m.cz],k));
+   task='<b>Schwer: Zähle zuerst den sichtbaren Verlauf.</b> '+(c.need==='cz'?'Wie ist das große Muster beschriftet (Ebene 1, im Kreis)? Ebene 1 siehst du am besten im Tages- oder Wochenchart.':
+    c.need==='start'?'Tippe auf den Start des großen Musters (Punkt '+C1('0')+', Ebene 1). Punkte rasten am nächsten Hoch oder Tief ein.':
+    c.need==='kind'?'<b>Zähle die Unterteilung von Welle '+L(c.k)+'</b> ('+SUBS+'). Wie unterteilt sie sich?':
+    c.need==='pt'?'Welle '+L(c.k)+' (Ebene 1) als '+PGK[c.kind].t+': Setze ihre Ebene-2-Punkte. Nächster Punkt <span class="nextpt">'+PGK[c.kind].l[c.have]+'</span>'+(c.have===PGK[c.kind].l.length-1?', er ist zugleich das Ende von Welle '+L(c.k)+'.':'.'):
     c.need==='over'?'Alle Wellen der Zählweise sind gezählt, aber der Chart geht noch weiter. Nimm Punkte zurück oder wähle eine andere Zählweise.':'Der sichtbare Verlauf ist gezählt. Prüfe deine Zählung.');
    if(c.need==='cz')pick='<div class="pgk">'+Object.keys(PGZL).map(z=>'<button data-cz="'+z+'">'+PGK[z].t+'</button>').join('')+'</div>';
    if(c.need==='kind')pick='<div class="pgk">'+Object.keys(PGK).map(k=>'<button data-ck="'+k+'">'+PGK[k].t+'</button>').join('')+'</div>';
@@ -1461,7 +1485,7 @@ function progn(arg,lvl){
     '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>'}
   else{const cu=cur(),ws=waves();
    $('#view').innerHTML='<p class="kick">Wie geht es weiter?'+(lvl==='schwer'?' · Schwer':'')+'</p><p class="task">Der Chart bricht nach Welle '+wn(CNT.cut)+' ab. Plane '+(ws.length>1?'die fehlenden Wellen '+ws.map(wn).join(', '):'die fehlende Welle '+wn(ws[0]))+' in der grauen Zone. '+
-    (m.done?'':cu?(cu.needChar?'<b>Wie unterteilt sich Welle '+wn(cu.k)+'?</b>':'Welle '+wn(cu.k)+' als '+PGK[cu.kind].t+': Nächster Punkt <span class="nextpt">'+PGK[cu.kind].l[cu.have]+(cu.have===cu.n-1?' = '+wn(cu.k):'')+'</span>. Tippen setzt den Punkt, Wischen verschiebt den Chart.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
+    (m.done?'':cu?(cu.needChar?'<b>Jetzt Welle '+C1(wn(cu.k))+' (Ebene 1).</b> Wie unterteilt sie sich ('+SUBS+')?':'Welle '+C1(wn(cu.k))+' (Ebene 1) als '+PGK[cu.kind].t+': Setze ihre Ebene-2-Punkte rechts der Grenze. Nächster Punkt <span class="nextpt">'+PGK[cu.kind].l[cu.have]+'</span>'+(cu.have===cu.n-1?', er ist zugleich das Ende von Welle '+C1(wn(cu.k))+'.':'.')+' Tippen setzt den Punkt, Wischen verschiebt den Chart.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
     (cu&&cu.needChar&&!m.done?'<div class="pgk">'+Object.keys(PGK).map(k=>'<button data-ch="'+k+'">'+PGK[k].t+'</button>').join('')+'</div>':'')+
     '<div class="chart pgc" id="pgc"></div>'+legend+
     '<div class="dock">'+(m.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
@@ -1521,7 +1545,7 @@ function progn(arg,lvl){
    const mv=ev=>{if(ev.pointerId!==id)return;const dx=ev.clientX-x0,dy=ev.clientY-y0;
     if(!mode&&Math.hypot(dx,dy)>(k>=0?5:8)){mode=k>=0?'p':touch&&Math.abs(dy)>Math.abs(dx)?'v':'h';svg.style.cursor='grabbing';if(mode==='p')m.lines=[]}
     if(mode==='p'){const [x,y]=loc(ev),lo2=(k?m.pts[k-1].x:CNT.t[CNT.cut])+.3,hi2=k<m.pts.length-1?m.pts[k+1].x-.3:ZE; // nur dieser Punkt bewegt sich; Punkte bleiben zeitlich in Reihenfolge
-     m.pts[k]={x:Math.max(lo2,Math.min(hi2,Tof(x))),p:Pof(Math.max(6,Math.min(H-BP-2,y)))};redraw(svg,pic())}
+     m.pts[k]={x:Math.max(lo2,Math.min(hi2,Tof(x))),p:Pof(Math.max(6,Math.min(H-BP-2,y)))};if(y<TP+24||y>H-BP-24)fitY();redraw(svg,pic())} // am Rand: Achse erweitern
     else if(mode==='h'){sc=clampSc(s0-dx);upd()}
     else if(mode==='v'){scrollBy(0,ly-ev.clientY)} // senkrecht wischen: die Seite scrollt
     ly=ev.clientY};
