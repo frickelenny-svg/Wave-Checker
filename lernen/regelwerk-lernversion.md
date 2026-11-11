@@ -67,7 +67,7 @@ Elliott-Wellen bestehen aus Bewegungen mit dem Trend (Impulse, Diagonalen) und K
 | Beendende Diagonale | 3-3-3-3-3 | nur Welle 5 und C |
 | Expandierende Diagonale | 3-3-3-3-3 | nur Welle 1, 5 und C (äußerst selten) |
 | Double Zigzag | W-X-Y | Welle 2, 4, A, B, W, X, Y, X, Z und jeder Dreieckswelle |
-| Dreifache Form | W-X-Y-X-Z | Welle 2 und 4 |
+| Dreifache Form | W-X-Y-X-Z | Welle 2 und 4, Welle B von Flats, Welle 2 und 4 von Diagonalen |
 
 ## Der Impuls (1-2-3-4-5)
 
@@ -149,7 +149,7 @@ Alle drei Varianten haben denselben Aufbau 3-3-5. Sie unterscheiden sich darin, 
 **Was für alle Flats gilt**
 
 - **Welle A:** dreiteilig, als Zigzag, Flat oder Double-Zigzag.
-- **Welle B:** dreiteilig, jedes Korrekturmuster ist möglich, ein Dreieck ist am unwahrscheinlichsten. Warnsignal: B sollte **mindestens 88,7 % und höchstens 161,8 %** von A zurücklaufen.
+- **Welle B:** dreiteilig, jedes Korrekturmuster ist möglich (auch W-X-Y-X-Z), ein Dreieck ist am unwahrscheinlichsten. Warnsignal: B sollte **mindestens 88,7 % und höchstens 161,8 %** von A zurücklaufen.
 - **Welle C:** ein klassischer Fünfteiler oder eine Beendende Diagonale. Faustregel: Am häufigsten erreicht C ein Kursziel von 100 % von A (C ist so lang wie A), bis zu 261,8 % sind möglich.
 
 **Die drei Varianten im Vergleich**
@@ -174,7 +174,7 @@ Alle drei Varianten haben denselben Aufbau 3-3-5. Sie unterscheiden sich darin, 
 
 ## Dreiecke (A-B-C-D-E)
 
-Dreiecke erkennst du an ihren Trendlinien. Ein Dreieck hat fünf Wellen A-B-C-D-E, und **jede davon ist dreiteilig**. Die Teilmuster dürfen wechseln, zum Beispiel A als Zigzag, B als Flat und C wieder als Zigzag.
+Dreiecke erkennst du an ihren Trendlinien. Ein Dreieck hat fünf Wellen A-B-C-D-E, und **jede davon ist dreiteilig**. Die Teilmuster dürfen wechseln, zum Beispiel A als Zigzag, B als Flat und C wieder als Zigzag. Auch ein Double Zigzag (W-X-Y) ist als Dreieckswelle möglich.
 
 **Wo Dreiecke vorkommen**
 
@@ -243,7 +243,7 @@ Diagonalen sind fünfteilige Bewegungen mit dem Trend, aber anders gebaut als de
 Komplexe Korrekturen hängen mehrere Korrekturmuster aneinander, verbunden durch X-Wellen.
 
 - **Double Zigzag (W-X-Y):** W, X und Y sind jeweils ein Korrekturmuster. Jede dieser Wellen kann ein anderes Muster bilden und muss kein Zigzag sein, zum Beispiel W als Zigzag, X als Dreieck, Y als Regular Flat. Dasselbe Muster darf auch mehrfach vorkommen, etwa W und Y beide als Zigzag.
-- **Dreifache Form (W-X-Y-X-Z):** die Verlängerung von W-X-Y. Eine zweite X-Welle hängt ein drittes Korrekturmuster an, die Z-Welle. Auch hier dürfen Muster mehrfach vorkommen. W-X-Y-X-Z kann in Welle 2 und Welle 4 vorkommen.
+- **Dreifache Form (W-X-Y-X-Z):** die Verlängerung von W-X-Y. Eine zweite X-Welle hängt ein drittes Korrekturmuster an, die Z-Welle. Auch hier dürfen Muster mehrfach vorkommen. W-X-Y-X-Z kann in Welle 2 und Welle 4 vorkommen, außerdem in Welle B von Flats und in Welle 2 und 4 von Diagonalen.
 - Warnsignal bei der Dreifachen Form: Y **sollte unter dem Ende von W** enden und Z **unter dem Ende von Y** (bei steigenden Kursen: jeweils darüber). In seltenen Fällen bilden Y und Z kein neues Tief.
 - Regel bei der Dreifachen Form: Y und Z dürfen **nicht beide versagen**. Mindestens eine der beiden Wellen muss ein neues Tief bilden (Y unter dem Ende von W oder Z unter dem Ende von Y).
 - Die Regeln für W, X, Y und Z gelten in beiden Formen gleich:

@@ -573,12 +573,12 @@ Abschnitt: Komplexe Korrekturen: W-X-Y und W-X-Y-X-Z
 
 **4. In welchen Wellen kann die Dreifache Form (W-X-Y-X-Z) vorkommen?** _(Multiple Choice, ko-04)_
 
-- In Welle 2 und Welle 4 ✅
+- In Welle 2 und 4, in Welle B von Flats und in Welle 2 und 4 von Diagonalen ✅
 - Nur in Welle 5
 - In Welle 1 und Welle 3
 - Nur in Welle C
 
-Erklärung: W-X-Y-X-Z kann in Welle 2 und Welle 4 vorkommen.  
+Erklärung: W-X-Y-X-Z kann in Welle 2 und Welle 4 vorkommen, außerdem in Welle B von Flats und in Welle 2 und 4 von Diagonalen.  
 Abschnitt: Komplexe Korrekturen: W-X-Y und W-X-Y-X-Z
 
 **5. Wie weit darf Welle X von W zurücklaufen?** _(Multiple Choice, ko-05)_

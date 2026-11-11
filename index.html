@@ -597,7 +597,7 @@ PAT.tz.gen=v=>genCx('tz',v);PAT.tz.shape={piv:[0,9,18,27,36,45],fr:[abcF,abcF,ab
 PAT.imp.subs=['53535'];PAT.dl.subs=['53535','33333'];PAT.zig.subs=['535'];PAT.fr.subs=PAT.fe.subs=PAT.fru.subs=['335'];PAT.dz.subs=['333'];
 PAT.trk.subs=PAT.tre.subs=PAT.db.subs=PAT.de.subs=PAT.tz.subs=['33333'];
 // Wo das Muster im größeren Trend vorkommt (Regelwerk). Nur daran lassen sich Muster unterscheiden, zu denen derselbe Chart regelkonform ist.
-PAT.trk.ctx=PAT.tre.ctx='nie in Welle 2, C und W';PAT.dl.ctx='nur in Welle 1';PAT.db.ctx='nur in Welle 5 und C';PAT.de.ctx='nur in Welle 1, 5 und C';PAT.tz.ctx='kann in Welle 2 und 4 vorkommen';
+PAT.trk.ctx=PAT.tre.ctx='nie in Welle 2, C und W';PAT.dl.ctx='nur in Welle 1';PAT.db.ctx='nur in Welle 5 und C';PAT.de.ctx='nur in Welle 1, 5 und C';PAT.tz.ctx='kann in Welle 2 und 4 vorkommen, auch in Welle B von Flats und in Welle 2 und 4 von Diagonalen';
 const triF=()=>[0,1,.5,.85,.65,1]; // fünfteiliges Dreieck (Teil A-B-C-D-E), endet auf dem Teilziel
 // Muster der Teile wählen (nur Fehler finden): frei wählbar, nur W darf kein Dreieck sein; mit DRE-1 steht ein Dreieck in W
 function pickNames(P,violate){
@@ -1237,8 +1237,7 @@ const PGKOF={imp:'N',dl:'N',db:'N',de:'N',zig:'ABC',fr:'ABC',fe:'ABC',fru:'ABC',
 // Welche Teilmuster darf eine Welle ausbilden? Je Muster eine oder mehrere Varianten (Leading Diagonale: 5-3-5-3-5 oder 3-3-3-3-3), je Welle eine Liste.
 // Quelle: Impuls W1-1 bis W5-2 (Welle 2 kein Dreieck, Welle 4 auch Dreieck, 1 und 5 auch Diagonale), Zigzag WA-1/WB-1/WC-1, Flats WA-2/WB-2/WC-2,
 // Dreieck DRE-4/DRE-5, Diagonalen DL-2/5/7/9, DB-5/7/9/10, DE-4/5/6, komplexe Korrekturen WW-1/WX-1/WY-1/WZ-1, Dreifache Form KOM-2.
-// Im Regelwerk nicht eindeutig (bis zur Klärung mit Lenny nicht als Fehler gewertet): W-X-Y-X-Z in Welle B einer Flat und in Welle 2/4 einer
-// Diagonale („jedes Korrekturmuster“ gegen KOM-2 „Welle 2 und 4“), W-X-Y in einer Dreieckswelle („dreiteilig“, DRE-5 nennt nur Zigzag und Flat).
+// Seit Regelwerk Version 16 (Lenny, 11.11.2026) ausdrücklich erlaubt: W-X-Y-X-Z in Welle B einer Flat und in Welle 2/4 einer Diagonale, W-X-Y in einer Dreieckswelle.
 const PGSUB=(()=>{const F=['zig','fr','fe','fru'],T=['trk','tre'],K=[...F,'dz'],K2=[...K,'tz'],KT=[...K,...T],M5=['imp','db','de'],Z=['zig'],I=['imp'];
  const flat=[[K,[...KT,'tz'],M5]],tri=[[K,K,K,K,K]],diag=[[Z,K2,Z,[...K2,...T],Z]];
  return{imp:[[['imp','dl','de'],K2,I,[...K2,...T],M5]],zig:[[I,KT,M5]],fr:flat,fe:flat,fru:flat,trk:tri,tre:tri,
@@ -1284,13 +1283,21 @@ function pgData(P,frs){const key=P.key,v=key==='imp'?genImp(null):P.gen(null),di
  c.forEach((x,i)=>{const up=Math.max(o[i],x),dn=Math.min(o[i],x),wk=(up-dn)*.6+(S.hi[i]-S.lo[i])*.012;
   h.push(Math.max(up,Math.min(S.hi[i],up+Math.random()*wk)));l.push(Math.min(dn,Math.max(S.lo[i],dn-Math.random()*wk)))});
  return{o,h,l,c,pr:c,mp,spAll,tri,big,T0:Date.UTC(2024,0,1)+Math.floor(rnd(0,130))*6048e5}}
+// Benannte Korrekturwellen im Impuls (für die Alternation W4-3): Teilung wie abcF, aber mit der Form des Musters.
+// Zigzag: B läuft 35–55 % von A zurück. Regular Flat: B läuft 88,7–97 % zurück, C endet knapp jenseits von A.
+// Expanded Flat: B läuft 105–125 % zurück (über den Start hinaus), C endet deutlich jenseits von A. Running Flat kommt hier nicht vor,
+// weil dort A über das Ende der Welle hinausliefe und das Ende der Welle dann kein Wendepunkt wäre.
+const PGFORM={zig:abcF,fr:()=>{const f1=rnd(.82,.92);return[0,f1,f1*(1-rnd(.887,.97)),1]},fe:()=>{const f1=rnd(.6,.75);return[0,f1,-f1*rnd(.05,.25),1]}};
+// Welle 2 und Welle 4 bilden verschiedene Muster; zwei Flats (nur ein Warnsignal) werden hier nicht erzeugt, damit die Aufgabe eindeutig ist.
+function pgAlt(){const k=Object.keys(PGFORM),w2=k[Math.floor(Math.random()*k.length)],w4s=k.filter(x=>x!==w2&&!(x!=='zig'&&w2!=='zig'));
+ return{2:w2,4:w4s[Math.floor(Math.random()*w4s.length)]}}
 // arg: leer = alle Muster; sonst ein Muster oder mehrere mit Komma (von „Prognose üben“ aus einem Kapitel)
 // Chart (DESIGN.md Abschnitt 11): groß, länger als der Bildschirm und seitlich verschiebbar, Kerzen in vier Zeiteinheiten.
 // Wischen auf freier Fläche verschiebt, Tippen setzt einen Punkt, ein gesetzter Punkt wird nur verschoben, wenn man direkt auf ihm ansetzt.
 // Gesetzte Punkte sind Zeit (Stunden, mit Nachkommastellen) und Preis: Beim Umschalten der Zeiteinheit bleiben sie an derselben Stelle.
 function progn(arg){
  const pool=arg?String(arg).split(','):Object.keys(PAT),key=pool[Math.floor(Math.random()*pool.length)],P=PAT[key];
- const frs=key==='imp'?[impF,abcF,impF,abcF,impF]:P.shape.fr,R=pgData(P,frs);
+ const nm=key==='imp'?pgAlt():null,frs=nm?[impF,PGFORM[nm[2]],impF,PGFORM[nm[4]],impF]:P.shape.fr,R=pgData(P,frs);R.nm=nm; // nm: Muster von Welle 2 und 4
  const cuts=P.waves.length===5?[2,3,4]:[2],cut=cuts[Math.floor(Math.random()*cuts.length)],c0=R.mp[cut],N=R.pr.length-1;
  const vk=frs.slice(0,cut).map(f=>f===impF?'N':'ABC'); // Unterteilung der sichtbaren Wellen
  const fam=Object.keys(PAT).filter(k=>PAT[k].labels.join()===P.labels.join()).map(k=>PAT[k]); // Muster mit derselben Beschriftung
@@ -1353,7 +1360,7 @@ function progn(arg){
   if(m.shown){ // echter Rest im selben Maßstab
    s+=candles(agg(true),gc+1,Math.floor(t1/tf),' fut');
    for(let k=cut+1;k<R.mp.length;k++){const i=R.mp[k],up=R.pr[i]>=R.pr[R.mp[k-1]];lab(X(i),Y(R.pr[i])+(up?-9:18),up,P.labels[k],'fill:var(--mut)')}}
-  for(let k=0;k<=cut;k++){const i=R.mp[k],p=R.pr[i],up=k===0?p>R.pr[R.mp[1]]:p>=R.pr[R.mp[k-1]];lab(X(i),Y(p)+(up?-9:18),up,P.labels[k])}
+  for(let k=0;k<=cut;k++){const i=R.mp[k],p=R.pr[i],up=k===0?p>R.pr[R.mp[1]]:p>=R.pr[R.mp[k-1]];lab(X(i),Y(p)+(up?-9:18),up,P.labels[k]+(R.nm&&R.nm[k]?' '+PAT[R.nm[k]].title:''))} // Welle 2 (und 4) mit Muster: für die Alternation
   const all=[{x:c0,p:R.pr[c0]}].concat(m.pts);
   if(m.pts.length)s+='<polyline fill="none" stroke="var(--up)" stroke-width="2" stroke-dasharray="6 4" points="'+all.map(q=>X(q.x)+','+Y(q.p)).join(' ')+'"/>';
   let j=0;segs().forEach(g=>g.pts.forEach((q,t)=>{j++;const prv=all[j-1],nx=all[j+1],up=q.p>=prv.p&&(!nx||q.p>=nx.p)||(!nx&&q.p>=prv.p);
@@ -1439,8 +1446,20 @@ function progn(arg){
      if(Math.sign(ps[1]-ps[0])!==Math.sign(ps[ps.length-1]-ps[0])){r={st:4,kind:'dir',g};break} // erste Subwelle läuft wie die Welle selbst
      const res=V[g.k-1].filter(d=>PGKOF[d]===g.kind).map(d=>{const D=PAT[d],u=norm(D,ps),s=!(D.struct&&!D.struct(u));return{D,s,f:s?hardFails(D,u):[]}});
      if(!res.some(x=>x.s&&!x.f.length)){const b=res.sort((a,c)=>(a.s?a.f.length:99)-(c.s?c.f.length:99))[0];r={st:4,kind:'sub',g,D:b.D,id:b.s?b.f[0]:null};break}}}
+   if(!r&&altInfo(Q,mp,gs).viol)r={st:5,kind:'alt',g:gs.find(g=>g.k===4)};
    if(!r)return null;if(r.st>best.st)best=r}
   return best};
+ // Alternation (W4-3, nur beim Impuls): Welle 4 muss ein anderes Korrekturmuster bilden als Welle 2 (die sichtbare Welle 2 ist benannt).
+ // Gezählt werden alle Muster, die die gezeichnete Welle 4 nach den harten Regeln sein kann. viol: keines davon ist anders als Welle 2.
+ // note (Warnsignal): Das andere Muster gelingt nur mit Warnsignal, oder Welle 2 und 4 sind zwei verschiedene Flat-Varianten (W4-3, Version 14).
+ const altInfo=(Q,mp,gs)=>{const g=gs.find(x=>x.k===4),w2=R.nm&&R.nm[2];if(Q.key!=='imp'||!g||!w2)return{};
+  const ps=[mp[3]].concat(g.pts.map(q=>q.p)),rs=PGSUB.imp[0][3].filter(d=>PGKOF[d]===g.kind).map(d=>{const D=PAT[d],u=norm(D,ps),s=!(D.struct&&!D.struct(u));
+   return{D,ok:s&&!hardFails(D,u).length,w:s?warns(D,u):[]}}).filter(x=>x.ok),diff=rs.filter(x=>x.D.key!==w2),clean=diff.filter(x=>!x.w.length),fl=k=>/^f/.test(k);
+  if(!diff.length)return{viol:rs.length>0};
+  const t2=PAT[w2].title;
+  if(!clean.length)return{note:'Alternation: Welle 2 ist ein '+t2+'. Deine Welle 4 ist nur als '+diff.map(x=>x.D.title).join(' oder ')+' ein anderes Muster, und das nur mit Warnsignal ('+mt(diff[0].D.rules[diff[0].w[0]].name)+').'};
+  if(fl(w2)&&clean.every(x=>fl(x.D.key)))return{note:'Alternation: Welle 2 ist ein '+t2+', deine Welle 4 eine andere Flat-Variante ('+clean.map(x=>x.D.title).join(' oder ')+'). Das ist erlaubt, aber nicht ganz sauber.'};
+  return{}};
  // Zählweisen, die für eine Welle erlaubt sind (über alle Muster, die zum sichtbaren Teil passen)
  const allowed=k=>{const s=new Set();fam.forEach(Q=>PGSUB[Q.key].filter(fitsVis).forEach(V=>V[k-1].forEach(d=>s.add(PGKOF[d]))));return Object.keys(PGK).filter(x=>s.has(x))};
  // Welche Bereiche wären für die gezeichneten Wellen ungültig? (nur harte Regeln: IMP-3, IMP-2, ZZ-3; je nach Muster, zu dem die Zählung passt)
@@ -1462,6 +1481,7 @@ function progn(arg){
     fr(r>=.618-.02&&r<=2.618+.02,'Welle 5 erreicht '+pc(r)+' (gemessen über Start von Welle 1 bis Ende von Welle 3). Am häufigsten sind 61,8 % bis 261,8 % (Faustregel).')}
    if(key==='zig'&&k===3){const r=L(v,3)/L(v,1);fr(r>=.618-.02&&r<=1.618+.02,'Welle C erreicht '+pc(r)+' von Welle A. Üblich sind 61,8 % bis 161,8 %, am häufigsten 100 % (Faustregel).')}});
   if(key!=='imp')warns(Q,v).forEach(id=>{inR=false;out.push(lvlNote(Q,id))}); // übrige Muster: Warnsignale und Faustregeln aus den Regeltabellen
+  const al=altInfo(Q,mainP(),gs);if(al.note){inR=false;out.push('<p class="rnote w">'+stufe('warn')+al.note+'</p>')}
   return{html:out.join(''),inR}};
  // Planungs-Hinweis für Regeln, die erst mit der ganzen Zählung prüfbar sind (IMP-2)
  const plan=(Q,v)=>Q.key==='imp'&&waves.includes(5)&&L(v,3)<L(v,1)?'<p>Weil Welle 3 kürzer als Welle 1 ist, darf Welle 5 nicht länger als Welle 3 werden (Welle 3 ist nie die kürzeste).</p>':'';
@@ -1471,6 +1491,11 @@ function progn(arg){
    if(m.tips>=1)lines.push('Tipp 1: Überlege, wie sich Welle '+w+' unterteilen darf. Läuft sie mit der Bewegung des Musters oder dagegen?');
    if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Welle '+w+' kann sich hier nicht als '+PGK[r.g.kind].t+' unterteilen.');
    if(m.tips>=3)lines.push('Tipp 3: Regelwerk. Für Welle '+w+' '+(al.length>1?'sind diese Zählweisen möglich: ':'ist nur diese Zählweise möglich: ')+al.join(', ')+'.');
+   extra=redoBtn(r.g);
+  }else if(r.kind==='alt'){const t2=PAT[R.nm[2]].title;
+   if(m.tips>=1)lines.push('Tipp 1: Vergleiche das Muster deiner Welle 4 mit dem von Welle 2 ('+t2+').');
+   if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „Welle 2 und Welle 4 bilden dasselbe Korrekturmuster aus“ (Alternation).');
+   if(m.tips>=3)lines.push('Tipp 3: Regelwerk, Abschnitt Welle 4. Welle 4 muss ein anderes Korrekturmuster ausbilden als Welle 2 derselben Wellenebene. Welle 2 ist hier ein '+t2+'.');
    extra=redoBtn(r.g);
   }else{const sub=r.kind==='sub',X=sub?r.D:x.Q,rl=X.rules[r.id];
    if(m.tips>=1)lines.push('Tipp 1: '+(sub?'In den Subwellen von Welle '+w+': ':'')+mt(rl.hint));
