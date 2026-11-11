@@ -231,6 +231,9 @@ button.isl:hover{border-color:var(--accent)}
 .pgtf button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .pgcd line{stroke:var(--accent);stroke-width:1}.pgcd rect.u{fill:var(--accent)}.pgcd rect.d{fill:var(--surface);stroke:var(--accent);stroke-width:1}.pgcd.fut{opacity:.4}
 .pgc .lab.ax{font-size:11px;font-weight:500;fill:var(--mut)}
+.pgc1{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}.pgc .lab.l1{font-weight:800;font-size:12px}
+.pgil{stroke:var(--dn);stroke-width:1.6;stroke-dasharray:7 5}.pgc .lab.pgilt{fill:var(--dn);font-size:11px;font-weight:700;text-anchor:start;paint-order:stroke;stroke:var(--surface);stroke-width:3px}
+.pglg{font-size:13px;color:var(--muted);margin:6px 2px 0}.pglg .c1{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1.4px solid var(--text);border-radius:50%;font-weight:800;font-size:11px;color:var(--text)}
 </style>
 </head>
 <body>
@@ -1244,81 +1247,130 @@ const PGSUB=(()=>{const F=['zig','fr','fe','fru'],T=['trk','tre'],K=[...F,'dz'],
   dl:[[I,K2,I,K2,I],[Z,K2,Z,K2,Z]],db:diag,de:diag,dz:[[K,KT,KT]],tz:[[K,KT,KT,KT,KT]]}})();
 let PGS=null; // Stand der laufenden Runde (liest der automatische Dauertest)
 let GEST=null; // Aufräumfunktion der laufenden Wisch-/Tipp-Geste im Prognose-Chart
-// ---- Kursdaten für „Wie geht es weiter?“ (seit 11.11.2026): ein langer Verlauf aus Stundenkerzen (1h). 4h, D und W fassen diese Kerzen
-// zusammen (Eröffnung, Hoch, Tief, Schluss), zeigen also denselben Kurs. Zeit wird überall in Stunden seit der ersten Kerze gezählt.
+// ---- Kursdaten für „Wie geht es weiter?“ (Umbau 11.11.2026, Lenny): ein langer Verlauf aus Stundenkerzen (1h), verschachtelt in Wellenebenen.
+// Ebene 1 ist das große Muster, jede seiner Wellen ist selbst ein regelkonformes Muster (Ebene 2), und Impulse der Ebene 2 sind noch einmal
+// unterteilt (Ebene 3). Erlaubt ist je Welle nur, was PGSUB nach dem Regelwerk zulässt. 4h, D und W fassen die Stundenkerzen zusammen.
 const PGTF=[['W',168],['D',24],['4h',4],['1h',1]]; // Zeiteinheiten: Name und Stunden je Kerze
 const PGLEN={imp:[20,10,28,12,30],zig:[28,16,32],fr:[22,22,34],fe:[22,22,34],fru:[22,22,34],trk:[16,16,16,16,16],tre:[16,16,16,16,16],
  dl:[22,12,22,12,24],db:[16,16,16,16,16],de:[16,16,16,16,16],dz:[30,26,30],tz:[18,16,18,16,18]}; // Dauer der Wellen im Verhältnis zueinander
+const PGZL={N:'imp',ABC:'zig',TRI:'trk',WXY:'dz',TZ:'tz'}; // Zählweise → Muster mit dieser Beschriftung
+const pgLab=(key,j)=>{const l=PAT[key].labels[j];return /^X\d$/.test(l)?'X':l}; // X1/X2 heißen im Chart beide X
+const pgTxt=(lev,l)=>lev===1?l:lev===2?'('+l.toLowerCase()+')':l.toLowerCase(); // Ebene 1 im Kreis, Ebene 2 in Klammern, Ebene 3 klein
+const PGW={imp:10,dl:1.2,db:1,de:.6,zig:6,fr:3,fe:3,fru:1,trk:2,tre:1,dz:2.5,tz:1}; // wie oft ein Teilmuster gewählt wird
+const pgPick=a=>{let r=Math.random()*a.reduce((x,k)=>x+(PGW[k]||1),0);for(const k of a){r-=PGW[k]||1;if(r<=0)return k}return a[a.length-1]};
+// Ohne Truncation (W5-4): sonst wäre Punkt 3 extremer als das Ende, und das Ende der Welle kein echtes Hoch bzw. Tief.
+const pgFr=key=>{for(let n=0;n<12;n++){const v=key==='imp'?genImp(null):PAT[key].gen(null);if(v&&key==='imp'&&!(v[5]>v[3]))continue;if(v&&v.length&&Math.abs(v[v.length-1])>1e-6){const e=v[v.length-1];return v.map(x=>x/e)}}return null};
+const isFl=k=>/^f/.test(k);
+// Wellengebiet laut Regelwerk: Welle w darf mit keinem Teilpunkt über Pivot b hinauslaufen (must: muss darüber hinaus).
+// IMP-1/DIAG-6 Welle 2 nicht über den Start von 1, IMP-3 Welle 4 nicht ins Gebiet von 1, DIAG-2 Welle 4 muss hinein,
+// ZZ-2/FR-2 Welle B nicht über den Start von A, WX-2 Welle X nicht über den Start von W bzw. Y.
+const PGTER={imp:[[2,0,'IMP-1'],[4,1,'IMP-3']],dl:[[2,0,'IMP-1'],[4,1,'DIAG-2',1]],db:[[2,0,'IMP-1'],[4,1,'DIAG-2',1]],de:[[2,0,'IMP-1'],[4,1,'DIAG-2',1]],
+ zig:[[2,0,'ZZ-2']],fr:[[2,0,'FR-2']],dz:[[2,0,'WX-2']],tz:[[2,0,'WX-2'],[4,2,'WX-2b']]};
+// e = äußerster Teilpunkt der Welle in ihrer eigenen Richtung d; liegt er auf der richtigen Seite von Grenze g?
+const pgTerOk=(d,e,g,must)=>must?d*(e-g)>0:d*(e-g)<0;
 // Zufälliger Pfad von a nach b in n Stundenkerzen (der erste Wert ist a, b gehört zur nächsten Strecke). Alle Werte bleiben zwischen a und b.
 function pgWalk(a,b,n,S){const lo=Math.min(a,b),hi=Math.max(a,b),amp=(hi-lo)*.22,w=[0],sd=Math.sqrt(n)/7||1;
  for(let i=1;i<=n;i++)w.push(w[i-1]+Math.random()-.5);
  for(let i=0;i<n;i++){const s=i/n,x=a+(b-a)*s+(i?(w[i]-w[n]*s)/sd*amp:0);S.c.push(Math.min(hi,Math.max(lo,x)));S.lo.push(lo);S.hi.push(hi)}}
-// Welle von a nach b in n Stundenkerzen mit der Teilung fr (Anteile der Teilpunkte, wie impF/abcF). Bis zu lev weitere Ebenen darunter:
-// Teilwellen in Richtung der Welle sind fünfteilig, die dagegen dreiteilig. Weil alle Anteile zwischen 0 und 1 liegen, sind die
-// Wendepunkte die echten Extreme. Rückgabe: Kerzenindex der Teilpunkte, gezählt ab dem Start der Welle.
+// Unbeschriftete Strecke (Vorgeschichte) mit Teilung fr und bis zu lev Ebenen darunter
 function pgLeg(a,b,n,fr,lev,S){const k=fr.length-1,w=fr.slice(1).map((_,j)=>rnd(.8,1.3)*(j%2?.7:1)),tot=w.reduce((x,y)=>x+y),idx=[0];let t=0;
  w.forEach(x=>{t+=x;idx.push(Math.round(t/tot*n))});
  for(let j=1;j<=k;j++)if(idx[j]<=idx[j-1])idx[j]=idx[j-1]+1;
  for(let j=0;j<k;j++){const pa=a+(b-a)*fr[j],pb=a+(b-a)*fr[j+1],nj=idx[j+1]-idx[j];
-  if(lev>0&&nj>=24)pgLeg(pa,pb,nj,j%2?abcF():impF(),lev-1,S);else pgWalk(pa,pb,nj,S)}
- return idx}
-// Daten einer Runde: o/h/l/c = Stundenkerzen (Vorgeschichte + ganzes Muster), pr = Schlusskurse, mp = Kerzen der Hauptpunkte,
-// spAll[k] = Kerzen der Teilpunkte von Welle k, T0 = Zeitpunkt der ersten Kerze (ein Montag, 0 Uhr), big = Muster im Wochen-Maßstab.
-// Die Vorgeschichte läuft gegen Welle 1 auf Punkt 0 zu, damit Punkt 0 ein klares Extrem ist.
-function pgData(P,frs){const key=P.key,v=key==='imp'?genImp(null):P.gen(null),dir=Math.random()<.5?1:-1;FLIP=dir<0;
- const lo0=Math.min(...v.map(y=>dir*y)),B=Math.max(600,150-lo0+400),pv=v.map(y=>B+dir*y); // Preise der Hauptpunkte, immer deutlich über 0
- // Größe: meist so, dass das Muster im Tageschart gut zu sehen ist (3 bis 6 Wochen), sonst im Wochenchart (5 bis 9 Monate)
- const big=Math.random()<.35,HT=Math.round((big?rnd(150,270):rnd(22,40))*24),base=PGLEN[key],bs=base.reduce((a,b)=>a+b),lev=big?2:1;
- const S={c:[],lo:[],hi:[]},d1=Math.sign(pv[1]-pv[0])||1,A=Math.abs(pv[1]-pv[0]),a1=pv[0]+d1*A*rnd(.9,1.5),a0=a1-d1*A*rnd(.4,.8);
- // Vorgeschichte aus vier Strecken, zusammen länger als das Muster: so ist der Chart immer länger als der Bildschirm
- const b1=a0+d1*A*rnd(.6,1.2),b0=b1-d1*A*rnd(.5,1);
- pgLeg(b0,b1,Math.round(HT*.3),impF(),lev,S);pgLeg(b1,a0,Math.round(HT*.3),abcF(),lev,S);pgLeg(a0,a1,Math.round(HT*.3),abcF(),lev,S);pgLeg(a1,pv[0],Math.round(HT*.45),impF(),lev,S);
- const mp=[S.c.length],spAll={},tri={};
- base.forEach((b,j)=>{const n=Math.max(40,Math.round(HT*b/bs*rnd(.85,1.15))),st=S.c.length,idx=pgLeg(pv[j],pv[j+1],n,frs[j](),lev,S);
-  spAll[j+1]=idx.slice(1,-1).map(i=>st+i).concat(st+n);mp.push(st+n)});
- const e=pv[pv.length-1];S.c.push(e);S.lo.push(e);S.hi.push(e);
- const mn=Math.min(...S.lo);if(mn<50){const d=50-mn;['c','lo','hi'].forEach(k=>S[k]=S[k].map(x=>x+d))} // Preise bleiben über 0
+  if(lev>0&&nj>=24)pgLeg(pa,pb,nj,j%2?abcF():impF(),lev-1,S);else pgWalk(pa,pb,nj,S)}}
+// Ein Muster als Baum: fr = Hauptpunkte als Anteile (Start 0, Ende 1), kids = Teilmuster je Welle (Ebene 1 immer, Ebene 2 nur Impulse).
+// Ebene 3 nutzt nur einfache Muster. Alternation (W4-3) beim Impuls: Welle 4 ein anderes Muster als Welle 2, nie zwei Flats.
+function pgNode(key,lev){
+ for(let n=0;n<30;n++){const fr=pgFr(key);if(!fr)continue;
+  if(lev===3&&!fr.every((f,i)=>i===fr.length-1||(f>=0&&f<1)))continue; // Ebene 3: kein Teilpunkt über Start oder Ende hinaus (sonst wäre der Punkt der Ebene 2 kein echtes Extrem)
+  const node={key,fr,kids:null};if(!(lev===1||(lev===2&&key==='imp')))return node;
+  const V=PGSUB[key][Math.floor(Math.random()*PGSUB[key].length)],kids=[];let ok=true;
+  for(let k=1;k<fr.length;k++){let o=V[k-1];
+   if(lev===2)o=o.filter(d=>['imp','zig','fr','dz'].includes(d)); // Ebene 3: nur Muster ohne Überschießen, damit jeder Punkt der Ebene 2 ein echtes Hoch bzw. Tief bleibt
+   if(key==='imp'&&k===4&&kids[1])o=o.filter(d=>d!==kids[1].key&&!(isFl(d)&&isFl(kids[1].key)));
+   const kid=o.length?pgNode(pgPick(o),lev+1):null;if(!kid){ok=false;break}kids.push(kid)}
+  if(!ok)continue;node.kids=kids;
+  const pts=w=>{const a=fr[w-1],b=fr[w];return kids[w-1].fr.slice(1).map(f=>a+(b-a)*f)}; // Teilpunkte der Welle w
+  if((PGTER[key]||[]).every(([w,b,,must])=>{const p=pts(w),d=Math.sign(fr[w]-fr[w-1]);return pgTerOk(d,d>0?Math.max(...p):Math.min(...p),fr[b],must)}))return node}
+ return null}
+// Baum in Stundenkerzen umsetzen. out sammelt die Wendepunkte: lev (Ebene), t (Kerze), p (Preis), l (Beschriftung), w1 (Welle der Ebene 1)
+function pgBuild(node,a,b,n,lev,w1,S,out){const fr=node.fr,k=fr.length-1,w=(PGLEN[node.key]||fr.slice(1).map(()=>1)).map(x=>x*rnd(.85,1.15)),tot=w.reduce((x,y)=>x+y),idx=[0];let acc=0;
+ w.forEach(x=>{acc+=x;idx.push(Math.round(acc/tot*n))});for(let j=1;j<=k;j++)if(idx[j]<idx[j-1]+2)idx[j]=idx[j-1]+2;
+ for(let j=0;j<k;j++){const pa=a+(b-a)*fr[j],pb=a+(b-a)*fr[j+1],nj=idx[j+1]-idx[j],kid=node.kids&&node.kids[j],ww=lev===1?j+1:w1;
+  if(kid)pgBuild(kid,pa,pb,nj,lev+1,ww,S,out);else pgWalk(pa,pb,nj,S);
+  out.push({lev,t:S.c.length,p:pb,l:pgLab(node.key,j+1),key:node.key,j:j+1,w1:ww})}}
+// Daten einer Runde: o/h/l/c Stundenkerzen, mp = Kerzen der Hauptpunkte (Ebene 1), piv = alle Wendepunkte, tree = Musterbaum, T0 = erste Kerze (Montag 0 Uhr)
+function pgData(P){let tree=null;for(let n=0;n<20&&!tree;n++)tree=pgNode(P.key,1);
+ if(!tree)tree={key:P.key,fr:pgFr(P.key)||[0,1],kids:null};
+ const dir=Math.random()<.5?1:-1,M=rnd(250,450),p0=1000,HT=Math.round(rnd(60,110)*24),S={c:[],lo:[],hi:[]},out=[];
+ // Vorgeschichte aus vier Strecken, zusammen länger als das Muster; sie läuft gegen Welle 1 auf Punkt 0 zu
+ const w1=p0+dir*M*tree.fr[1],d1=Math.sign(w1-p0)||1,A=Math.abs(w1-p0),a1=p0+d1*A*rnd(.9,1.5),a0=a1-d1*A*rnd(.4,.8),b1=a0+d1*A*rnd(.6,1.2),b0=b1-d1*A*rnd(.5,1);
+ [[b0,b1,.3,impF],[b1,a0,.3,abcF],[a0,a1,.3,abcF],[a1,p0,.45,impF]].forEach(([a,b,f,F])=>pgLeg(a,b,Math.round(HT*f),F(),2,S));
+ out.push({lev:1,t:S.c.length,p:p0,l:'0',key:P.key,j:0,w1:0});
+ pgBuild(tree,p0,p0+dir*M,HT,1,0,S,out);
+ const e=p0+dir*M;S.c.push(e);S.lo.push(e);S.hi.push(e);
+ const mn=Math.min(...S.lo);if(mn<50){const d=50-mn;['c','lo','hi'].forEach(k=>S[k]=S[k].map(x=>x+d));out.forEach(q=>q.p+=d)} // Preise bleiben über 0
  // Kerzen: Eröffnung = Schluss der Kerze davor, Dochte klein und nie über den Wendepunkt der Strecke hinaus
  const c=S.c,o=c.map((x,i)=>i?c[i-1]:x),h=[],l=[];
  c.forEach((x,i)=>{const up=Math.max(o[i],x),dn=Math.min(o[i],x),wk=(up-dn)*.6+(S.hi[i]-S.lo[i])*.012;
   h.push(Math.max(up,Math.min(S.hi[i],up+Math.random()*wk)));l.push(Math.min(dn,Math.max(S.lo[i],dn-Math.random()*wk)))});
- return{o,h,l,c,pr:c,mp,spAll,tri,big,T0:Date.UTC(2024,0,1)+Math.floor(rnd(0,130))*6048e5}}
-// Benannte Korrekturwellen im Impuls (für die Alternation W4-3): Teilung wie abcF, aber mit der Form des Musters.
-// Zigzag: B läuft 35–55 % von A zurück. Regular Flat: B läuft 88,7–97 % zurück, C endet knapp jenseits von A.
-// Expanded Flat: B läuft 105–125 % zurück (über den Start hinaus), C endet deutlich jenseits von A. Running Flat kommt hier nicht vor,
-// weil dort A über das Ende der Welle hinausliefe und das Ende der Welle dann kein Wendepunkt wäre.
-const PGFORM={zig:abcF,fr:()=>{const f1=rnd(.82,.92);return[0,f1,f1*(1-rnd(.887,.97)),1]},fe:()=>{const f1=rnd(.6,.75);return[0,f1,-f1*rnd(.05,.25),1]}};
-// Welle 2 und Welle 4 bilden verschiedene Muster; zwei Flats (nur ein Warnsignal) werden hier nicht erzeugt, damit die Aufgabe eindeutig ist.
-function pgAlt(){const k=Object.keys(PGFORM),w2=k[Math.floor(Math.random()*k.length)],w4s=k.filter(x=>x!==w2&&!(x!=='zig'&&w2!=='zig'));
- return{2:w2,4:w4s[Math.floor(Math.random()*w4s.length)]}}
-// arg: leer = alle Muster; sonst ein Muster oder mehrere mit Komma (von „Prognose üben“ aus einem Kapitel)
-// Chart (DESIGN.md Abschnitt 11): groß, länger als der Bildschirm und seitlich verschiebbar, Kerzen in vier Zeiteinheiten.
+ const L1=out.filter(q=>q.lev===1).sort((a,b)=>a.t-b.t);
+ return{o,h,l,c,pr:c,N:c.length-1,mp:L1.map(q=>q.t),piv:out,tree,T0:Date.UTC(2024,0,1)+Math.floor(rnd(0,130))*6048e5}}
+// Invalidierungslinien (nur harte Regeln, Regelwerk Version 16): w = Welle, für die die Grenze gilt; j = Pivot, an dem die Linie beginnt
+// (sein Preis ist die Grenze), oder f(v) = Grenze im normierten Maß, dann beginnt die Linie am Start von Welle w.
+// Texte in der Grundrichtung (Impulse und Diagonalen aufwärts, Korrekturen abwärts); mt() spiegelt sie bei umgekehrtem Chart.
+const PGD6={w:2,j:0,t:'Welle 2 darf nicht unter den Start von Welle 1'},PGD5=[{w:3,j:1,t:'Welle 3 muss über dem Hoch von Welle 1 enden'},{w:4,j:1,t:'Welle 4 muss unter das Hoch von Welle 1 laufen (Überlappung)'},{w:5,j:3,t:'Welle 5 muss über dem Hoch von Welle 3 enden'}];
+const PGLINE={
+ imp:[{w:2,j:0,t:'Welle 2 darf nicht unter den Start von Welle 1'},{w:4,j:1,t:'Welle 4 darf nicht unter das Hoch von Welle 1'},
+  {w:5,f:v=>L(v,3)<L(v,1)?v[4]+L(v,3):null,t:'Welle 5 darf nicht über diese Linie (sonst wäre Welle 3 die kürzeste)'}],
+ dl:[PGD6,...PGD5,{w:3,f:v=>v[2]+L(v,1),t:'Welle 3 darf nicht über diese Linie (Welle 1 ist die längste)'},{w:5,f:v=>v[4]+L(v,3),t:'Welle 5 darf nicht über diese Linie (kürzer als Welle 3)'}],
+ db:[PGD6,...PGD5,{w:3,f:v=>v[2]+L(v,1),t:'Welle 3 darf nicht über diese Linie (kürzer als Welle 1)'},{w:5,f:v=>v[4]+L(v,3),t:'Welle 5 darf nicht über diese Linie (kürzer als Welle 3)'}],
+ de:[PGD6,...PGD5,{w:3,f:v=>v[2]+L(v,1),t:'Welle 3 muss über diese Linie laufen (länger als Welle 1)'},{w:5,f:v=>v[4]+L(v,3),t:'Welle 5 muss über diese Linie laufen (länger als Welle 3)'},
+  {w:4,j:2,t:'Welle 4 darf nicht unter den Start von Welle 3'}],
+ zig:[{w:2,j:0,t:'Welle B darf nicht über den Start von Welle A'},{w:3,j:1,t:'Welle C muss unter dem Tief von Welle A enden'}],
+ fr:[{w:2,j:0,t:'Welle B darf nicht über den Start von Welle A'},{w:3,j:1,t:'Welle C muss unter dem Tief von Welle A enden'}],
+ fe:[{w:2,j:0,t:'Welle B muss über den Start von Welle A laufen'},{w:3,j:1,t:'Welle C muss unter dem Tief von Welle A enden'}],
+ fru:[{w:2,j:0,t:'Welle B muss über den Start von Welle A laufen'},{w:3,j:1,t:'Welle C darf nicht unter das Tief von Welle A laufen'}],
+ trk:[2,3,4,5].map(k=>({w:k,j:k-2,t:'Welle '+'ABCDE'[k-1]+' muss kürzer als Welle '+'ABCDE'[k-2]+' bleiben'})),
+ tre:[2,3,4,5].map(k=>({w:k,j:k-2,t:'Welle '+'ABCDE'[k-1]+' muss länger als Welle '+'ABCDE'[k-2]+' werden'})),
+ dz:[{w:2,j:0,t:'Welle X darf nicht über den Start von Welle W'}],
+ tz:[{w:2,j:0,t:'Welle X darf nicht über den Start von Welle W'},{w:4,j:2,t:'Die zweite Welle X darf nicht über den Start von Welle Y'}]};
+// Höchster Punkt-Index, den eine Regel prüft (für Teilzählungen: nur Regeln, deren Punkte schon gezählt sind). 99 = nicht erkennbar.
+const pgRuleMax=r=>{if(r._mx!==undefined)return r._mx;const s=String(r.ok),re=/\b[uv]\[(\d)\]|L\([uv],(\d)\)/g;let mx=-1,mm;while((mm=re.exec(s)))mx=Math.max(mx,+(mm[1]||mm[2]));return r._mx=mx<0?99:mx};
+// arg: leer = alle Muster; sonst ein Muster oder mehrere mit Komma (von „Prognose üben“ aus einem Kapitel). lvl: 'leicht' oder 'schwer'.
+// Chart (DESIGN.md Abschnitt 11): groß, länger als der Bildschirm und seitlich verschiebbar, Kerzen in vier Zeiteinheiten, drei Wellenebenen.
 // Wischen auf freier Fläche verschiebt, Tippen setzt einen Punkt, ein gesetzter Punkt wird nur verschoben, wenn man direkt auf ihm ansetzt.
-// Gesetzte Punkte sind Zeit (Stunden, mit Nachkommastellen) und Preis: Beim Umschalten der Zeiteinheit bleiben sie an derselben Stelle.
-function progn(arg){
- const pool=arg?String(arg).split(','):Object.keys(PAT),key=pool[Math.floor(Math.random()*pool.length)],P=PAT[key];
- const nm=key==='imp'?pgAlt():null,frs=nm?[impF,PGFORM[nm[2]],impF,PGFORM[nm[4]],impF]:P.shape.fr,R=pgData(P,frs);R.nm=nm; // nm: Muster von Welle 2 und 4
- const cuts=P.waves.length===5?[2,3,4]:[2],cut=cuts[Math.floor(Math.random()*cuts.length)],c0=R.mp[cut],N=R.pr.length-1;
- const vk=frs.slice(0,cut).map(f=>f===impF?'N':'ABC'); // Unterteilung der sichtbaren Wellen
- const fam=Object.keys(PAT).filter(k=>PAT[k].labels.join()===P.labels.join()).map(k=>PAT[k]); // Muster mit derselben Beschriftung
- const waves=[];for(let k=cut+1;k<=P.waves.length;k++)waves.push(k); // fehlende Hauptwellen (1 = erste Welle)
- const m={ch:{},pts:[],tips:0,failed:false,done:false,chErr:false,shown:false,zones:[]};
+// Leicht: der sichtbare Verlauf ist beschriftet, man setzt nur fort. Schwer: erst den sichtbaren Verlauf selbst zählen (Ebene 1 und 2), dann fortsetzen.
+function progn(arg,lvl){
+ if(lvl!=='leicht'&&lvl!=='schwer'){ // zuerst die Schwierigkeit wählen
+  $('#view').innerHTML='<div class="card"><p class="kick">Wie geht es weiter?</p><h2>Wie schwer?</h2>'+
+   '<p><button class="p" data-pl="leicht">Leicht</button> <span class="mut">Der sichtbare Verlauf ist auf allen Ebenen beschriftet. Du setzt nur fort.</span></p>'+
+   '<p><button class="p" data-pl="schwer">Schwer</button> <span class="mut">Du zählst zuerst den sichtbaren Verlauf selbst (großes Muster und seine Unterteilung), dann setzt du fort.</span></p></div>';
+  document.querySelectorAll('[data-pl]').forEach(b=>{b.onclick=()=>progn(arg,b.dataset.pl);lockTap(b)});window.scrollTo(0,0);return}
+ const pool=arg?String(arg).split(','):Object.keys(PAT),key=pool[Math.floor(Math.random()*pool.length)],P=PAT[key],R=pgData(P);
+ const cuts=P.waves.length===5?[2,3,4]:[2],cut0=cuts[Math.floor(Math.random()*cuts.length)],c0=R.mp[cut0],N=R.N;
+ // Zählung des sichtbaren Teils: lab = Beschriftung der Ebene 1, t/p = Hauptpunkte, vk = Unterteilung je Welle, wp[w] = Punkte der Welle w
+ // (Start, Teilpunkte, Ende), sub = Beschriftung der Ebenen 2 und 3. Leicht: die erzeugte Zählung. Schwer: die des Spielers, nach dem Prüfen.
+ const truthCount=()=>{const L1=R.mp.slice(0,cut0+1),wp={};for(let w=1;w<=cut0;w++)wp[w]=[R.pr[L1[w-1]]].concat(R.piv.filter(q=>q.lev===2&&q.w1===w).sort((a,b)=>a.t-b.t).map(q=>q.p));
+  return{lab:P.labels,key0:P.key,t:L1,p:L1.map(i=>R.pr[i]),vk:R.tree.kids?R.tree.kids.slice(0,cut0).map(x=>PGKOF[x.key]):[],cut:cut0,wp,
+   sub:R.piv.filter(q=>q.lev>1&&q.t<=c0).map(q=>({lev:q.lev,t:q.t,p:q.p,l:pgTxt(q.lev,q.l)}))}};
+ let CNT=lvl==='leicht'?truthCount():null;
+ const m={ch:{},pts:[],tips:0,failed:false,done:false,chErr:false,shown:false,lines:[],cz:null,cs:null,cw:[],cfail:0,cntShown:false};
+ const fam=()=>Object.keys(PAT).filter(k=>PAT[k].labels.join()===CNT.lab.join()).map(k=>PAT[k]); // Muster mit derselben Beschriftung
+ const waves=()=>{const o=[];for(let k=CNT.cut+1;k<CNT.lab.length;k++)o.push(k);return o}; // fehlende Hauptwellen (1 = erste Welle)
  // Ansicht: W×H in Bildschirmpixeln, BW Pixel je Kerze, tf Stunden je Kerze, sc = wie weit der Chart nach links geschoben ist.
  // Die Zukunftszone endet bei Stunde ZE: Platz für gut das Anderthalbfache des echten Rests, mindestens die halbe Musterlänge.
- const mob=innerWidth<=600,TP=26,BP=30;let BW=mob?5:6,ZE=c0+Math.round(Math.max(1.6*(N-c0),.5*(N-R.mp[0])));
+ const mob=innerWidth<=600,TP=26,BP=30;let BW=5,ZE=c0+Math.round(Math.max(1.6*(N-c0),.5*(N-R.mp[0])));
  const pat=R.pr.slice(R.mp[0],c0+1),patLo=Math.min(...pat),patHi=Math.max(...pat),patRg=patHi-patLo; // sichtbarer Teil des Musters
  let W=0,H=0,sc=null,tf=24,yr=[0,1],fbLast,peek=null;
  const size=()=>{W=Math.max(280,$('#pgc').clientWidth);if(!H)H=mob?Math.max(340,Math.round(innerHeight*.52)):Math.max(380,Math.min(620,Math.round(innerHeight*.58)))};
  const half=()=>(mob?.5:.45)*W,clampSc=x=>Math.max(0,Math.min(Math.max(0,(ZE+tf)*BW/tf-W),x)),homeSc=()=>clampSc((c0+.5)*BW/tf-half()); // Grundstellung: Ende des Verlaufs etwa in der Mitte
- // Start-Zeiteinheit: die feinste, in der der sichtbare Teil des Musters links vom Ende ganz ins Bild passt
- const startTf=()=>{const fit=PGTF.map(x=>x[1]).reverse().find(h=>(c0-R.mp[0]+3*h)*BW/h<=half());return fit||168};
  const X=t=>(t+.5)*BW/tf-sc,Tof=x=>(x+sc)*tf/BW-.5,Y=p=>TP+(yr[1]-p)/(yr[1]-yr[0])*(H-TP-BP),Pof=y=>yr[1]-(y-TP)/(H-TP-BP)*(yr[1]-yr[0]);
  // Kerzen der Zeiteinheit: aus den Stundenkerzen zusammengefasst (all = mit dem wahren Rest, sonst nur bis zum Abbruch)
  const AG={},agg=all=>{const id=tf+(all?'a':'v');if(AG[id])return AG[id];const n=all?N:c0,o=[],h=[],l=[],c=[];
   for(let i=0;i<=n;i++){const g=Math.floor(i/tf);if(o[g]===undefined){o[g]=R.o[i];h[g]=R.h[i];l[g]=R.l[i]}else{if(R.h[i]>h[g])h[g]=R.h[i];if(R.l[i]<l[g])l[g]=R.l[i]}c[g]=R.c[i]}
   return AG[id]={o,h,l,c}};
- // Preisbereich passend zu den Kerzen im Ausschnitt (wie in einem Chart-Programm). Ist die Zukunftszone im Bild, bleibt oben und unten Platz
- // zum Planen, und um jeden gesetzten Punkt bleibt Platz für den nächsten. Sind gerade keine Kerzen im Bild, gilt der letzte Bereich weiter.
+ // Preisbereich passend zu den Kerzen im Ausschnitt; ist die Zukunftszone im Bild, bleibt oben und unten Platz zum Planen
  let core=[patLo,patHi];
  const fitY=()=>{const t0=Math.max(0,Tof(0)),t1=Tof(W),a=agg(m.shown),g0=Math.floor(t0/tf),g1=Math.min(a.c.length-1,Math.floor(t1/tf));let lo=1e9,hi=-1e9;const add=p=>{if(p<lo)lo=p;if(p>hi)hi=p};
   for(let g=g0;g<=g1;g++){add(a.h[g]);add(a.l[g])}
@@ -1326,12 +1378,28 @@ function progn(arg){
   const cl=lo,ch=hi,rg=(ch-cl)||patRg*.1;
   m.pts.forEach(q=>{if(q.x>=t0-tf&&q.x<=t1+tf){add(q.p-.35*rg);add(q.p+.35*rg)}});
   if(t1>c0){add(cl-.6*rg);add(ch+.6*rg)}
+  m.lines.forEach(z=>add(z.p));
   if(peek!==null){add(peek);peek=null}
   const pad=(hi-lo)*.05||1;yr=[lo-pad,hi+pad]};
- PGS={P,R,cut,m,frs,X:t=>X(t),Y:p=>Y(p),tf:()=>tf,show:(t,p)=>{sc=clampSc((t+.5)*BW/tf-W/2);peek=p===undefined?null:p;fitY();redraw($('#svg'),pic())}}; // show: Stelle (und Preis) ins Bild holen
- const segs=()=>{let o=0;return waves.filter(k=>m.ch[k]).map(k=>{const kind=m.ch[k],n=PGK[kind].l.length,g={k,kind,n,pts:m.pts.slice(o,o+n)};o+=n;return g})};
- const cur=()=>{for(const g of segs())if(g.pts.length<g.n)return{k:g.k,kind:g.kind,n:g.n,have:g.pts.length};const k=waves.find(k=>!m.ch[k]);return k?{k,needChar:true}:null};
- const mainP=()=>R.mp.slice(0,cut+1).map(i=>R.pr[i]).concat(segs().map(g=>g.pts[g.n-1].p)); // Hauptpunkte: echt + gezeichnet
+ const truthPlan=()=>{const o=[];for(let k=cut0+1;k<P.labels.length;k++){const kid=R.tree.kids&&R.tree.kids[k-1];
+  o.push({k,kind:kid?PGKOF[kid.key]:'ABC',pts:R.piv.filter(q=>q.lev===2&&q.w1===k).sort((a,b)=>a.t-b.t).map(q=>({t:q.t,p:q.p}))})}return o};
+ const truthCnt=()=>({z:Object.keys(PGZL).find(z=>PAT[PGZL[z]].labels.join()===P.labels.join()),start:{t:R.mp[0],p:R.pr[R.mp[0]]}, // erzeugte Zählung (für den Dauertest)
+  waves:(R.tree.kids||[]).slice(0,cut0).map((kid,i)=>({kind:PGKOF[kid.key],pts:R.piv.filter(q=>q.lev===2&&q.w1===i+1).sort((a,b)=>a.t-b.t).map(q=>({t:q.t,p:q.p}))}))});
+ PGS={P,R,cut:cut0,m,lvl,X:t=>X(t),Y:p=>Y(p),tf:()=>tf,setTf:h=>{const b=document.querySelector('[data-tf="'+h+'"]');if(b)b.click()},truth:truthPlan,ctruth:truthCnt,phase:()=>CNT?'plan':'count',
+  show:(t,p)=>{sc=clampSc((t+.5)*BW/tf-W/2);peek=p===undefined?null:p;fitY();redraw($('#svg'),pic())}}; // show: Stelle (und Preis) ins Bild holen
+ const segs=()=>{let o=0;return waves().filter(k=>m.ch[k]).map(k=>{const kind=m.ch[k],n=PGK[kind].l.length,g={k,kind,n,pts:m.pts.slice(o,o+n)};o+=n;return g})};
+ const cur=()=>{for(const g of segs())if(g.pts.length<g.n)return{k:g.k,kind:g.kind,n:g.n,have:g.pts.length};const k=waves().find(k=>!m.ch[k]);return k?{k,needChar:true}:null};
+ const mainP=()=>CNT.p.concat(segs().map(g=>g.pts[g.n-1].p)); // Hauptpunkte: gezählt + geplant
+ // ---- Schwer: Zählung des sichtbaren Teils. cz = Zählweise der Ebene 1, cs = Punkt 0, cw = Wellen mit Unterteilung und Punkten
+ const czLab=()=>PAT[PGZL[m.cz]].labels,nW=()=>czLab().length-1;
+ const cAll=()=>[m.cs].concat(...m.cw.map(w=>w.pts)).filter(Boolean);
+ const ccur=()=>{if(!m.cz)return{need:'cz'};if(!m.cs)return{need:'start'};const w=m.cw[m.cw.length-1];
+  if(w&&w.pts.length<PGK[w.kind].l.length)return{need:'pt',k:m.cw.length,kind:w.kind,have:w.pts.length};
+  const last=cAll().pop();if(last.t>=c0)return{need:'done'};if(m.cw.length>=nW())return{need:'over'};return{need:'kind',k:m.cw.length+1}};
+ // Punkt am Chart einrasten: Hoch oder Tief (je nachdem, was näher am Finger liegt) im Umkreis von anderthalb Kerzen der Zeiteinheit
+ const snap=(px,py)=>{const t=Math.round(Tof(px)),wv=Math.max(2,Math.round(1.5*tf)),lo=Math.max(0,t-wv),hi=Math.min(c0,t+wv);if(lo>c0)return null;let ih=lo,il=lo;
+  for(let i=lo;i<=hi;i++){if(R.h[i]>R.h[ih]||(R.h[i]===R.h[ih]&&Math.abs(i-t)<Math.abs(ih-t)))ih=i;if(R.l[i]<R.l[il]||(R.l[i]===R.l[il]&&Math.abs(i-t)<Math.abs(il-t)))il=i}
+  return Math.abs(Y(R.h[ih])-py)<=Math.abs(Y(R.l[il])-py)?{t:ih,p:R.h[ih]}:{t:il,p:R.l[il]}};
  // Zeitachse: Abstand der Beschriftung je Zeiteinheit (in Stunden), Datum bzw. Uhrzeit in deutscher Schreibweise (Zeiten in UTC, ohne Sommerzeit)
  const MON=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],p2=n=>(n<10?'0':'')+n;
  const axis=()=>{const st={1:12,4:48,24:336,168:2184}[tf],t0=Math.max(0,Tof(0)),t1=Tof(W);let s='';
@@ -1339,66 +1407,99 @@ function progn(arg){
    const txt=tf===168?MON[d.getUTCMonth()]+' '+String(d.getUTCFullYear()).slice(2):tf===1&&hr?p2(hr)+':00':p2(d.getUTCDate())+'.'+p2(d.getUTCMonth()+1)+'.';
    s+='<line x1="'+x+'" x2="'+x+'" y1="'+(H-BP+4)+'" y2="'+(H-BP+9)+'" stroke="var(--mut)" stroke-width="1"/><text class="lab ax" x="'+x+'" y="'+(H-8)+'">'+txt+'</text>'}
   return s};
+ const showLev=lev=>lev===1||(lev===2&&tf<=4)||tf===1; // W/D: Ebene 1, 4h: dazu Ebene 2, 1h: alle drei Ebenen
  const pic=()=>{const t0=Math.max(0,Tof(0)),t1=Tof(W),bw=Math.max(1,BW-2);
-  let s='<svg id="svg" class="pgsvg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Kerzenchart mit Zukunftszone, seitlich verschiebbar"><defs><pattern id="hz" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--dn)" stroke-width="2" opacity=".45"/></pattern></defs>';
+  let s='<svg id="svg" class="pgsvg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Kerzenchart mit Zukunftszone, seitlich verschiebbar">';
   const zx=Math.max(0,X(c0+.5)),zw=Math.min(W,X(ZE+.5))-zx;if(zw>0)s+='<rect x="'+zx+'" y="0" width="'+zw+'" height="'+(H-BP)+'" fill="var(--line)" opacity=".35"/>';
   for(let y=20;y<H-BP;y+=50)s+='<line x1="0" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width=".6"/>';
   s+='<line x1="0" x2="'+W+'" y1="'+(H-BP+4)+'" y2="'+(H-BP+4)+'" stroke="var(--line)" stroke-width="1"/>'+axis();
-  m.zones.forEach(z=>{const ya=Math.max(0,Math.min(H-BP,Y(z.a))),y1=z.top?0:ya,hh=z.top?ya:H-BP-ya,xr=X(z.x1); // verbotene Zone: hier wäre die Zählung ungültig
-   s+='<rect x="'+xr+'" y="'+y1+'" width="'+Math.max(4,X(z.x2)-xr)+'" height="'+hh+'" fill="url(#hz)" stroke="var(--dn)" stroke-width="1.5" stroke-dasharray="6 4"/>';
-   // Beschriftung zweizeilig, an der Grenze innerhalb der Zone
-   const tx=xr+4,ty=Math.max(16,Math.min(H-BP-22,z.top?ya-22:ya+14));
-   s+='<text class="lab" style="fill:var(--dn);font-size:12px;text-anchor:start" x="'+tx+'" y="'+ty+'">'+z.t.split('|').map((l,i)=>'<tspan x="'+tx+'" dy="'+(i?14:0)+'">'+l+'</tspan>').join('')+'</text>'});
   // Kerzen: steigend blau gefüllt, fallend weiß mit blauem Rand (wie im Wellen-Pfad); der wahre Rest nach dem Auflösen blass
   const candles=(a,g0,g1,cls)=>{let o='<g class="pgcd'+cls+'">';for(let g=Math.max(0,g0);g<=Math.min(a.c.length-1,g1);g++){const x=(g+.5)*BW-sc,up=a.c[g]>=a.o[g],yt=Y(Math.max(a.o[g],a.c[g])),yb=Y(Math.min(a.o[g],a.c[g]));
     o+='<line x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+Y(a.h[g]).toFixed(1)+'" y2="'+Y(a.l[g]).toFixed(1)+'"/><rect class="'+(up?'u':'d')+'" x="'+(x-bw/2).toFixed(1)+'" y="'+yt.toFixed(1)+'" width="'+bw+'" height="'+Math.max(1,yb-yt).toFixed(1)+'"/>'}return o+'</g>'};
   const gc=Math.floor(c0/tf);s+=candles(agg(false),Math.floor(t0/tf),Math.min(gc,Math.floor(t1/tf)),'');
-  // Beschriftungen sammeln und so verschieben, dass sie sich nicht überlappen (nach außen, weg vom Punkt)
-  const labs=[],lab=(x,y,up,t,st)=>labs.push({x,y,up,t,st}),put=()=>{const done=[];
-   labs.forEach(a=>{const w=a.t.length*7.5;for(let n=0;n<6&&done.some(b=>Math.abs(b.x-a.x)<(w+b.w)/2&&Math.abs(b.y-a.y)<13);n++)a.y+=a.up?-13:13;
-    a.w=w;done.push(a);s+='<text class="lab"'+(a.st?' style="'+a.st+'"':'')+' x="'+a.x+'" y="'+a.y+'">'+a.t+'</text>'})};
-  if(m.shown){ // echter Rest im selben Maßstab
-   s+=candles(agg(true),gc+1,Math.floor(t1/tf),' fut');
-   for(let k=cut+1;k<R.mp.length;k++){const i=R.mp[k],up=R.pr[i]>=R.pr[R.mp[k-1]];lab(X(i),Y(R.pr[i])+(up?-9:18),up,P.labels[k],'fill:var(--mut)')}}
-  for(let k=0;k<=cut;k++){const i=R.mp[k],p=R.pr[i],up=k===0?p>R.pr[R.mp[1]]:p>=R.pr[R.mp[k-1]];lab(X(i),Y(p)+(up?-9:18),up,P.labels[k]+(R.nm&&R.nm[k]?' '+PAT[R.nm[k]].title:''))} // Welle 2 (und 4) mit Muster: für die Alternation
-  const all=[{x:c0,p:R.pr[c0]}].concat(m.pts);
-  if(m.pts.length)s+='<polyline fill="none" stroke="var(--up)" stroke-width="2" stroke-dasharray="6 4" points="'+all.map(q=>X(q.x)+','+Y(q.p)).join(' ')+'"/>';
-  let j=0;segs().forEach(g=>g.pts.forEach((q,t)=>{j++;const prv=all[j-1],nx=all[j+1],up=q.p>=prv.p&&(!nx||q.p>=nx.p)||(!nx&&q.p>=prv.p);
-   s+='<circle cx="'+X(q.x)+'" cy="'+Y(q.p)+'" r="5" fill="var(--up)" stroke="var(--surface)" stroke-width="1.5"/>';lab(X(q.x),Y(q.p)+(up?-10:20),up,PGK[g.kind].l[t]);
-   if(t===g.n-1)lab(X(q.x),Y(q.p)+(up?-25:35),up,P.labels[g.k],'font-weight:800');})); // letzter Subpunkt = Ende der Hauptwelle (zwei Beschriftungen)
+  if(m.shown)s+=candles(agg(true),gc+1,Math.floor(t1/tf),' fut');
+  // Invalidierungslinien: gestrichelt ab dem Pivot nach rechts, kurzes Etikett an der Linie
+  m.lines.forEach(z=>{const x1=X(z.t),y=Y(z.p),x2=Math.max(x1+40,X(ZE+.5));
+   s+='<line class="pgil" x1="'+x1+'" x2="'+x2+'" y1="'+y+'" y2="'+y+'"/><circle cx="'+x1+'" cy="'+y+'" r="3.5" fill="var(--dn)"/>'+
+    '<text class="lab pgilt" x="'+(x1+7)+'" y="'+(y+(z.below?14:-6))+'">'+esc(z.txt)+'</text>'});
+  // Beschriftungen sammeln und so verschieben, dass sie sich nicht überlappen (nach außen, weg vom Punkt). c: Ebene 1 im Kreis
+  const labs=[],lab=(x,y,up,t,st,c)=>{if(x>-30&&x<W+30)labs.push({x,y,up,t,st,c})},put=()=>{const done=[];
+   labs.forEach(a=>{const w=a.c?24:a.t.length*7.2;for(let n=0;n<6&&done.some(b=>Math.abs(b.x-a.x)<(w+b.w)/2&&Math.abs(b.y-a.y)<(a.c||b.c?20:13));n++)a.y+=a.up?-14:14;
+    a.w=w;done.push(a);if(a.c)s+='<circle class="pgc1" cx="'+a.x+'" cy="'+(a.y-4)+'" r="10"/>';s+='<text class="lab'+(a.c?' l1':'')+'"'+(a.st?' style="'+a.st+'"':'')+' x="'+a.x+'" y="'+a.y+'">'+a.t+'</text>'})};
+  const upAt=(i,list)=>{const p=list[i].p,a=list[i-1],b=list[i+1];return a?p>=a.p:(b?p>b.p:true)};
+  if(m.shown)for(let k=cut0+1;k<R.mp.length;k++){const i=R.mp[k],up=R.pr[i]>=R.pr[R.mp[k-1]];lab(X(i),Y(R.pr[i])+(up?-14:22),up,pgLab(P.key,k),'fill:var(--mut)',1)}
+  if(CNT){ // gezählter sichtbarer Teil: Ebene 1 im Kreis, darunter Ebenen 2 und 3 je nach Zeiteinheit
+   const L=CNT.t.map((t,k)=>({t,p:CNT.p[k]}));L.forEach((q,k)=>{const up=upAt(k,L);lab(X(q.t),Y(q.p)+(up?-14:22),up,pgLab(CNT.key0,k),'',1)});
+   CNT.sub.forEach(q=>{if(!showLev(q.lev))return;const nb=CNT.sub.concat(L).filter(x=>Math.abs(x.t-q.t)>0).sort((a,b)=>Math.abs(a.t-q.t)-Math.abs(b.t-q.t))[0],up=!nb||q.p>=nb.p;
+    lab(X(q.t),Y(q.p)+(up?-8:16),up,q.l,q.lev===3?'font-size:11px;fill:var(--mut)':'')})}
+  else{ // Schwer, beim Zählen: die gesetzten Punkte des Spielers
+   const all=cAll();all.forEach((q,i)=>{s+='<circle cx="'+X(q.t)+'" cy="'+Y(q.p)+'" r="4.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="1.5"/>'});
+   if(m.cs){const up=all[1]?m.cs.p>all[1].p:true;lab(X(m.cs.t),Y(m.cs.p)+(up?-14:22),up,'0','',1)}
+   let i=0;m.cw.forEach((w,k)=>w.pts.forEach((q,j)=>{i++;const up=upAt(i,all);lab(X(q.t),Y(q.p)+(up?-8:16),up,PGK[w.kind].l[j]);
+    if(j===PGK[w.kind].l.length-1)lab(X(q.t),Y(q.p)+(up?-24:32),up,pgLab(PGZL[m.cz],k+1),'',1)}))}
+  // geplante Fortsetzung: grüne Punkte, Ebene 2 in Klammern, Ende der Hauptwelle im Kreis
+  if(CNT){const all=[{x:CNT.t[CNT.cut],p:CNT.p[CNT.cut]}].concat(m.pts);
+   if(m.pts.length)s+='<polyline fill="none" stroke="var(--up)" stroke-width="2" stroke-dasharray="6 4" points="'+all.map(q=>X(q.x)+','+Y(q.p)).join(' ')+'"/>';
+   let j=0;segs().forEach(g=>g.pts.forEach((q,t)=>{j++;const prv=all[j-1],nx=all[j+1],up=q.p>=prv.p&&(!nx||q.p>=nx.p)||(!nx&&q.p>=prv.p);
+    s+='<circle cx="'+X(q.x)+'" cy="'+Y(q.p)+'" r="5" fill="var(--up)" stroke="var(--surface)" stroke-width="1.5"/>';lab(X(q.x),Y(q.p)+(up?-10:20),up,PGK[g.kind].l[t]);
+    if(t===g.n-1)lab(X(q.x),Y(q.p)+(up?-26:36),up,pgLab(fam()[0].key,g.k),'',1);}))}
   put();
   return s+'</svg>';};
- const wn=k=>P.waves[k-1];
  const zoneMsg='Setze den Punkt in die graue Zone, rechts vom vorherigen Punkt.';
  const tfBar=()=>'<div class="pgtf" role="group" aria-label="Zeiteinheit">'+PGTF.map(([n,h])=>'<button data-tf="'+h+'" class="'+(h===tf?'on':'')+'" aria-pressed="'+(h===tf)+'">'+n+'</button>').join('')+'</div>';
- const render=fb=>{const cu=cur();fbLast=fb;
-  $('#view').innerHTML='<p class="kick">Wie geht es weiter?</p><p class="task">Der Chart bricht nach Welle '+wn(cut)+' ab. Plane '+(waves.length>1?'die fehlenden Wellen '+waves.map(wn).join(', '):'die fehlende Welle '+wn(waves[0]))+' in der grauen Zone. '+
-   (m.done?'':cu?(cu.needChar?'<b>Wie unterteilt sich Welle '+wn(cu.k)+'?</b>':'Welle '+wn(cu.k)+' als '+PGK[cu.kind].t+': Nächster Punkt <span class="nextpt">'+PGK[cu.kind].l[cu.have]+(cu.have===cu.n-1?' = '+wn(cu.k):'')+'</span>. Tippen setzt den Punkt, Wischen verschiebt den Chart.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
-   (cu&&cu.needChar&&!m.done?'<div class="pgk">'+Object.keys(PGK).map(k=>'<button data-ch="'+k+'">'+PGK[k].t+'</button>').join('')+'</div>':'')+
-   '<div class="chart pgc" id="pgc"></div>'+
-   '<div class="dock">'+(m.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
-    '<button class="p" id="chk" '+(cu?'disabled':'')+'>Prüfen</button><button id="und">Zurück</button><button id="rst">Neu setzen</button>')+'</div>'+
-   '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
+ const legend='<p class="pglg" aria-label="Beschriftung der Wellenebenen"><span class="c1">1</span> Ebene 1 (W, D) · <b>(1)</b> Ebene 2 (ab 4h) · <span class="mut">1</span> Ebene 3 (1h)</p>';
+ const wn=k=>pgLab(fam()[0].key,k);
+ const render=fb=>{fbLast=fb;let task,pick='';
+  if(!CNT){const c=ccur(),zl=m.cz?czLab():null;
+   task='<b>Schwer: Zähle zuerst den sichtbaren Verlauf.</b> '+(c.need==='cz'?'Wie ist das große Muster beschriftet (Ebene 1)?':c.need==='start'?'Tippe auf den Start des großen Musters (Punkt 0). Punkte rasten am nächsten Hoch oder Tief ein.':
+    c.need==='kind'?'<b>Wie unterteilt sich Welle '+pgLab(PGZL[m.cz],c.k)+'?</b>':c.need==='pt'?'Welle '+pgLab(PGZL[m.cz],c.k)+' als '+PGK[c.kind].t+': Nächster Punkt <span class="nextpt">'+PGK[c.kind].l[c.have]+(c.have===PGK[c.kind].l.length-1?' = '+pgLab(PGZL[m.cz],c.k):'')+'</span>.':
+    c.need==='over'?'Alle Wellen der Zählweise sind gezählt, aber der Chart geht noch weiter. Nimm Punkte zurück oder wähle eine andere Zählweise.':'Der sichtbare Verlauf ist gezählt. Prüfe deine Zählung.');
+   if(c.need==='cz')pick='<div class="pgk">'+Object.keys(PGZL).map(z=>'<button data-cz="'+z+'">'+PGK[z].t+'</button>').join('')+'</div>';
+   if(c.need==='kind')pick='<div class="pgk">'+Object.keys(PGK).map(k=>'<button data-ck="'+k+'">'+PGK[k].t+'</button>').join('')+'</div>';
+   $('#view').innerHTML='<p class="kick">Wie geht es weiter? · Schwer</p><p class="task">'+task+'</p>'+pick+'<div class="chart pgc" id="pgc"></div>'+legend+
+    '<div class="dock"><button class="p" id="cchk" '+(c.need==='done'?'':'disabled')+' aria-label="Zählung prüfen">Prüfen</button><button id="cund">Zurück</button><button id="crst">Neu setzen</button></div>'+
+    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>'}
+  else{const cu=cur(),ws=waves();
+   $('#view').innerHTML='<p class="kick">Wie geht es weiter?'+(lvl==='schwer'?' · Schwer':'')+'</p><p class="task">Der Chart bricht nach Welle '+wn(CNT.cut)+' ab. Plane '+(ws.length>1?'die fehlenden Wellen '+ws.map(wn).join(', '):'die fehlende Welle '+wn(ws[0]))+' in der grauen Zone. '+
+    (m.done?'':cu?(cu.needChar?'<b>Wie unterteilt sich Welle '+wn(cu.k)+'?</b>':'Welle '+wn(cu.k)+' als '+PGK[cu.kind].t+': Nächster Punkt <span class="nextpt">'+PGK[cu.kind].l[cu.have]+(cu.have===cu.n-1?' = '+wn(cu.k):'')+'</span>. Tippen setzt den Punkt, Wischen verschiebt den Chart.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
+    (cu&&cu.needChar&&!m.done?'<div class="pgk">'+Object.keys(PGK).map(k=>'<button data-ch="'+k+'">'+PGK[k].t+'</button>').join('')+'</div>':'')+
+    '<div class="chart pgc" id="pgc"></div>'+legend+
+    '<div class="dock">'+(m.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
+     '<button class="p" id="chk" '+(cu?'disabled':'')+'>Prüfen</button><button id="und">Zurück</button><button id="rst">Neu setzen</button>')+'</div>'+
+    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>'}
   // Breite erst am fertigen Rahmen messen (die Startseite ist breiter als die Spielseite), dann zeichnen
   size();
-  if(sc===null){tf=startTf(); // erste Anzeige: Zeiteinheit wählen, Kerzen so breit, dass der sichtbare Teil des Musters die linke Hälfte gut füllt
-   BW=Math.max(BW,Math.min(12,Math.floor(half()/((c0-R.mp[0])/tf+3))));ZE=Math.max(ZE,Math.ceil(c0+(W-half())*tf/BW)); // die Zukunftszone reicht mindestens bis zum rechten Rand
-   sc=homeSc()}
+  if(sc===null){ // erste Anzeige: Tageschart, Kerzen so breit, dass der sichtbare Teil des Musters gut die Hälfte füllt (sonst Wochenchart)
+   const vis=(c0-R.mp[0])/24+3;tf=vis*3>half()?168:24;BW=Math.max(3,Math.min(12,Math.floor(half()/((c0-R.mp[0])/tf+3))));
+   ZE=Math.max(ZE,Math.ceil(c0+(W-half())*tf/BW));sc=homeSc()} // die Zukunftszone reicht mindestens bis zum rechten Rand
   sc=clampSc(sc);fitY();
   $('#pgc').innerHTML=pic()+tfBar()+'<button id="pgend" class="pgend" hidden>Zum Ende springen</button>';
   bindChart();
-  if(m.done){$('#real').onclick=()=>{m.shown=true;render(fb+'<p class="mut">Blass: der tatsächliche Verlauf, im selben Maßstab. Nur zum Vergleich: Punkte gibt es für regelkonformes Planen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(arg);return}
+  if(!CNT){
+   document.querySelectorAll('[data-cz]').forEach(b=>b.onclick=()=>{m.cz=b.dataset.cz;render()});
+   document.querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>{m.cw.push({kind:b.dataset.ck,pts:[]});render()});
+   $('#cund').onclick=()=>{const w=m.cw[m.cw.length-1];if(w&&w.pts.length)w.pts.pop();else if(w)m.cw.pop();else if(m.cs)m.cs=null;else m.cz=null;render()};
+   $('#crst').onclick=()=>{m.cz=null;m.cs=null;m.cw=[];render()};
+   $('#cchk').onclick=cntVerify;const sh=$('#cshow');if(sh)sh.onclick=()=>{CNT=truthCount();m.cntShown=true;m.failed=true;render('<p class="mut">Die erzeugte Zählung ist jetzt eingeblendet. Plane die fehlenden Wellen.</p>')};
+   return}
+  if(m.done){$('#real').onclick=()=>{m.shown=true;render(fb+'<p class="mut">Blass: der tatsächliche Verlauf, im selben Maßstab. Nur zum Vergleich: Punkte gibt es für regelkonformes Planen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(arg,lvl);return}
+  const cu=cur();
   document.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{m.ch[cu.k]=b.dataset.ch;render()});
-  $('#und').onclick=()=>{const g=segs().pop();if(!g)return;if(g.pts.length)m.pts.pop();else delete m.ch[g.k];m.zones=[];render()};
-  $('#rst').onclick=()=>{m.ch={};m.pts=[];m.zones=[];render()};
+  $('#und').onclick=()=>{const g=segs().pop();if(!g)return;if(g.pts.length)m.pts.pop();else delete m.ch[g.k];m.lines=[];render()};
+  $('#rst').onclick=()=>{m.ch={};m.pts=[];m.lines=[];render()};
   $('#chk').onclick=verify;
  };
- // Tippen: setzt den nächsten Punkt (nur in der Zukunftszone, rechts vom vorherigen Punkt)
- const tap=(px,py)=>{const c=cur(),t=Tof(px),last=m.pts.length?m.pts[m.pts.length-1].x:c0;
+ // Tippen: beim Zählen rastet der Punkt am Chart ein; beim Planen setzt er den nächsten Punkt in der Zukunftszone
+ const tap=(px,py)=>{
+  if(!CNT){const c=ccur();if(c.need==='cz'||c.need==='kind')return toast('Wähle zuerst die Zählweise.');if(c.need==='done'||c.need==='over')return toast('Der sichtbare Verlauf ist schon bis zum Ende gezählt.');
+   if(Tof(px)>c0+Math.max(2,1.5*tf))return toast('Zähle hier nur den sichtbaren Verlauf (links von der grauen Zone).');
+   const q=snap(px,py),prev=cAll().pop();if(!q)return;if(prev&&q.t<=prev.t)return toast('Setze den Punkt rechts vom vorherigen Punkt.');
+   if(c.need==='start')m.cs=q;else m.cw[m.cw.length-1].pts.push(q);return render()}
+  const c=cur(),t=Tof(px),last=m.pts.length?m.pts[m.pts.length-1].x:CNT.t[CNT.cut];
   if(!c)return;
   if(c.needChar)return toast('Wähle zuerst die Zählweise von Welle '+wn(c.k)+'.');
   if(t<=last+.3||t>ZE)return toast(zoneMsg);
-  m.pts.push({x:t,p:Pof(Math.max(6,Math.min(H-BP-2,py)))});m.zones=[];render()};
+  m.pts.push({x:t,p:Pof(Math.max(6,Math.min(H-BP-2,py)))});m.lines=[];render()};
  // Gesten trennen: auf einem Punkt ansetzen und ziehen = Punkt verschieben; auf freier Fläche bewegen = Chart verschieben; kurz tippen = Punkt setzen.
  const bindChart=()=>{const svg=$('#svg'),eb=$('#pgend');
   const loc=ev=>{const b=svg.getBoundingClientRect();return[ev.clientX-b.left,ev.clientY-b.top]};
@@ -1414,12 +1515,12 @@ function progn(arg){
   svg.onpointerdown=e=>{if(e.button)return;
    if(GEST){GEST();return} // zweiter Finger: laufende Geste abbrechen, nichts setzen
    e.preventDefault();const [px,py]=loc(e),touch=e.pointerType==='touch';let k=-1,best=touch?22:12;
-   if(!m.done)m.pts.forEach((q,j)=>{const d=Math.hypot(X(q.x)-px,Y(q.p)-py);if(d<best){best=d;k=j}}); // k: Punkt direkt unter dem Finger
+   if(CNT&&!m.done)m.pts.forEach((q,j)=>{const d=Math.hypot(X(q.x)-px,Y(q.p)-py);if(d<best){best=d;k=j}}); // k: geplanter Punkt direkt unter dem Finger
    const x0=e.clientX,y0=e.clientY,s0=sc,T0=performance.now(),id=e.pointerId;let mode='',ly=y0;
    const stop=()=>{GEST=null;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);svg.style.cursor='grab'};
    const mv=ev=>{if(ev.pointerId!==id)return;const dx=ev.clientX-x0,dy=ev.clientY-y0;
-    if(!mode&&Math.hypot(dx,dy)>(k>=0?5:8)){mode=k>=0?'p':touch&&Math.abs(dy)>Math.abs(dx)?'v':'h';svg.style.cursor='grabbing';if(mode==='p')m.zones=[]}
-    if(mode==='p'){const [x,y]=loc(ev),lo2=(k?m.pts[k-1].x:c0)+.3,hi2=k<m.pts.length-1?m.pts[k+1].x-.3:ZE; // nur dieser Punkt bewegt sich; Punkte bleiben zeitlich in Reihenfolge
+    if(!mode&&Math.hypot(dx,dy)>(k>=0?5:8)){mode=k>=0?'p':touch&&Math.abs(dy)>Math.abs(dx)?'v':'h';svg.style.cursor='grabbing';if(mode==='p')m.lines=[]}
+    if(mode==='p'){const [x,y]=loc(ev),lo2=(k?m.pts[k-1].x:CNT.t[CNT.cut])+.3,hi2=k<m.pts.length-1?m.pts[k+1].x-.3:ZE; // nur dieser Punkt bewegt sich; Punkte bleiben zeitlich in Reihenfolge
      m.pts[k]={x:Math.max(lo2,Math.min(hi2,Tof(x))),p:Pof(Math.max(6,Math.min(H-BP-2,y)))};redraw(svg,pic())}
     else if(mode==='h'){sc=clampSc(s0-dx);upd()}
     else if(mode==='v'){scrollBy(0,ly-ev.clientY)} // senkrecht wischen: die Seite scrollt
@@ -1432,44 +1533,71 @@ function progn(arg){
  const onRs=()=>{if(PGS.m!==m||!$('#svg.pgsvg'))return removeEventListener('resize',onRs);const w=W;size();if(W!==w&&!GEST)render(fbLast)};
  addEventListener('resize',onRs);
  const fail=()=>{m.failed=true;if(st.streak)st.streak=0,stats()};
- // Passt eine Variante V des Musters zum sichtbaren Teil? (sichtbare dreiteilige Wellen können A-B-C oder W-X-Y sein)
- const fitsVis=V=>vk.every((kd,i)=>V[i].some(d=>PGKOF[d]===kd||(kd==='ABC'&&PGKOF[d]==='WXY')));
- // Zählung gegen ein Muster Q prüfen: null = regelkonform, sonst der Befund der Variante, die am weitesten kommt.
- // Reihenfolge: 1) Unterteilung je Welle erlaubt, 2) Richtung und harte Regeln der Hauptwellen, 3) Richtung und harte Regeln jeder Unterteilung.
+ // Äußerster Punkt einer Welle in ihrer eigenen Richtung (Rohpreis). Gezählte Wellen: aus den Kerzen zwischen ihren Hauptpunkten.
+ const extVis=w=>{const a=CNT.t[w-1],b=CNT.t[w],d=Math.sign(CNT.p[w]-CNT.p[w-1]);let e=CNT.p[w];for(let i=a;i<=b;i++)e=d>0?Math.max(e,R.h[i]):Math.min(e,R.l[i]);return e};
+ // Wellengebiet prüfen (PGTER) mit Kerzen bzw. gezeichneten Punkten; gibt die verletzten Regeln zurück
+ const terFails=(Q,v,mp,gs,upTo)=>{const s=Q.sign(mp);return(PGTER[Q.key]||[]).filter(([w,b,,must])=>{if(w>upTo)return false;
+   let raw;const g=gs&&gs.find(x=>x.k===w);
+   if(w<=CNT.cut)raw=extVis(w);else if(g){const ps=[mp[w-1]].concat(g.pts.map(q=>q.p)),d=Math.sign(mp[w]-mp[w-1]);raw=d>0?Math.max(...ps):Math.min(...ps)}else return false;
+   const d=Math.sign(v[w]-v[w-1]);return !pgTerOk(d,s*(raw-mp[0]),v[b],must)}).map(x=>x[2])};
+ // Passt eine Variante V des Musters zur Unterteilung der gezählten Wellen? (dreiteilige Wellen können A-B-C oder W-X-Y sein)
+ const fitsK=(V,vk)=>vk.every((kd,i)=>V[i]&&V[i].some(d=>PGKOF[d]===kd||(kd==='ABC'&&PGKOF[d]==='WXY')||(kd==='WXY'&&PGKOF[d]==='ABC')));
+ // Teilmuster einer Welle: Punkte ps (Start bis Ende) gegen die erlaubten Muster der Zählweise kind. ok = harte Regeln erfüllt.
+ const reads=(list,kind,ps)=>list.filter(d=>PGKOF[d]===kind).map(d=>{const D=PAT[d],u=norm(D,ps),s=!(D.struct&&!D.struct(u));return{D,s,f:s?hardFails(D,u):[],w:s?warns(D,u):[]}});
+ const subFail=(V,k,kind,ps)=>{ // null = passt; sonst Befund
+  if(Math.sign(ps[1]-ps[0])!==Math.sign(ps[ps.length-1]-ps[0]))return{kind:'dir'}; // erste Subwelle läuft wie die Welle selbst
+  const res=reads(V[k-1],kind,ps);if(res.some(x=>x.s&&!x.f.length))return null;
+  const b=res.sort((a,c)=>(a.s?a.f.length:99)-(c.s?c.f.length:99))[0];return b?{kind:'sub',D:b.D,id:b.s?b.f[0]:null}:{kind:'unt'}};
+ // Alternation (W4-3, nur Impuls): mögliche Muster von Welle 2 und Welle 4 nach den harten Regeln. Verstoß, wenn kein Paar verschieden ist.
+ // Hinweis (Warnsignal), wenn ein verschiedenes Paar nur mit Warnsignal gelingt oder es zwei verschiedene Flat-Varianten sind.
+ const altInfo=(Q,mp,gs)=>{if(Q.key!=='imp')return{};const g4=gs.find(x=>x.k===4);if(!g4||!CNT.wp[2])return{};
+  const r2=reads(PGSUB.imp[0][1],CNT.vk[1],CNT.wp[2]).filter(x=>x.s&&!x.f.length),r4=reads(PGSUB.imp[0][3],g4.kind,[mp[3]].concat(g4.pts.map(q=>q.p))).filter(x=>x.s&&!x.f.length);
+  if(!r2.length||!r4.length)return{};
+  const pairs=[];r2.forEach(a=>r4.forEach(b=>{if(a.D!==b.D)pairs.push([a,b])}));
+  if(!pairs.length)return{viol:true,t2:r2.map(x=>x.D.title).join(' oder ')};
+  const clean=pairs.filter(([a,b])=>!a.w.length&&!b.w.length);
+  if(!clean.length){const [a,b]=pairs[0];return{note:'Alternation: Welle 2 ist ein '+a.D.title+'. Deine Welle 4 ist nur als '+b.D.title+' ein anderes Muster, und das nur mit Warnsignal ('+mt((b.w.length?b:a).D.rules[(b.w.length?b:a).w[0]].name)+').'}}
+  if(clean.every(([a,b])=>isFl(a.D.key)&&isFl(b.D.key)))return{note:'Alternation: Welle 2 und Welle 4 sind zwei verschiedene Flat-Varianten ('+clean[0][0].D.title+', '+clean[0][1].D.title+'). Das ist erlaubt, aber nicht ganz sauber.'};
+  return{}};
+ // Planung gegen ein Muster Q prüfen: null = regelkonform, sonst der Befund der Variante, die am weitesten kommt.
+ // Reihenfolge: 1) Unterteilung je Welle erlaubt, 2) Richtung und harte Regeln der Hauptwellen inkl. Wellengebiet, 3) jede Unterteilung, 4) Alternation.
  const evalQ=(Q,gs,mp)=>{const v=norm(Q,mp);let best={st:0};
-  for(const V of PGSUB[Q.key]){if(!fitsVis(V))continue;let r=null;
+  for(const V of PGSUB[Q.key]){if(!fitsK(V,CNT.vk))continue;let r=null;
    const bad=gs.find(g=>!V[g.k-1].some(d=>PGKOF[d]===g.kind));
    if(bad)r={st:1,kind:'unt',g:bad};
    else if(Q.struct&&!Q.struct(v))r={st:2,kind:'struct'};
-   else{const f=hardFails(Q,v);if(f.length)r={st:3,kind:'main',id:f[0]};
-    else for(const g of gs){const ps=[mp[g.k-1]].concat(g.pts.map(q=>q.p));
-     if(Math.sign(ps[1]-ps[0])!==Math.sign(ps[ps.length-1]-ps[0])){r={st:4,kind:'dir',g};break} // erste Subwelle läuft wie die Welle selbst
-     const res=V[g.k-1].filter(d=>PGKOF[d]===g.kind).map(d=>{const D=PAT[d],u=norm(D,ps),s=!(D.struct&&!D.struct(u));return{D,s,f:s?hardFails(D,u):[]}});
-     if(!res.some(x=>x.s&&!x.f.length)){const b=res.sort((a,c)=>(a.s?a.f.length:99)-(c.s?c.f.length:99))[0];r={st:4,kind:'sub',g,D:b.D,id:b.s?b.f[0]:null};break}}}
-   if(!r&&altInfo(Q,mp,gs).viol)r={st:5,kind:'alt',g:gs.find(g=>g.k===4)};
+   else{const f=[...new Set(hardFails(Q,v).concat(terFails(Q,v,mp,gs,99)))];if(f.length)r={st:3,kind:'main',id:f[0]};
+    else for(const g of gs){const x=subFail(V,g.k,g.kind,[mp[g.k-1]].concat(g.pts.map(q=>q.p)));if(x){r={st:4,...x,g};break}}}
+   if(!r&&altInfo(Q,mp,gs).viol)r={st:5,kind:'alt',g:gs.find(g=>g.k===4),t2:altInfo(Q,mp,gs).t2};
    if(!r)return null;if(r.st>best.st)best=r}
   return best};
- // Alternation (W4-3, nur beim Impuls): Welle 4 muss ein anderes Korrekturmuster bilden als Welle 2 (die sichtbare Welle 2 ist benannt).
- // Gezählt werden alle Muster, die die gezeichnete Welle 4 nach den harten Regeln sein kann. viol: keines davon ist anders als Welle 2.
- // note (Warnsignal): Das andere Muster gelingt nur mit Warnsignal, oder Welle 2 und 4 sind zwei verschiedene Flat-Varianten (W4-3, Version 14).
- const altInfo=(Q,mp,gs)=>{const g=gs.find(x=>x.k===4),w2=R.nm&&R.nm[2];if(Q.key!=='imp'||!g||!w2)return{};
-  const ps=[mp[3]].concat(g.pts.map(q=>q.p)),rs=PGSUB.imp[0][3].filter(d=>PGKOF[d]===g.kind).map(d=>{const D=PAT[d],u=norm(D,ps),s=!(D.struct&&!D.struct(u));
-   return{D,ok:s&&!hardFails(D,u).length,w:s?warns(D,u):[]}}).filter(x=>x.ok),diff=rs.filter(x=>x.D.key!==w2),clean=diff.filter(x=>!x.w.length),fl=k=>/^f/.test(k);
-  if(!diff.length)return{viol:rs.length>0};
-  const t2=PAT[w2].title;
-  if(!clean.length)return{note:'Alternation: Welle 2 ist ein '+t2+'. Deine Welle 4 ist nur als '+diff.map(x=>x.D.title).join(' oder ')+' ein anderes Muster, und das nur mit Warnsignal ('+mt(diff[0].D.rules[diff[0].w[0]].name)+').'};
-  if(fl(w2)&&clean.every(x=>fl(x.D.key)))return{note:'Alternation: Welle 2 ist ein '+t2+', deine Welle 4 eine andere Flat-Variante ('+clean.map(x=>x.D.title).join(' oder ')+'). Das ist erlaubt, aber nicht ganz sauber.'};
-  return{}};
- // Zählweisen, die für eine Welle erlaubt sind (über alle Muster, die zum sichtbaren Teil passen)
- const allowed=k=>{const s=new Set();fam.forEach(Q=>PGSUB[Q.key].filter(fitsVis).forEach(V=>V[k-1].forEach(d=>s.add(PGKOF[d]))));return Object.keys(PGK).filter(x=>s.has(x))};
- // Welche Bereiche wären für die gezeichneten Wellen ungültig? (nur harte Regeln: IMP-3, IMP-2, ZZ-3; je nach Muster, zu dem die Zählung passt)
- const zones=(Q,v,mp,gs)=>{const s=Q.sign(mp),p0=mp[0],z=[],span=k=>{const g=gs.find(x=>x.k===k);if(!g)return null;const st=k-1>cut?gs.find(x=>x.k===k-1).pts.slice(-1)[0].x:c0;return[st,g.pts[g.n-1].x,g]};
-  const band=(price,beyond,x1,x2,t)=>{z.push({a:price,x1,x2,t,top:s*beyond>0})}; // beyond: Richtung (im normierten Maß), in die es ungültig wird
-  const t='Hier wäre die|Zählung ungültig';
-  if(Q.key==='imp'){const w4=span(4);if(w4)band(mp[1],-1,w4[0],w4[1],t); // IMP-3: Welle 4 nicht ins Gebiet von Welle 1
-   const w5=span(5);if(w5&&L(v,3)<L(v,1))band(p0+s*(v[4]+L(v,3)),1,w5[0],w5[1],t);} // IMP-2: Welle 5 nicht länger als Welle 3
-  else if(Q.key==='zig'||Q.key==='fr'){const wc=span(3);if(wc){const g=wc[2],x1=g.n>1?g.pts[g.n-2].x:wc[0];band(mp[1],1,x1,wc[1],'Ende von C|hier ungültig')}} // ZZ-3, FR-3
-  return z};
+ // Schwer: Zählung des sichtbaren Teils prüfen (mehrere regelkonforme Zählungen erlaubt)
+ const cntVerify=()=>{const all=cAll(),L1=[m.cs].concat(m.cw.map(w=>w.pts[w.pts.length-1])),zl=czLab(),cut=m.cw.length;
+  if(all[all.length-1].t!==c0){m.cfail++;fail();return render('<p class="bad">Noch nicht ganz.</p><p>Dein letzter Punkt muss am Ende des sichtbaren Verlaufs liegen.</p>')}
+  const names=['0'];m.cw.forEach((w,k)=>w.pts.forEach((q,j)=>names.push(j===w.pts.length-1?pgLab(PGZL[m.cz],k+1):PGK[w.kind].l[j])));
+  const bad=html=>{m.cfail++;fail();render('<p class="bad">Noch nicht ganz.</p>'+html+'<p class="mut">Du kannst deine Punkte ändern oder die Zählung einblenden lassen.</p><button id="cshow">Zählung anzeigen</button>')};
+  if(cut>=nW())return bad('<p>Lass mindestens eine Welle für die Planung offen: Der sichtbare Verlauf darf nicht schon das ganze Muster sein.</p>');
+  for(let i=1;i<all.length;i++){const d=Math.sign(all[i].p-all[i-1].p);if(!d||(i>1&&d===Math.sign(all[i-1].p-all[i-2].p)))return bad('<p>Bei Punkt '+names[i]+' wechselt die Richtung nicht. Hoch und Tief müssen sich abwechseln.</p>')}
+  for(let i=0;i<all.length;i++){const a=i?all[i-1].t:all[i].t,b=i<all.length-1?all[i+1].t:all[i].t,peak=i?all[i].p>all[i-1].p:all[i].p>all[1].p;
+   for(let t=a+(i?1:0);t<b;t++)if(peak?R.h[t]>all[i].p+1e-9:R.l[t]<all[i].p-1e-9)return bad('<p>Punkt '+names[i]+' sitzt nicht am '+(peak?'Hoch':'Tief')+' zwischen seinen Nachbarn. Setze ihn dorthin, wo die Bewegung wirklich dreht.</p>')}
+  const p=L1.map(q=>q.p),vk=m.cw.map(w=>w.kind);let best=null;
+  CNT={lab:zl,key0:PGZL[m.cz],t:L1.map(q=>q.t),p,vk,cut,wp:{},sub:[]};m.cw.forEach((w,k)=>{CNT.wp[k+1]=[L1[k].p].concat(w.pts.map(q=>q.p))}); // vorläufig für die Prüffunktionen
+  const ok=Object.keys(PAT).filter(k=>PAT[k].labels.join()===zl.join()).map(k=>PAT[k]).some(Q=>{const v=norm(Q,p);return PGSUB[Q.key].some(V=>{if(!fitsK(V,vk))return false;
+   const f=Object.keys(Q.rules).filter(id=>Q.rules[id].hard&&pgRuleMax(Q.rules[id])<=cut&&!Q.rules[id].ok(v)).concat(terFails(Q,v,p,[],cut));
+   if(f.length){best=best||{Q,id:f[0]};return false}
+   for(let k=1;k<=cut;k++){const x=subFail(V,k,vk[k-1],CNT.wp[k]);if(x){best=best||{Q,k,x};return false}}
+   if(Q.key==='imp'&&cut>=4){const r2=reads(V[1],vk[1],CNT.wp[2]).filter(x=>x.s&&!x.f.length),r4=reads(V[3],vk[3],CNT.wp[4]).filter(x=>x.s&&!x.f.length);
+    if(r2.length&&r4.length&&!r2.some(a=>r4.some(b=>a.D!==b.D))){best=best||{Q,alt:true};return false}}
+   return true})});
+  if(!ok){CNT=null;const b=best||{};
+   return bad(b.alt?'<p>Welle 2 und Welle 4 bilden dasselbe Korrekturmuster. Alternation: Welle 4 muss ein anderes Muster sein als Welle 2.</p>':
+    b.id?'<p>Diese Zählung verletzt die Regel „'+mt(b.Q.rules[b.id].name)+'“ ('+tag(b.Q,b.id)+').</p>':
+    b.x?'<p>Welle '+pgLab(PGZL[m.cz],b.k)+' passt als '+PGK[vk[b.k-1]].t+' nicht'+(b.x.kind==='dir'?': Die erste Subwelle läuft in dieselbe Richtung wie die Welle selbst.':b.x.id?' (Regel „'+mt(b.x.D.rules[b.x.id].name)+'“).':' zu diesem Muster.')+'</p>':
+    '<p>Zu dieser Zählweise passt kein Muster aus dem Regelwerk. Achte darauf, wie sich die Wellen unterteilen dürfen.</p>')}
+  // angenommen: die Zählung des Spielers ist ab jetzt die Grundlage der Planung
+  CNT.sub=[];m.cw.forEach(w=>w.pts.slice(0,-1).forEach((q,j)=>CNT.sub.push({lev:2,t:q.t,p:q.p,l:PGK[w.kind].l[j]})));
+  const bon=m.cfail?0:5;st.pts+=bon;stats();
+  render('<p class="ok">Deine Zählung ist regelkonform'+(bon?'. Bonus +5 für die Zählung beim ersten Versuch.':'.')+'</p><p>Plane jetzt die fehlenden Wellen.</p>')};
  // Faustregeln und Warnsignale für die gezeichneten Wellen (nur Hinweise, kein Fehler)
  const hints=(Q,v,gs)=>{const out=[];let inR=true,pc=x=>pct(x);const key=Q.key;
   const fr=(ok,txt)=>{if(!ok){inR=false;out.push('<p class="rnote f">'+stufe('faust')+txt.replace(' (Faustregel)','')+'</p>')}};
@@ -1484,18 +1612,22 @@ function progn(arg){
   const al=altInfo(Q,mainP(),gs);if(al.note){inR=false;out.push('<p class="rnote w">'+stufe('warn')+al.note+'</p>')}
   return{html:out.join(''),inR}};
  // Planungs-Hinweis für Regeln, die erst mit der ganzen Zählung prüfbar sind (IMP-2)
- const plan=(Q,v)=>Q.key==='imp'&&waves.includes(5)&&L(v,3)<L(v,1)?'<p>Weil Welle 3 kürzer als Welle 1 ist, darf Welle 5 nicht länger als Welle 3 werden (Welle 3 ist nie die kürzeste).</p>':'';
+ const plan=(Q,v)=>Q.key==='imp'&&waves().includes(5)&&L(v,3)<L(v,1)?'<p>Weil Welle 3 kürzer als Welle 1 ist, darf Welle 5 nicht länger als Welle 3 werden (Welle 3 ist nie die kürzeste).</p>':'';
+ // Invalidierungslinien des angenommenen Musters Q, nur für geplante Wellen
+ const lines=(Q,mp,gs)=>{const v=norm(Q,mp),s=Q.sign(mp),tOf=j=>j<=CNT.cut?CNT.t[j]:(gs.find(g=>g.k===j)||{pts:[{x:CNT.t[CNT.cut]}]}).pts.slice(-1)[0].x,fl=FLIP;FLIP=s<0;
+  const o=(PGLINE[Q.key]||[]).filter(z=>z.w>CNT.cut&&z.w<mp.length).map(z=>{const p=z.j!==undefined?mp[z.j]:z.f(v)===null?null:mp[0]+s*z.f(v);if(p===null)return null;
+   const t=z.j!==undefined?tOf(z.j):tOf(z.w-1),d=Math.sign(mp[z.w]-mp[z.w-1]);return{t,p,txt:mt(z.t),below:d<0}}).filter(Boolean);FLIP=fl;return o};
  const redoBtn=g=>'<button class="p" id="redo" data-k="'+g.k+'">Welle '+wn(g.k)+' neu zeichnen</button>';
  const tipUI=x=>{const lines=['Die Planung ist noch nicht regelkonform.'],r=x.r,w=r.g?wn(r.g.k):'';let extra='';
-  if(r.kind==='unt'){const al=allowed(r.g.k).map(k=>PGK[k].t);
+  if(r.kind==='unt'){const al=[...new Set(fam().flatMap(Q=>PGSUB[Q.key].filter(V=>fitsK(V,CNT.vk)).flatMap(V=>V[r.g.k-1].map(d=>PGKOF[d]))))].map(k=>PGK[k].t);
    if(m.tips>=1)lines.push('Tipp 1: Überlege, wie sich Welle '+w+' unterteilen darf. Läuft sie mit der Bewegung des Musters oder dagegen?');
    if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Welle '+w+' kann sich hier nicht als '+PGK[r.g.kind].t+' unterteilen.');
    if(m.tips>=3)lines.push('Tipp 3: Regelwerk. Für Welle '+w+' '+(al.length>1?'sind diese Zählweisen möglich: ':'ist nur diese Zählweise möglich: ')+al.join(', ')+'.');
    extra=redoBtn(r.g);
-  }else if(r.kind==='alt'){const t2=PAT[R.nm[2]].title;
-   if(m.tips>=1)lines.push('Tipp 1: Vergleiche das Muster deiner Welle 4 mit dem von Welle 2 ('+t2+').');
+  }else if(r.kind==='alt'){
+   if(m.tips>=1)lines.push('Tipp 1: Vergleiche das Muster deiner Welle 4 mit dem von Welle 2 ('+r.t2+').');
    if(m.tips>=2)lines.push('Tipp 2: '+stufe('regel')+'Es geht um die Regel „Welle 2 und Welle 4 bilden dasselbe Korrekturmuster aus“ (Alternation).');
-   if(m.tips>=3)lines.push('Tipp 3: Regelwerk, Abschnitt Welle 4. Welle 4 muss ein anderes Korrekturmuster ausbilden als Welle 2 derselben Wellenebene. Welle 2 ist hier ein '+t2+'.');
+   if(m.tips>=3)lines.push('Tipp 3: Regelwerk, Abschnitt Welle 4. Welle 4 muss ein anderes Korrekturmuster ausbilden als Welle 2 derselben Wellenebene.');
    extra=redoBtn(r.g);
   }else{const sub=r.kind==='sub',X=sub?r.D:x.Q,rl=X.rules[r.id];
    if(m.tips>=1)lines.push('Tipp 1: '+(sub?'In den Subwellen von Welle '+w+': ':'')+mt(rl.hint));
@@ -1505,21 +1637,21 @@ function progn(arg){
   render('<p class="bad">Noch nicht ganz.</p>'+lines.map(tipLine).join('')+(x.plan||'')+(m.tips<3?'<button id="tip">Tipp anzeigen</button>':'')+extra);
   const t=$('#tip');if(t)t.onclick=()=>{m.tips++;tipUI(x)};bindRedo()};
  const bindRedo=()=>{const rd=$('#redo');if(rd)rd.onclick=()=>{const gs=segs(),i=gs.findIndex(g=>g.k===+rd.dataset.k),keep=gs.slice(0,i).reduce((a,g)=>a+g.n,0); // diese und alle späteren Wellen neu
-   gs.slice(i).forEach(g=>delete m.ch[g.k]);m.pts=m.pts.slice(0,keep);m.zones=[];render()}};
- const verify=()=>{const gs=segs(),mp=mainP(),res=fam.map(Q=>({Q,r:evalQ(Q,gs,mp)})),ok=res.filter(x=>!x.r);
+   gs.slice(i).forEach(g=>delete m.ch[g.k]);m.pts=m.pts.slice(0,keep);m.lines=[];render()}};
+ const verify=()=>{const gs=segs(),mp=mainP(),res=fam().map(Q=>({Q,r:evalQ(Q,gs,mp)})),ok=res.filter(x=>!x.r);m.lines=[];
   if(!ok.length){ // Befund des Musters, das am weitesten kommt (bei Gleichstand das generierte)
    const x=res.sort((a,b)=>(b.r.st+(b.Q===P?.5:0))-(a.r.st+(a.Q===P?.5:0)))[0],r=x.r,v=norm(x.Q,mp);fail();
-   m.zones=r.kind==='main'||r.kind==='sub'||r.kind==='dir'?zones(x.Q,v,mp,gs):[];
    if(r.kind==='unt')m.chErr=true;
    if(r.kind==='struct')return render('<p class="bad">Noch nicht ganz.</p><p>'+(x.Q.structMsg||'Die Hauptwellen wechseln von Welle zu Welle die Richtung. Prüfe, wo deine Wellen enden.')+'</p>');
    if(r.kind==='dir'||(r.kind==='sub'&&!r.id)){render('<p class="bad">Noch nicht ganz.</p><p>Welle '+wn(r.g.k)+' als '+PGK[r.g.kind].t+': Die erste Subwelle läuft in dieselbe Richtung wie Welle '+wn(r.g.k)+' selbst, danach wechselt die Richtung von Punkt zu Punkt. Prüfe die Richtung deiner Punkte.</p>'+redoBtn(r.g));return bindRedo()}
    return tipUI({Q:x.Q,r,plan:r.kind==='main'?plan(x.Q,v):''})}
-  const Q=(ok.find(x=>x.Q===P)||ok[0]).Q,v=norm(Q,mp);m.zones=zones(Q,v,mp,gs);
+  // angenommen: das Muster, zu dem die Planung passt (das generierte, wenn es passt). Die Grenzlinien gehören zu diesem Muster.
+  const Q=(ok.find(x=>x.Q===P)||ok[0]).Q,v=norm(Q,mp);m.lines=lines(Q,mp,gs);
   const h=hints(Q,v,gs),gain=Math.max(4,10-3*m.tips)-(m.failed?2:0),bF=h.inR?5:0,bC=m.chErr?0:5;
   m.done=true;if(!m.failed)st.streak++;st.pts+=gain+bF+bC;stats();exSolved(key,m.tips);pathMark('progn'); // zählt für die Ränge
-  render('<p class="ok">Regelkonform! +'+gain+' Punkte</p><p>Generiert wurde übrigens: <b>'+P.title+'</b>.'+(Q!==P?' Deine Fortsetzung passt zum Muster „'+Q.title+'“.':'')+'</p>'+
+  render('<p class="ok">Regelkonform! +'+gain+' Punkte</p><p>Deine Fortsetzung passt zum Muster <b>'+Q.title+'</b>. Generiert wurde übrigens: '+P.title+'.</p>'+
    (bF?'<p class="ok">Bonus +5: Keine Warnsignale, alle gezeichneten Wellen liegen in den Faustregel-Bereichen.</p>':'')+(bC?'<p class="ok">Bonus +5: Zählweise aller Wellen beim ersten Versuch passend.</p>':'')+
-   h.html+plan(Q,v)+(m.zones.length?'<p class="mut">Rot: Bereiche, in denen die Zählung ungültig wäre.</p>':''));
+   h.html+plan(Q,v)+(m.lines.length?'<p class="mut">Gestrichelte Linien: Grenzen aus den harten Regeln des Musters „'+Q.title+'“.</p>':''));
  };
  render();
 }
