@@ -222,6 +222,11 @@ button.isl:hover{border-color:var(--accent)}
 .wph .hreset{text-align:center;margin:0}
 .wp.grow .cd,.wp.grow .wl{animation:show .25s ease-out var(--d) backwards}.wp.grow .stn,.wp.grow .stl{animation:fadeUp .35s ease-out var(--d) backwards}
 @media(prefers-reduced-motion:reduce){.wp.grow .cd,.wp.grow .wl,.wp.grow .stn,.wp.grow .stl{animation:none}}
+/* „Wie geht es weiter?“: großer, seitlich verschiebbarer Chart (DESIGN.md Abschnitt 11) */
+.chart.pgc{position:relative;user-select:none;-webkit-user-select:none}.pgc .lab{font-size:13px}
+@media(max-width:600px){.chart.pgc{margin-left:-12px;margin-right:-12px;border-radius:16px}}
+.pgk{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.pgk button{margin:0}
+.pgend{position:absolute;right:10px;bottom:10px;margin:0;min-height:44px;font-size:.88rem;box-shadow:var(--shadow)}
 </style>
 </head>
 <body>
@@ -1235,78 +1240,122 @@ const PGSUB=(()=>{const F=['zig','fr','fe','fru'],T=['trk','tre'],K=[...F,'dz'],
  return{imp:[[['imp','dl','de'],K2,I,[...K2,...T],M5]],zig:[[I,KT,M5]],fr:flat,fe:flat,fru:flat,trk:tri,tre:tri,
   dl:[[I,K2,I,K2,I],[Z,K2,Z,K2,Z]],db:diag,de:diag,dz:[[K,KT,KT]],tz:[[K,KT,KT,KT,KT]]}})();
 let PGS=null; // Stand der laufenden Runde (liest der automatische Dauertest)
+let GEST=null; // Aufräumfunktion der laufenden Wisch-/Tipp-Geste im Prognose-Chart
+// Daten einer Runde in einem Indexraum (eine Kerze = 1): pr = Schlusskurse (Vorgeschichte + ganzes Muster), mp = Hauptpunkte,
+// spAll[k] = Teilpunkte der Welle k. Die Vorgeschichte läuft gegen Welle 1 auf Punkt 0 zu, damit Punkt 0 ein klares Extrem ist.
+function pgData(P){const R=makeSubRound(P),d1=Math.sign(R.pr[R.mp[1]]-R.pr[0])||1,A=Math.abs(R.pr[R.mp[1]]-R.pr[0]);
+ const a1=R.pr[0]+d1*A*rnd(.9,1.5),a0=a1-d1*A*rnd(.4,.8),hist=[...leg(a0,a1,24,abcF()),...leg(a1,R.pr[0],36,impF())],H=hist.length,spAll={};
+ Object.keys(R.spAll).forEach(k=>spAll[k]=R.spAll[k].map(i=>i+H));
+ return{pr:hist.concat(R.pr),mp:R.mp.map(i=>i+H),spAll,tri:R.tri}}
 // arg: leer = alle Muster; sonst ein Muster oder mehrere mit Komma (von „Prognose üben“ aus einem Kapitel)
+// Chart (seit 10.11.2026, DESIGN.md Abschnitt 11): groß, länger als der Bildschirm und seitlich verschiebbar. Wischen auf freier Fläche verschiebt,
+// Tippen setzt einen Punkt, ein gesetzter Punkt wird nur verschoben, wenn man direkt auf ihm ansetzt.
 function progn(arg){
  const pool=arg?String(arg).split(','):Object.keys(PAT),key=pool[Math.floor(Math.random()*pool.length)],P=PAT[key];
- const R=makeSubRound(P),cuts=P.waves.length===5?[2,3,4]:[2],cut=cuts[Math.floor(Math.random()*cuts.length)],c0=R.mp[cut];
+ const R=pgData(P),cuts=P.waves.length===5?[2,3,4]:[2],cut=cuts[Math.floor(Math.random()*cuts.length)],c0=R.mp[cut],N=R.pr.length-1;
  const frs=key==='imp'?[impF,abcF,impF,abcF,impF]:P.shape.fr,vk=frs.slice(0,cut).map(f=>f===impF?'N':'ABC'); // Unterteilung der sichtbaren Wellen
  const fam=Object.keys(PAT).filter(k=>PAT[k].labels.join()===P.labels.join()).map(k=>PAT[k]); // Muster mit derselben Beschriftung
  const waves=[];for(let k=cut+1;k<=P.waves.length;k++)waves.push(k); // fehlende Hauptwellen (1 = erste Welle)
- // Breite: Der vorgegebene Teil nimmt 1/4 (3 fehlende Wellen) bis 1/3 (1 fehlende Welle) ein, der Rest ist Zukunftszone.
- // Am Handy im Hochformat eine schmalere, dafür höhere Zeichenfläche: Punkte und Beschriftungen liegen weniger eng.
- const mob=window.innerWidth<560,VW=mob?400:720,VH=mob?640:420,PX=mob?16:30,f=waves.length>=3?.25:waves.length===2?.29:1/3;
- const DXp=(VW-2*PX)*f/c0,ZE=c0+(VW-2*PX)*(1-f)/DXp,X=j=>PX+j*DXp; // ein Maßstab (Pixel je Kerze) für alles, auch den echten Verlauf
- // Preisbereich: sichtbarer Teil mit viel Rand zum Planen, dazu der echte Verlauf (für den Vergleich)
- const vis=R.pr.slice(0,c0+1),vlo=Math.min(...vis),vhi=Math.max(...vis),rg=vhi-vlo,lo=Math.min(vlo-.6*rg,...R.pr),hi=Math.max(vhi+.6*rg,...R.pr);
- const Y=p=>30+(hi-p)/(hi-lo)*(VH-60),Pof=y=>hi-(y-30)/(VH-60)*(hi-lo);
  const m={ch:{},pts:[],tips:0,failed:false,done:false,chErr:false,shown:false,zones:[]};
- PGS={P,R,cut,m,X,Y,VW,frs};
+ // Ansicht: W×H in Bildschirmpixeln, BW Pixel je Kerze, sc = wie weit der Chart nach links geschoben ist. Die Zukunftszone endet bei Kerze ZE.
+ const mob=innerWidth<=600,BW=mob?7:10,ZE=c0+Math.max(Math.round(1.6*(N-c0)),30),TP=26,BP=22;
+ const pat=R.pr.slice(R.mp[0],c0+1),patLo=Math.min(...pat),patHi=Math.max(...pat),patRg=patHi-patLo; // sichtbarer Teil des Musters
+ let W=0,H=0,sc=null,yr=[0,1],fbLast,peek=null;
+ const size=()=>{W=Math.max(280,$('#pgc').clientWidth);if(!H)H=mob?Math.max(340,Math.round(innerHeight*.56)):Math.max(380,Math.min(620,Math.round(innerHeight*.58)))};
+ const clampSc=x=>Math.max(0,Math.min(Math.max(0,(ZE+2)*BW-W),x)),homeSc=()=>clampSc((c0+.5)*BW-(mob?.5:.45)*W); // Grundstellung: Ende des Verlaufs etwa in der Mitte
+ const X=t=>(t+.5)*BW-sc,Tof=x=>(x+sc)/BW-.5,Y=p=>TP+(yr[1]-p)/(yr[1]-yr[0])*(H-TP-BP),Pof=y=>yr[1]-(y-TP)/(H-TP-BP)*(yr[1]-yr[0]);
+ // Preisbereich passend zum sichtbaren Ausschnitt; ist die Zukunftszone im Bild, bleibt oben und unten Platz zum Planen
+ const fitY=()=>{const t0=Math.max(0,Math.floor(Tof(0))),t1=Math.ceil(Tof(W));let lo=1e9,hi=-1e9;const add=p=>{if(p<lo)lo=p;if(p>hi)hi=p};
+  for(let i=t0;i<=Math.min(m.shown?N:c0,t1);i++)add(R.pr[i]);
+  m.pts.forEach(q=>{if(q.x>=t0-1&&q.x<=t1+1){add(q.p-.35*patRg);add(q.p+.35*patRg)}}); // um jeden gesetzten Punkt bleibt Platz für den nächsten
+  if(t1>c0){add(patLo-.6*patRg);add(patHi+.6*patRg)}
+  if(peek!==null){add(peek);peek=null}
+  if(lo>hi){lo=patLo;hi=patHi}
+  const pad=(hi-lo)*.05||1;yr=[lo-pad,hi+pad]};
+ PGS={P,R,cut,m,frs,X:t=>X(t),Y:p=>Y(p),show:(t,p)=>{sc=clampSc((t+.5)*BW-W/2);peek=p===undefined?null:p;fitY();redraw($('#svg'),pic())}}; // show: Stelle (und Preis) ins Bild holen
  const segs=()=>{let o=0;return waves.filter(k=>m.ch[k]).map(k=>{const kind=m.ch[k],n=PGK[kind].l.length,g={k,kind,n,pts:m.pts.slice(o,o+n)};o+=n;return g})};
  const cur=()=>{for(const g of segs())if(g.pts.length<g.n)return{k:g.k,kind:g.kind,n:g.n,have:g.pts.length};const k=waves.find(k=>!m.ch[k]);return k?{k,needChar:true}:null};
  const mainP=()=>R.mp.slice(0,cut+1).map(i=>R.pr[i]).concat(segs().map(g=>g.pts[g.n-1].p)); // Hauptpunkte: echt + gezeichnet
- const pic=()=>{let s='<svg id="svg" viewBox="0 0 '+VW+' '+VH+'" role="img" aria-label="Preischart mit Zukunftszone"><defs><pattern id="hz" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--dn)" stroke-width="2" opacity=".45"/></pattern></defs>';
-  s+='<rect x="'+X(c0)+'" y="0" width="'+(X(ZE)-X(c0))+'" height="'+VH+'" fill="var(--line)" opacity=".35"/>';
-  for(let y=20;y<VH;y+=50)s+='<line x1="0" x2="'+VW+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width=".6"/>';
-  m.zones.forEach(z=>{const y1=Y(Math.max(z.a,z.b)),y2=Y(Math.min(z.a,z.b)),xr=X(z.x1); // verbotene Zone: hier wäre die Zählung ungültig
-   s+='<rect x="'+xr+'" y="'+y1+'" width="'+Math.max(4,X(z.x2)-xr)+'" height="'+(y2-y1)+'" fill="url(#hz)" stroke="var(--dn)" stroke-width="1.5" stroke-dasharray="6 4"/>';
-   // Beschriftung zweizeilig, an der Grenze innerhalb der Zone und nie über den rechten Rand hinaus
-   const tx=Math.max(4,Math.min(xr+4,VW-108)),ty=Math.max(16,Math.min(VH-22,z.top?y2-22:y1+14));
+ const pic=()=>{const t0=Math.max(0,Math.floor(Tof(0))-1),t1=Math.ceil(Tof(W))+1,line=(a,b)=>{let o='';for(let i=Math.max(a,t0);i<=Math.min(b,t1);i++)o+=X(i).toFixed(1)+','+Y(R.pr[i]).toFixed(1)+' ';return o};
+  let s='<svg id="svg" class="pgsvg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Preischart mit Zukunftszone, seitlich verschiebbar"><defs><pattern id="hz" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--dn)" stroke-width="2" opacity=".45"/></pattern></defs>';
+  const zx=Math.max(0,X(c0)+BW/2),zw=Math.min(W,X(ZE)+BW/2)-zx;if(zw>0)s+='<rect x="'+zx+'" y="0" width="'+zw+'" height="'+H+'" fill="var(--line)" opacity=".35"/>';
+  for(let y=20;y<H;y+=50)s+='<line x1="0" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width=".6"/>';
+  m.zones.forEach(z=>{const ya=Math.max(0,Math.min(H,Y(z.a))),y1=z.top?0:ya,hh=z.top?ya:H-ya,xr=X(z.x1); // verbotene Zone: hier wäre die Zählung ungültig
+   s+='<rect x="'+xr+'" y="'+y1+'" width="'+Math.max(4,X(z.x2)-xr)+'" height="'+hh+'" fill="url(#hz)" stroke="var(--dn)" stroke-width="1.5" stroke-dasharray="6 4"/>';
+   // Beschriftung zweizeilig, an der Grenze innerhalb der Zone
+   const tx=xr+4,ty=Math.max(16,Math.min(H-22,z.top?ya-22:ya+14));
    s+='<text class="lab" style="fill:var(--dn);font-size:12px;text-anchor:start" x="'+tx+'" y="'+ty+'">'+z.t.split('|').map((l,i)=>'<tspan x="'+tx+'" dy="'+(i?14:0)+'">'+l+'</tspan>').join('')+'</text>'});
-  s+='<polyline fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round" points="'+vis.map((p,i)=>X(i)+','+Y(p)).join(' ')+'"/>';
+  s+='<polyline fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round" points="'+line(0,c0)+'"/>';
   // Beschriftungen sammeln und so verschieben, dass sie sich nicht überlappen (nach außen, weg vom Punkt)
   const labs=[],lab=(x,y,up,t,st)=>labs.push({x,y,up,t,st}),put=()=>{const done=[];
-   labs.forEach(a=>{const w=a.t.length*6.5;for(let n=0;n<6&&done.some(b=>Math.abs(b.x-a.x)<(w+b.w)/2&&Math.abs(b.y-a.y)<12);n++)a.y+=a.up?-12:12;
+   labs.forEach(a=>{const w=a.t.length*7.5;for(let n=0;n<6&&done.some(b=>Math.abs(b.x-a.x)<(w+b.w)/2&&Math.abs(b.y-a.y)<13);n++)a.y+=a.up?-13:13;
     a.w=w;done.push(a);s+='<text class="lab"'+(a.st?' style="'+a.st+'"':'')+' x="'+a.x+'" y="'+a.y+'">'+a.t+'</text>'})};
   if(m.shown){ // echter Rest im selben Maßstab
-   s+='<polyline fill="none" stroke="var(--mut)" stroke-width="1.4" stroke-linejoin="round" points="'+R.pr.slice(c0).map((p,i)=>X(c0+i)+','+Y(p)).join(' ')+'"/>';
-   for(let k=cut+1;k<R.mp.length;k++){const i=R.mp[k],up=R.pr[i]>=R.pr[R.mp[k-1]];lab(X(i),Y(R.pr[i])+(up?-8:16),up,P.labels[k],'fill:var(--mut)')}}
-  for(let k=0;k<=cut;k++){const i=R.mp[k],p=R.pr[i],up=k===0?p>R.pr[R.mp[1]]:p>=R.pr[R.mp[k-1]];lab(X(i),Y(p)+(up?-8:16),up,P.labels[k])}
+   s+='<polyline fill="none" stroke="var(--mut)" stroke-width="1.5" stroke-linejoin="round" points="'+line(c0,N)+'"/>';
+   for(let k=cut+1;k<R.mp.length;k++){const i=R.mp[k],up=R.pr[i]>=R.pr[R.mp[k-1]];lab(X(i),Y(R.pr[i])+(up?-9:18),up,P.labels[k],'fill:var(--mut)')}}
+  for(let k=0;k<=cut;k++){const i=R.mp[k],p=R.pr[i],up=k===0?p>R.pr[R.mp[1]]:p>=R.pr[R.mp[k-1]];lab(X(i),Y(p)+(up?-9:18),up,P.labels[k])}
   const all=[{x:c0,p:R.pr[c0]}].concat(m.pts);
   if(m.pts.length)s+='<polyline fill="none" stroke="var(--up)" stroke-width="2" stroke-dasharray="6 4" points="'+all.map(q=>X(q.x)+','+Y(q.p)).join(' ')+'"/>';
   let j=0;segs().forEach(g=>g.pts.forEach((q,t)=>{j++;const prv=all[j-1],nx=all[j+1],up=q.p>=prv.p&&(!nx||q.p>=nx.p)||(!nx&&q.p>=prv.p);
-   s+='<circle cx="'+X(q.x)+'" cy="'+Y(q.p)+'" r="4" fill="var(--up)"/>';lab(X(q.x),Y(q.p)+(up?-8:17),up,PGK[g.kind].l[t],'font-size:12px');
-   if(t===g.n-1)lab(X(q.x),Y(q.p)+(up?-22:31),up,P.labels[g.k]);})); // letzter Subpunkt = Ende der Hauptwelle (zwei Beschriftungen)
+   s+='<circle cx="'+X(q.x)+'" cy="'+Y(q.p)+'" r="5" fill="var(--up)" stroke="var(--surface)" stroke-width="1.5"/>';lab(X(q.x),Y(q.p)+(up?-10:20),up,PGK[g.kind].l[t]);
+   if(t===g.n-1)lab(X(q.x),Y(q.p)+(up?-25:35),up,P.labels[g.k],'font-weight:800');})); // letzter Subpunkt = Ende der Hauptwelle (zwei Beschriftungen)
   put();
   return s+'</svg>';};
  const wn=k=>P.waves[k-1];
- const render=fb=>{const cu=cur();
+ const zoneMsg='Setze den Punkt in die graue Zone, rechts vom vorherigen Punkt.';
+ const render=fb=>{const cu=cur();fbLast=fb;
   $('#view').innerHTML='<p class="kick">Wie geht es weiter?</p><p class="task">Der Chart bricht nach Welle '+wn(cut)+' ab. Plane '+(waves.length>1?'die fehlenden Wellen '+waves.map(wn).join(', '):'die fehlende Welle '+wn(waves[0]))+' in der grauen Zone. '+
-   (m.done?'':cu?(cu.needChar?'<b>Wie unterteilt sich Welle '+wn(cu.k)+'?</b>':'Welle '+wn(cu.k)+' als '+PGK[cu.kind].t+': Nächster Punkt <span class="nextpt">'+PGK[cu.kind].l[cu.have]+(cu.have===cu.n-1?' = '+wn(cu.k):'')+'</span>. Punkte kannst du anfassen und verschieben.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
-   (cu&&cu.needChar&&!m.done?'<div class="card pgk"><b>Zählweise von Welle '+wn(cu.k)+'</b><br>'+Object.keys(PGK).map(k=>'<button data-ch="'+k+'">'+PGK[k].t+'</button>').join('')+'</div>':'')+
-   '<div class="chart pgc">'+pic()+'</div>'+
+   (m.done?'':cu?(cu.needChar?'<b>Wie unterteilt sich Welle '+wn(cu.k)+'?</b>':'Welle '+wn(cu.k)+' als '+PGK[cu.kind].t+': Nächster Punkt <span class="nextpt">'+PGK[cu.kind].l[cu.have]+(cu.have===cu.n-1?' = '+wn(cu.k):'')+'</span>. Tippen setzt den Punkt, Wischen verschiebt den Chart.'):'Alle Wellen gesetzt. Prüfe deine Planung.')+'</p>'+
+   (cu&&cu.needChar&&!m.done?'<div class="pgk">'+Object.keys(PGK).map(k=>'<button data-ch="'+k+'">'+PGK[k].t+'</button>').join('')+'</div>':'')+
+   '<div class="chart pgc" id="pgc"></div>'+
    '<div class="dock">'+(m.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
     '<button class="p" id="chk" '+(cu?'disabled':'')+'>Prüfen</button><button id="und">Zurück</button><button id="rst">Neu setzen</button>')+'</div>'+
    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
+  // Breite erst am fertigen Rahmen messen (die Startseite ist breiter als die Spielseite), dann zeichnen
+  size();if(sc===null)sc=homeSc();sc=clampSc(sc);fitY();
+  $('#pgc').innerHTML=pic()+'<button id="pgend" class="pgend" hidden>Zum Ende springen</button>';
+  bindChart();
   if(m.done){$('#real').onclick=()=>{m.shown=true;render(fb+'<p class="mut">Grau: der tatsächliche Verlauf, im selben Maßstab. Nur zum Vergleich: Punkte gibt es für regelkonformes Planen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(arg);return}
   document.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{m.ch[cu.k]=b.dataset.ch;render()});
   $('#und').onclick=()=>{const g=segs().pop();if(!g)return;if(g.pts.length)m.pts.pop();else delete m.ch[g.k];m.zones=[];render()};
   $('#rst').onclick=()=>{m.ch={};m.pts=[];m.zones=[];render()};
   $('#chk').onclick=verify;
-  const svg=$('#svg');svg.style.touchAction='none';
-  svg.onpointerdown=e=>{e.preventDefault();
-   const b=svg.getBoundingClientRect(),sc=b.width/VW,px=(e.clientX-b.left)/sc,py=(e.clientY-b.top)/sc,c=cur(),xc=(px-PX)/DXp,last=m.pts.length?m.pts[m.pts.length-1].x:c0;
-   // Am Handy liegen die Punkte eng: Ein Tipp rechts vom letzten Punkt setzt immer einen neuen Punkt (solange einer fehlt),
-   // ein Tipp links davon greift den nächstgelegenen Punkt zum Verschieben.
-   let k=-1,best=1e9;
-   if(!(c&&!c.needChar&&xc>last+.3))m.pts.forEach((q,j)=>{const d=Math.hypot(X(q.x)-px,Y(q.p)-py);if(d<best){best=d;k=j}});
-   if(k>=0){const mv=ev=>{const r=svg.getBoundingClientRect(),s2=r.width/VW,x=((ev.clientX-r.left)/s2-PX)/DXp,y=(ev.clientY-r.top)/s2;
-     const lo2=(k?m.pts[k-1].x:c0)+.3,hi2=k<m.pts.length-1?m.pts[k+1].x-.3:ZE; // Punkte bleiben zeitlich in Reihenfolge
-     m.pts[k]={x:Math.max(lo2,Math.min(hi2,x)),p:Pof(Math.max(20,Math.min(VH-20,y)))};redraw(svg,pic());};
-    m.zones=[];startDrag(svg,e,mv,()=>render());
-   }else if(c&&!c.needChar){const x=(px-PX)/DXp,last=m.pts.length?m.pts[m.pts.length-1].x:c0;
-    if(x<=last+.3||x>ZE)return render('<span class="warn">Setze den Punkt in die graue Zone, rechts vom vorherigen Punkt.</span>');
-    m.pts.push({x,p:Pof(py)});m.zones=[];render();}};
  };
+ // Tippen: setzt den nächsten Punkt (nur in der Zukunftszone, rechts vom vorherigen Punkt)
+ const tap=(px,py)=>{const c=cur(),t=Tof(px),last=m.pts.length?m.pts[m.pts.length-1].x:c0;
+  if(!c)return;
+  if(c.needChar)return toast('Wähle zuerst die Zählweise von Welle '+wn(c.k)+'.');
+  if(t<=last+.3||t>ZE)return toast(zoneMsg);
+  m.pts.push({x:t,p:Pof(Math.max(6,Math.min(H-6,py)))});m.zones=[];render()};
+ // Gesten trennen: auf einem Punkt ansetzen = Punkt verschieben; auf freier Fläche bewegen = Chart verschieben; kurz tippen = Punkt setzen.
+ const bindChart=()=>{const svg=$('#svg'),eb=$('#pgend');
+  const loc=ev=>{const b=svg.getBoundingClientRect();return[ev.clientX-b.left,ev.clientY-b.top]};
+  const endBtn=()=>{eb.hidden=X(c0)<=W-24};                         // Ende des Verlaufs nicht mehr im Bild
+  const upd=()=>{fitY();redraw(svg,pic());endBtn()};
+  endBtn();eb.onclick=()=>{sc=homeSc();upd()};
+  svg.style.touchAction='none';svg.style.display='block';svg.style.cursor='grab';
+  // Mausrad und Trackpad verschieben den Chart; am Anschlag scrollt die Seite normal weiter
+  svg.onwheel=e=>{const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY,n=clampSc(sc+d);if(n===sc)return;e.preventDefault();sc=n;upd()};
+  svg.onpointerdown=e=>{if(e.button)return;
+   if(GEST){GEST();return} // zweiter Finger: laufende Geste abbrechen, nichts setzen
+   e.preventDefault();const [px,py]=loc(e),touch=e.pointerType==='touch';let k=-1,best=touch?22:12;
+   if(!m.done)m.pts.forEach((q,j)=>{const d=Math.hypot(X(q.x)-px,Y(q.p)-py);if(d<best){best=d;k=j}}); // k: Punkt direkt unter dem Finger
+   const x0=e.clientX,y0=e.clientY,s0=sc,T0=performance.now(),id=e.pointerId;let mode='',ly=y0;
+   const stop=()=>{GEST=null;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);svg.style.cursor='grab'};
+   const mv=ev=>{if(ev.pointerId!==id)return;const dx=ev.clientX-x0,dy=ev.clientY-y0;
+    if(!mode&&Math.hypot(dx,dy)>(k>=0?5:8)){mode=k>=0?'p':touch&&Math.abs(dy)>Math.abs(dx)?'v':'h';svg.style.cursor='grabbing';if(mode==='p')m.zones=[]}
+    if(mode==='p'){const [x,y]=loc(ev),lo2=(k?m.pts[k-1].x:c0)+.3,hi2=k<m.pts.length-1?m.pts[k+1].x-.3:ZE; // nur dieser Punkt bewegt sich; Punkte bleiben zeitlich in Reihenfolge
+     m.pts[k]={x:Math.max(lo2,Math.min(hi2,Tof(x))),p:Pof(Math.max(6,Math.min(H-6,y)))};redraw(svg,pic())}
+    else if(mode==='h'){sc=clampSc(s0-dx);upd()}
+    else if(mode==='v'){scrollBy(0,ly-ev.clientY)} // senkrecht wischen: die Seite scrollt
+    ly=ev.clientY};
+   // Loslassen ohne Bewegung = Tippen (auch dicht neben einem Punkt: dann entsteht der nächste Punkt, der alte bleibt, wo er ist)
+   const up=ev=>{if(ev.pointerId!==id)return;stop();if(mode==='p')return render();if(ev.type==='pointerup'&&!mode&&performance.now()-T0<800&&!m.done)tap(px,py)};
+   addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);GEST=stop};
+ };
+ // Fensterbreite geändert (z. B. Handy gedreht): neu zeichnen. Die Höhe bleibt, damit der Chart beim Scrollen am Handy nicht springt.
+ const onRs=()=>{if(PGS.m!==m||!$('#svg.pgsvg'))return removeEventListener('resize',onRs);const w=W;size();if(W!==w&&!GEST)render(fbLast)};
+ addEventListener('resize',onRs);
  const fail=()=>{m.failed=true;if(st.streak)st.streak=0,stats()};
  // Passt eine Variante V des Musters zum sichtbaren Teil? (sichtbare dreiteilige Wellen können A-B-C oder W-X-Y sein)
  const fitsVis=V=>vk.every((kd,i)=>V[i].some(d=>PGKOF[d]===kd||(kd==='ABC'&&PGKOF[d]==='WXY')));
@@ -1328,7 +1377,7 @@ function progn(arg){
  const allowed=k=>{const s=new Set();fam.forEach(Q=>PGSUB[Q.key].filter(fitsVis).forEach(V=>V[k-1].forEach(d=>s.add(PGKOF[d]))));return Object.keys(PGK).filter(x=>s.has(x))};
  // Welche Bereiche wären für die gezeichneten Wellen ungültig? (nur harte Regeln: IMP-3, IMP-2, ZZ-3; je nach Muster, zu dem die Zählung passt)
  const zones=(Q,v,mp,gs)=>{const s=Q.sign(mp),p0=mp[0],z=[],span=k=>{const g=gs.find(x=>x.k===k);if(!g)return null;const st=k-1>cut?gs.find(x=>x.k===k-1).pts.slice(-1)[0].x:c0;return[st,g.pts[g.n-1].x,g]};
-  const band=(price,beyond,x1,x2,t)=>{const top=s*beyond>0;z.push({a:price,b:top?hi:lo,x1,x2,t,top})}; // beyond: Richtung (im normierten Maß), in die es ungültig wird
+  const band=(price,beyond,x1,x2,t)=>{z.push({a:price,x1,x2,t,top:s*beyond>0})}; // beyond: Richtung (im normierten Maß), in die es ungültig wird
   const t='Hier wäre die|Zählung ungültig';
   if(Q.key==='imp'){const w4=span(4);if(w4)band(mp[1],-1,w4[0],w4[1],t); // IMP-3: Welle 4 nicht ins Gebiet von Welle 1
    const w5=span(5);if(w5&&L(v,3)<L(v,1))band(p0+s*(v[4]+L(v,3)),1,w5[0],w5[1],t);} // IMP-2: Welle 5 nicht länger als Welle 3
