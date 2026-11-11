@@ -1271,11 +1271,14 @@ function pgData(P,frs){const key=P.key,v=key==='imp'?genImp(null):P.gen(null),di
  // Größe: meist so, dass das Muster im Tageschart gut zu sehen ist (3 bis 6 Wochen), sonst im Wochenchart (5 bis 9 Monate)
  const big=Math.random()<.35,HT=Math.round((big?rnd(150,270):rnd(22,40))*24),base=PGLEN[key],bs=base.reduce((a,b)=>a+b),lev=big?2:1;
  const S={c:[],lo:[],hi:[]},d1=Math.sign(pv[1]-pv[0])||1,A=Math.abs(pv[1]-pv[0]),a1=pv[0]+d1*A*rnd(.9,1.5),a0=a1-d1*A*rnd(.4,.8);
- pgLeg(a0,a1,Math.round(HT*.3),abcF(),lev,S);pgLeg(a1,pv[0],Math.round(HT*.45),impF(),lev,S);
+ // Vorgeschichte aus vier Strecken, zusammen länger als das Muster: so ist der Chart immer länger als der Bildschirm
+ const b1=a0+d1*A*rnd(.6,1.2),b0=b1-d1*A*rnd(.5,1);
+ pgLeg(b0,b1,Math.round(HT*.3),impF(),lev,S);pgLeg(b1,a0,Math.round(HT*.3),abcF(),lev,S);pgLeg(a0,a1,Math.round(HT*.3),abcF(),lev,S);pgLeg(a1,pv[0],Math.round(HT*.45),impF(),lev,S);
  const mp=[S.c.length],spAll={},tri={};
  base.forEach((b,j)=>{const n=Math.max(40,Math.round(HT*b/bs*rnd(.85,1.15))),st=S.c.length,idx=pgLeg(pv[j],pv[j+1],n,frs[j](),lev,S);
   spAll[j+1]=idx.slice(1,-1).map(i=>st+i).concat(st+n);mp.push(st+n)});
  const e=pv[pv.length-1];S.c.push(e);S.lo.push(e);S.hi.push(e);
+ const mn=Math.min(...S.lo);if(mn<50){const d=50-mn;['c','lo','hi'].forEach(k=>S[k]=S[k].map(x=>x+d))} // Preise bleiben über 0
  // Kerzen: Eröffnung = Schluss der Kerze davor, Dochte klein und nie über den Wendepunkt der Strecke hinaus
  const c=S.c,o=c.map((x,i)=>i?c[i-1]:x),h=[],l=[];
  c.forEach((x,i)=>{const up=Math.max(o[i],x),dn=Math.min(o[i],x),wk=(up-dn)*.6+(S.hi[i]-S.lo[i])*.012;
