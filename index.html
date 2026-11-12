@@ -235,7 +235,8 @@ button.isl:hover{border-color:var(--accent)}
 .pgc .lab.ax{font-size:11px;font-weight:500;fill:var(--mut)}
 .pgc1{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}.pgc .lab.l1{font-weight:800;font-size:12px}
 .pgcut{stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 4;opacity:.7}.pgc .lab.pgcutt{text-anchor:start;font-size:12px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:3px}
-.pgfoc{fill:var(--accent);opacity:.07}
+.pgfoc{fill:var(--accent);opacity:.1}
+.pgnx .pgendc{font-size:12px;padding:3px 8px;min-height:0;margin-left:6px}
 .pgbar{display:flex;flex-direction:column;gap:6px;margin:0 0 10px}.pgbar button{min-height:40px;padding:5px 10px;font-size:.88rem}.pgbar .pgk{margin:0;align-items:center}.pgbar .pgk button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .pgbar .c1,.pgsel .c1{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 3px;border:1.4px solid currentColor;border-radius:50%;font-weight:800;font-size:12px;line-height:1}
 .pgnx .mut{font-size:13px;margin-right:2px}.pgnx .pgst{font-size:13px;margin-left:4px}.pgsel{margin:8px 0}.pgsel p{margin:6px 0}.pgsel button.on{background:var(--accent);color:#fff;border-color:var(--accent)}.dock .pghint{font-size:13px}
@@ -1302,11 +1303,11 @@ function pgNode(key,lev){
   if((PGTER[key]||[]).every(([w,b,,must])=>{const p=pts(w),d=Math.sign(fr[w]-fr[w-1]);return pgTerOk(d,d>0?Math.max(...p):Math.min(...p),fr[b],must)}))return node}
  return null}
 // Baum in Stundenkerzen umsetzen. out sammelt die Wendepunkte: lev (Ebene), t (Kerze), p (Preis), l (Beschriftung), w1 (Welle der Ebene 1)
-function pgBuild(node,a,b,n,lev,w1,S,out){const fr=node.fr,k=fr.length-1,w=(PGLEN[node.key]||fr.slice(1).map(()=>1)).map(x=>x*rnd(.85,1.15)),tot=w.reduce((x,y)=>x+y),idx=[0];let acc=0;
+function pgBuild(node,a,b,n,lev,w1,S,out){const gid=S.gid=(S.gid||0)+1,t0=S.c.length,fr=node.fr,k=fr.length-1,w=(PGLEN[node.key]||fr.slice(1).map(()=>1)).map(x=>x*rnd(.85,1.15)),tot=w.reduce((x,y)=>x+y),idx=[0];let acc=0;
  w.forEach(x=>{acc+=x;idx.push(Math.round(acc/tot*n))});for(let j=1;j<=k;j++)if(idx[j]<idx[j-1]+2)idx[j]=idx[j-1]+2;
  for(let j=0;j<k;j++){const pa=a+(b-a)*fr[j],pb=a+(b-a)*fr[j+1],nj=idx[j+1]-idx[j],kid=node.kids&&node.kids[j],ww=lev===1?j+1:w1;
   if(kid)pgBuild(kid,pa,pb,nj,lev+1,ww,S,out);else pgWalk(pa,pb,nj,S);
-  out.push({lev,t:S.c.length,p:pb,l:pgLab(node.key,j+1),key:node.key,j:j+1,w1:ww})}}
+  out.push({lev,t:S.c.length,p:pb,l:pgLab(node.key,j+1),key:node.key,j:j+1,w1:ww,g:gid,t0})}} // g/t0: Zählung (Gruppe) und ihr Start
 // Daten einer Runde: o/h/l/c Stundenkerzen, mp = Kerzen der Hauptpunkte (Ebene 1), piv = alle Wendepunkte, tree = Musterbaum, T0 = erste Kerze (Montag 0 Uhr)
 function pgData(P){let tree=null;for(let n=0;n<20&&!tree;n++)tree=pgNode(P.key,1);
  if(!tree)tree={key:P.key,fr:pgFr(P.key)||[0,1],kids:null};
@@ -1358,7 +1359,7 @@ function progn(arg,lvl){
  if(lvl!=='leicht'&&lvl!=='schwer'){ // zuerst die Schwierigkeit wählen
   $('#view').innerHTML='<div class="card"><p class="kick">Wie geht es weiter?</p><h2>Wie schwer?</h2>'+
    '<p><button class="p" data-pl="leicht">Leicht</button> <span class="mut">Der sichtbare Verlauf ist in allen Wellengrößen beschriftet. Du setzt nur fort.</span></p>'+
-   '<p><button class="p" data-pl="schwer">Schwer</button> <span class="mut">Keine Beschriftung: Du zählst frei, so grob oder fein du willst, und setzt mindestens die nächste Welle in die Zukunftszone. Welche Zählung die größere Welle ist, erkennt die App selbst.</span></p></div>';
+   '<p><button class="p" data-pl="schwer">Schwer</button> <span class="mut">Keine Beschriftung: Du zählst frei, so grob oder fein du willst, und setzt mindestens die nächste Welle in die Zukunftszone. Die erste Zählung ist die große Welle, Unterteilungen setzt du über die Auswahl einer Welle.</span></p></div>';
   document.querySelectorAll('[data-pl]').forEach(b=>{b.onclick=()=>progn(arg,b.dataset.pl);lockTap(b)});window.scrollTo(0,0);return}
  const pool=arg?String(arg).split(','):Object.keys(PAT),key=pool[Math.floor(Math.random()*pool.length)],P=PAT[key],R=pgData(P);
  const cuts=P.waves.length===5?[2,3,4]:[2],cut0=cuts[Math.floor(Math.random()*cuts.length)],c0=R.mp[cut0],N=R.N;
@@ -1366,10 +1367,12 @@ function progn(arg,lvl){
  // (Start, Teilpunkte, Ende), sub = Beschriftung der Ebenen 2 und 3. Leicht: die erzeugte Zählung. Schwer: die des Spielers, nach dem Prüfen.
  const truthCount=()=>{const L1=R.mp.slice(0,cut0+1),wp={};for(let w=1;w<=cut0;w++)wp[w]=[R.pr[L1[w-1]]].concat(R.piv.filter(q=>q.lev===2&&q.w1===w).sort((a,b)=>a.t-b.t).map(q=>q.p));
   return{lab:P.labels,key0:P.key,t:L1,p:L1.map(i=>R.pr[i]),vk:R.tree.kids?R.tree.kids.slice(0,cut0).map(x=>PGKOF[x.key]):[],cut:cut0,wp,
-   sub:R.piv.filter(q=>q.lev>1&&q.t<=c0).map(q=>({lev:q.lev,t:q.t,p:q.p,l:pgTxt(q.lev,q.l)}))}};
+   sub:R.piv.filter(q=>q.lev>1&&q.t<=c0).map(q=>({lev:q.lev,t:q.t,p:q.p,l:pgTxt(q.lev,q.l),g:q.g,t0:q.t0}))}};
  let CNT=lvl==='leicht'?truthCount():null; // Schwer: keine Vorgabe, frei zählen (FR)
  // FR.pts: Punkte mit Zählung c; FR.ac = Zählung, die gerade fortgesetzt wird (null: das nächste Tippen beginnt eine neue), FR.cn = Zähler der Zählungen
- const FR=lvl==='schwer'?{pts:[],n:0,cn:0,ac:null,z:'N',i:0,sel:null,err:{},errs:[],tips:0,done:false}:null;
+ // FR.cm[c] = {lev, par, pk}: feste Wellengröße je Zählung (seit 12.11.2026), par/pk = gewählte übergeordnete Zählung und Welle (sonst aus der Lage)
+ // FR.pw = {c,k}: ausgewählte übergeordnete Welle, die die nächste Zählweise unterteilt
+ const FR=lvl==='schwer'?{pts:[],n:0,cn:0,ac:null,z:'N',i:0,sel:null,pw:null,cm:{},err:{},errs:[],tips:0,done:false}:null;
  const fseed=Math.random()*1e4,hrn=i=>{const x=Math.sin((i+fseed)*12.9898)*43758.5453;return 2*(x-Math.floor(x))-1}; // fester Zufall je Stunde (Prognose-Kerzen)
  const m={ch:{},pts:[],tips:0,failed:false,done:false,chErr:false,shown:false,lines:[],cz:null,cs:null,cw:[],cfail:0,cntShown:false};
  const fam=()=>Object.keys(PAT).filter(k=>PAT[k].labels.join()===CNT.lab.join()).map(k=>PAT[k]); // Muster mit derselben Beschriftung
@@ -1438,7 +1441,7 @@ function progn(arg,lvl){
   // der Start selbst und alle schon geplanten Punkte, damit der Maßstab beim Weiterplanen nicht springt
   return[s0,s0+d*1.45*F,s0-d*.8*F] /* 45 % Reserve über die Zielzone hinaus, für überschießende Teilwellen */.concat(m.pts.map(q=>q.p),m.pts.slice(-1).map(q=>q.p+d*.3*F))};
  // Punkt am Chart einrasten: Hoch oder Tief (je nachdem, was näher am Finger liegt) im Umkreis von anderthalb Kerzen der Zeiteinheit
- const snap=(px,py)=>{const t=Math.round(Tof(px)),wv=Math.max(2,Math.round(1.5*tf)),lo=Math.max(0,t-wv),hi=Math.min(c0,t+wv);if(lo>c0)return null;let ih=lo,il=lo;
+ const snap=(px,py,touch)=>{const t=Math.round(Tof(px)),wv=Math.max(2,Math.round((touch?2.5:1.5)*tf)),lo=Math.max(0,t-wv),hi=Math.min(c0,t+wv);if(lo>c0)return null;let ih=lo,il=lo;
   // Gleich hohe Dochte: zuerst die Kerze, deren Schluss genau auf dem Extrem liegt (der Wendepunkt), dann die nächste am Finger
   const pref=(i,j,v,w,ci,cj)=>v!==w?v>w:(ci!==cj?ci:Math.abs(i-t)<Math.abs(j-t));
   for(let i=lo;i<=hi;i++){if(i!==ih&&pref(i,ih,R.h[i],R.h[ih],R.c[i]===R.h[i],R.c[ih]===R.h[ih]))ih=i;if(i!==il&&pref(i,il,-R.l[i],-R.l[il],R.c[i]===R.l[i],R.c[il]===R.l[il]))il=i}
@@ -1469,40 +1472,59 @@ function progn(arg,lvl){
   m.lines.forEach(z=>{const x1=X(z.t),y=Y(z.p),x2=Math.max(x1+40,X(ZE+.5));
    s+='<line class="pgil" x1="'+x1+'" x2="'+x2+'" y1="'+y+'" y2="'+y+'"/><circle cx="'+x1+'" cy="'+y+'" r="3.5" fill="var(--dn)"/>'+
     '<text class="lab pgilt" x="'+(x1+7)+'" y="'+(y+(z.below?14:-6))+'">'+esc(z.txt)+'</text>'});
-  // Beschriftungen sammeln und so verschieben, dass sie sich nicht überlappen (nach außen, weg vom Punkt). c: Ebene 1 im Kreis
-  // Große Wellen (c) kommen zuerst und sind immer sichtbar; ein kleineres Label, das auch versetzt noch überlappt, wird ausgeblendet.
-  const labs=[],lab=(x,y,up,t,st,c)=>{if(x>-30&&x<W+30)labs.push({x,y,up,t,st,c})},put=()=>{const done=[],hit=(a,w)=>done.some(b=>Math.abs(b.x-a.x)<(w+b.w)/2+3&&Math.abs(b.y-a.y)<(a.c||b.c?22:17));
-   labs.sort((a,b)=>(b.c?1:0)-(a.c?1:0));
-   // Labels bleiben in der Zeichenfläche (nicht in der Zeitachse, nicht über dem Rand); stoßen sie an, weichen sie nach innen aus
-   const fit=a=>{if(a.y>H-BP-4){a.y=H-BP-4;a.up=true}if(a.y<16){a.y=16;a.up=false}};
-   labs.forEach(a=>{const w=a.c?24:String(a.t).replace(/<[^>]*>/g,'').length*7.6,y0=(fit(a),a.y);let n=0;for(;n<7&&hit(a,w);n++){a.y+=a.up?-15:15;if(a.y>H-BP-4||a.y<16){a.up=!a.up;a.y=y0}}
-    if(!a.c&&hit(a,w)){a.y=y0;return}a.w=w;done.push(a);if(a.c)s+='<circle class="pgc1" cx="'+a.x+'" cy="'+(a.y-4)+'" r="10"/>';s+='<text class="lab'+(a.c?' l1':'')+'"'+(a.st?' style="'+a.st+'"':'')+' x="'+a.x+'" y="'+a.y+'">'+a.t+'</text>'})};
+  // Beschriftungen sammeln und so verschieben, dass sie sich nicht überlappen (nach außen, weg vom Punkt). c: Ebene 1 im Kreis.
+  // Seit 12.11.2026 (Lenny): Labels an einem gemeinsamen Pivot (stk) bilden einen Stapel, die kleinste Welle steht innen am Punkt,
+  // die größte außen (Hoch: größere darüber, Tief: größere darunter). Der Stapel wird als Ganzes platziert.
+  // Große Wellen (c) kommen zuerst und sind immer sichtbar; kleinere Labels, die auch versetzt noch überlappen, werden ausgeblendet.
+  const labs=[],lab=(x,py,up,t,st,c,stk,rank,gap)=>{if(x>-30&&x<W+30)labs.push({x,py,up,t,st,c,stk,rank:rank||0,gap})},put=()=>{const done=[],hit=(a,w)=>done.some(b=>Math.abs(b.x-a.x)<(w+b.w)/2+3&&Math.abs(b.y-a.y)<(a.c||b.c?22:17));
+   const U={},ord=[];labs.forEach((a,i)=>{const k=a.stk!==undefined?'s'+a.stk:'#'+i;if(!U[k]){U[k]=[];ord.push(k)}U[k].push(a)});
+   const units=ord.map(k=>U[k].sort((a,b)=>a.rank-b.rank)).sort((A,B)=>(B.some(a=>a.c)?1:0)-(A.some(a=>a.c)?1:0));
+   const wOf=a=>a.c?24:String(a.t).replace(/<[^>]*>/g,'').length*7.6,inY=y=>y>=16&&y<=H-BP-4;
+   // y-Werte eines Stapels in Richtung up, um sh weiter nach außen geschoben
+   const lay=(A,up,sh)=>{let y=0;return A.map((a,i)=>{const g=a.gap||(a.c?[14,22]:[10,18]);y=i?y+(up?-1:1)*(a.c||A[i-1].c?19:15):a.py+(up?-g[0]:g[1]);return y+(up?-sh:sh)})};
+   units.forEach(A0=>{let A=A0;const big=A[A.length-1];let up=big.up;
+    for(let tries=0;tries<2;tries++){
+     let ys=lay(A,up,0);if(!ys.every(inY)){const o=lay(A,!up,0);if(o.every(inY))up=!up;ys=up===big.up?ys:o}
+     let ok=-1;for(let n=0;n<8;n++){const y2=lay(A,up,15*n);if(n&&!y2.every(inY))break;if(!A.some((a,i)=>hit({x:a.x,y:y2[i],c:a.c},wOf(a)))){ok=n;break}}
+     if(ok<0&&A.some(a=>!a.c)){if(!A.some(a=>a.c))return;A=A.filter(a=>a.c);continue} // kleine Labels weglassen, große bleiben
+     ys=lay(A,up,Math.max(0,ok));ys=ys.map(y=>Math.max(16,Math.min(H-BP-4,y)));
+     A.forEach((a,i)=>{a.y=ys[i];a.w=wOf(a);done.push(a);if(a.c)s+='<circle class="pgc1" cx="'+a.x+'" cy="'+(a.y-4)+'" r="10"/>';s+='<text class="lab'+(a.c?' l1':'')+'"'+(a.st?' style="'+a.st+'"':'')+' x="'+a.x+'" y="'+a.y+'">'+a.t+'</text>'});break}})};
   const upAt=(i,list)=>{const p=list[i].p,a=list[i-1],b=list[i+1];return a?p>=a.p:(b?p>b.p:true)};
-  if(m.shown)for(let k=cut0+1;k<R.mp.length;k++){const i=R.mp[k],up=R.pr[i]>=R.pr[R.mp[k-1]];lab(X(i),Y(R.pr[i])+(up?-14:22),up,pgLab(P.key,k),'fill:var(--mut)',1)}
-  if(CNT){ // gezählter sichtbarer Teil: Ebene 1 im Kreis, darunter Ebenen 2 und 3 je nach Zeiteinheit
-   const L=CNT.t.map((t,k)=>({t,p:CNT.p[k]}));L.forEach((q,k)=>{const up=upAt(k,L);lab(X(q.t),Y(q.p)+(up?-14:22),up,pgLab(CNT.key0,k),'',1)});
-   const subs=CNT.sub.concat(L.map(x=>({...x,lev:1})));
-   CNT.sub.forEach(q=>{const dt=Math.min(...subs.filter(x=>x.lev<=q.lev&&x.t!==q.t).map(x=>Math.abs(x.t-q.t))),big=dt*BW/tf>=(q.lev===2?18:16); // Welle zu schmal: nur ein kleiner Marker
-    if(!big){s+='<circle cx="'+X(q.t)+'" cy="'+Y(q.p)+'" r="2" fill="var(--mut)"/>';return}const nb=CNT.sub.concat(L).filter(x=>Math.abs(x.t-q.t)>0).sort((a,b)=>Math.abs(a.t-q.t)-Math.abs(b.t-q.t))[0],up=!nb||q.p>=nb.p;
-    lab(X(q.t),Y(q.p)+(up?-8:16),up,q.l,q.lev===3?'font-size:11px;fill:var(--mut)':'')})}
-   else if(FR){ // Schwer: frei gesetzte Punkte; Fehler rot, ausgewählter Punkt mit Ring. Labels aller Wellengrößen immer sichtbar (es sind die eigenen).
-    // Die Wellengröße (lev) jeder Zählung bestimmt frSeries automatisch, die Beschriftung folgt ihr.
-    const lv={},wd={},ser=frSeries();ser.forEach(S=>{const a=S.ps||S.own;S.pts.forEach(q=>{lv[q.id]=S.lev;const j=a.findIndex(x=>x.id===q.id),n=[a[j-1],a[j+1]].filter(Boolean);wd[q.id]=n.length?Math.min(...n.map(x=>Math.abs(x.t-q.t))):1e9})});
-    const selC=FR.sel&&(FR.pts.find(x=>x.id===FR.sel)||{}).c; // ausgewählte Zählung hervorheben
+  const dot=(x,y)=>'<circle cx="'+x+'" cy="'+y+'" r="2.5" fill="var(--mut)"/>'; // Start einer Zählung bzw. zu schmale Welle: nur ein kleiner Marker
+  if(m.shown)for(let k=cut0+1;k<R.mp.length;k++){const i=R.mp[k],up=R.pr[i]>=R.pr[R.mp[k-1]];lab(X(i),Y(R.pr[i]),up,pgLab(P.key,k),'fill:var(--mut)',1)}
+  if(CNT){ // gezählter sichtbarer Teil: Ebene 1 im Kreis, darunter Ebenen 2 und 3 je nach Zeiteinheit. Start (0) nur als Marker.
+   const L=CNT.t.map((t,k)=>({t,p:CNT.p[k]}));L.forEach((q,k)=>{const up=upAt(k,L);if(!k){s+=dot(X(q.t),Y(q.p));return}lab(X(q.t),Y(q.p),up,pgLab(CNT.key0,k),'',1,'t'+q.t,9)});
+   // Sichtbarkeit je Zählung (Gruppe g), nicht je Label: alle Labels einer Unterteilung erscheinen gemeinsam, sobald ihre Wellen im
+   // Schnitt breit genug sind. So folgt z. B. die (5) auf demselben Pivot wie ① derselben Regel wie (1) bis (4).
+   const G={};CNT.sub.forEach(q=>{const o=G[q.g]=G[q.g]||{n:0,t0:q.t0,t1:q.t0,ps:[]};o.n++;o.t1=Math.max(o.t1,q.t);o.ps.push(q)});
+   Object.values(G).forEach(o=>o.ps.sort((a,b)=>a.t-b.t));
+   const upMain={};L.forEach((q,k)=>upMain[q.t]=upAt(k,L));
+   CNT.sub.forEach(q=>{const o=G[q.g],big=(o.t1-o.t0)/o.n*BW/tf>=(q.lev===2?20:16);
+    if(!big){s+=dot(X(q.t),Y(q.p));return}const j=o.ps.indexOf(q),nb=o.ps[j-1]||o.ps[j+1],up=upMain[q.t]!==undefined?upMain[q.t]:(!nb||(o.ps[j-1]?q.p>=nb.p:q.p>nb.p));
+    lab(X(q.t),Y(q.p),up,q.l,q.lev===3?'font-size:11px;fill:var(--mut)':'',0,'t'+q.t,3-q.lev,[8,16])})}
+   else if(FR){ // Schwer: frei gesetzte Punkte; Fehler rot, ausgewählter Punkt mit Ring.
+    // Wellengröße (lev) je Zählung steht fest (FR.cm). Sichtbarkeit je Zählung: alle Labels einer Zählung oder keins (laufende und
+    // ausgewählte Zählung immer). Gemeinsame Pivots: größte Welle außen.
+    const lv={},vis={},ser=frSeries(),selQ=FR.sel&&FR.pts.find(x=>x.id===FR.sel);
+    ser.forEach(S=>{const a=S.ps||S.own,n=Math.max(1,a.length-1),avg=a.length>1?(a[a.length-1].t-a[0].t)/n:1e9;
+     const v=S.lev===1||avg*BW/tf>=18||S.c===FR.ac||(selQ&&selQ.c===S.c);S.pts.forEach(q=>{lv[q.id]=S.lev;vis[q.id]=v})});
+    const selC=selQ&&selQ.c; // ausgewählte Zählung hervorheben
     const byT=FR.pts.map(q=>({...q,lev:lv[q.id]||1,o:q})).sort((a,b)=>a.t-b.t||a.lev-b.lev);
-    byT.forEach(q=>{const x=X(q.t),y=Y(q.p),er=FR.err[q.id],sl=FR.sel===q.id;
-     const big=q.lev===1||wd[q.id]*BW/tf>=18||sl; // kleine Welle beim aktuellen Zoom zu schmal: Label aus, Punkt als kleiner Marker
+    const key=q=>q.t.toFixed(3)+','+q.p.toFixed(4),upK={};
+    byT.forEach(q=>{const nb=byT.filter(o=>o.c===q.c&&o!==q).sort((a,b)=>Math.abs(a.t-q.t)-Math.abs(b.t-q.t))[0],up=!nb||q.p>=nb.p,k=key(q);if(q.i>0&&(!upK[k]||upK[k].lev>q.lev))upK[k]={lev:q.lev,up}});
+    byT.forEach(q=>{const x=X(q.t),y=Y(q.p),er=FR.err[q.id],sl=FR.sel===q.id,big=vis[q.id];
      if(selC!==undefined&&q.c===selC&&!sl)s+='<circle cx="'+x+'" cy="'+y+'" r="8" fill="var(--accent)" opacity=".22"/>';
-     s+='<circle cx="'+x+'" cy="'+y+'" r="'+(sl?7:big?4.5:2.5)+'" fill="'+(er?'var(--dn)':'var(--accent)')+'" stroke="'+(sl?'var(--ink)':'var(--surface)')+'" stroke-width="'+(sl?2:1.5)+'"/>';
+     s+='<circle cx="'+x+'" cy="'+y+'" r="'+(sl?7:big&&q.i?4.5:2.5)+'" fill="'+(er?'var(--dn)':'var(--accent)')+'" stroke="'+(sl?'var(--ink)':'var(--surface)')+'" stroke-width="'+(sl?2:1.5)+'"/>';
      if(er)s+='<circle cx="'+x+'" cy="'+y+'" r="11" fill="none" stroke="var(--dn)" stroke-width="2"/>';
-     const nb=byT.filter(o=>o.lev===q.lev&&o!==q).sort((a,b)=>Math.abs(a.t-q.t)-Math.abs(b.t-q.t))[0],up=!nb||q.p>=nb.p,off=(q.lev-1)*14;
-     if(big||er)lab(x,y+(up?-12-off:20+off),up,frTxt(q.lev,q.z,q.i),(er?'fill:var(--dn);':'')+(q.lev===3?'font-size:11px;':''),q.lev===1?1:0)})}
-  // geplante Fortsetzung: grüne Punkte, Ebene 2 in Klammern, Ende der Hauptwelle im Kreis
+     if(!q.i)return; // Start einer Zählung: kein Label (0), nur der Punkt
+     const k=key(q),up=upK[k]?upK[k].up:true;
+     if(big||er)lab(x,y,up,frTxt(q.lev,q.z,q.i),(er?'fill:var(--dn);':'')+(q.lev===3?'font-size:11px;':''),q.lev===1?1:0,k,3-q.lev,[12,20])})}
+  // geplante Fortsetzung: grüne Punkte, Ebene 2 in Klammern, Ende der Hauptwelle im Kreis (außen am selben Pivot)
   if(CNT){const all=[{x:CNT.t[CNT.cut],p:CNT.p[CNT.cut]}].concat(m.pts);
    if(m.pts.length)s+='<polyline fill="none" stroke="var(--up)" stroke-width="2" stroke-dasharray="6 4" points="'+all.map(q=>X(q.x)+','+Y(q.p)).join(' ')+'"/>';
    let j=0;segs().forEach(g=>g.pts.forEach((q,t)=>{j++;const prv=all[j-1],nx=all[j+1],up=q.p>=prv.p&&(!nx||q.p>=nx.p)||(!nx&&q.p>=prv.p);
-    s+='<circle cx="'+X(q.x)+'" cy="'+Y(q.p)+'" r="5" fill="var(--up)" stroke="var(--surface)" stroke-width="1.5"/>';lab(X(q.x),Y(q.p)+(up?-10:20),up,PGK[g.kind].l[t]);
-    if(t===g.n-1)lab(X(q.x),Y(q.p)+(up?-26:36),up,pgLab(fam()[0].key,g.k),'',1);}))}
+    s+='<circle cx="'+X(q.x)+'" cy="'+Y(q.p)+'" r="5" fill="var(--up)" stroke="var(--surface)" stroke-width="1.5"/>';lab(X(q.x),Y(q.p),up,PGK[g.kind].l[t],'',0,'m'+j,0,[10,20]);
+    if(t===g.n-1)lab(X(q.x),Y(q.p),up,pgLab(fam()[0].key,g.k),'',1,'m'+j,1);}))}
   put();
   // „Ab hier: deine Prognose“ an die erste Höhe, an der kein Label steht (sonst weglassen, die gestrichelte Linie bleibt)
   if(cx>-2&&cx<W+2){const right=cx+165<W,x0=right?cx+6:cx-150,lb=labs.filter(a=>a.w);for(let y=TP+44;y<H-BP-10;y+=20)if(!lb.some(a=>a.x+a.w/2+3>x0&&a.x-a.w/2-3<x0+146&&Math.abs(a.y-y)<(a.c?24:19))){
@@ -1511,7 +1533,7 @@ function progn(arg,lvl){
  const zoneMsg='Setze den Punkt in die graue Zone, rechts vom vorherigen Punkt.';
  // Zeitbereich der Welle, die gerade dran ist (leicht hinterlegt): beim Zählen ab ihrem Startpunkt bis zum Ende des sichtbaren Teils,
  // beim Planen ab ihrem Start bis zum Ende der Zukunftszone
- const focus=()=>{if(!CNT)return null;
+ const focus=()=>{if(FR)return frBand();if(!CNT)return null;
   if(m.done)return null;const c=cur();if(!c)return null;const g=segs().filter(x=>x.k<c.k).pop();return[g?g.pts.slice(-1)[0].x:CNT.t[CNT.cut],ZE]};
  const C1=l=>'<span class="c1">'+l+'</span>'; // Beschriftung der Ebene 1 im Kreis (wie im Chart)
  const SUBS='mittlere Wellen: (1)–(5), (a)–(c), (a)–(e), (w)–(y) oder (w)–(z)';
@@ -1544,8 +1566,8 @@ function progn(arg,lvl){
   $('#chk').onclick=verify;
  };
  // Tippen: beim Zählen rastet der Punkt am Chart ein; beim Planen setzt er den nächsten Punkt in der Zukunftszone
- const tap=(px,py)=>{
-  if(FR)return frTap(px,py);
+ const tap=(px,py,touch)=>{
+  if(FR)return frTap(px,py,touch);
   const c=cur(),t=Tof(px),last=m.pts.length?m.pts[m.pts.length-1].x:CNT.t[CNT.cut];
   if(!c)return;
   if(c.needChar)return toast('Wähle zuerst die Zählweise von Welle '+wn(c.k)+'.');
@@ -1568,14 +1590,17 @@ function progn(arg,lvl){
    const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY,n=clampSc(sc+d);if(n===sc)return;e.preventDefault();sc=n;upd()};
   svg.onpointerdown=e=>{if(e.button)return;
    if(GEST){const g=GEST;if(e.pointerType==='touch'&&g.touch&&!g.pinch){e.preventDefault();const a=g.pos();g();pinch(a,{id:e.pointerId,x:e.clientX,y:e.clientY})}else g();return} // zweiter Finger: Zwei-Finger-Zoom, nichts setzen
-   e.preventDefault();const [px,py]=loc(e),touch=e.pointerType==='touch';let k=-1,best=touch?22:12;
-   if(FR&&!FR.done)FR.pts.forEach((q,j)=>{const d=Math.hypot(X(q.t)-px,Y(q.p)-py);if(d<best){best=d;k=j}});
+   // Fangradius: Finger größer als Maus. Läuft eine Zählung, wird ein Punkt nicht ausgewählt oder verschoben: Tippen setzt dann das
+   // nächste Label genau auf diesen Pivot (sk), Ziehen verschiebt den Chart.
+   e.preventDefault();const [px,py]=loc(e),touch=e.pointerType==='touch';let k=-1,sk=-1,best=touch?28:12,grp=[];
+   if(FR&&!FR.done){FR.pts.forEach((q,j)=>{if(FR.ac!==null&&q.c===FR.ac)return;const d=Math.hypot(X(q.t)-px,Y(q.p)-py);if(d<best){best=d;k=j}});
+    if(k>=0){const q0=FR.pts[k];grp=FR.pts.filter(q=>q.t===q0.t&&q.p===q0.p);if(FR.ac!==null){sk=k;k=-1}}} // grp: alle Punkte auf demselben Pivot
    if(CNT&&!m.done)m.pts.forEach((q,j)=>{const d=Math.hypot(X(q.x)-px,Y(q.p)-py);if(d<best){best=d;k=j}}); // k: geplanter Punkt direkt unter dem Finger
    const x0=e.clientX,y0=e.clientY,s0=sc,T0=performance.now(),id=e.pointerId,zy=zoomedY();let mode='',ly=y0,lx=x0;
    const stop=()=>{GEST=null;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);svg.style.cursor='grab';saveV()};
    const mv=ev=>{if(ev.pointerId!==id)return;const dx=ev.clientX-x0,dy=ev.clientY-y0;
     if(!mode&&Math.hypot(dx,dy)>(k>=0?5:8)){mode=k>=0?'p':touch&&!zy&&Math.abs(dy)>Math.abs(dx)?'v':'h';svg.style.cursor='grabbing';if(mode==='p')m.lines=[]}
-    if(mode==='p'&&FR){const [x,y]=loc(ev),q=FR.pts[k];q.t=Math.max(0,Math.min(ZE,Tof(x)));q.p=Pof(Math.max(6,Math.min(H-BP-2,y)));if(y<TP+24||y>H-BP-24)grow(q.p);redraw(svg,pic())}
+    if(mode==='p'&&FR){const [x,y]=loc(ev),t=Math.max(0,Math.min(ZE,Tof(x))),p=Pof(Math.max(6,Math.min(H-BP-2,y)));grp.forEach(q=>{q.t=t;q.p=p});if(y<TP+24||y>H-BP-24)grow(p);redraw(svg,pic())} // ein gemeinsamer Pivot bewegt sich als Ganzes
     else if(mode==='p'){const [x,y]=loc(ev),lo2=(k?m.pts[k-1].x:CNT.t[CNT.cut])+.3,hi2=k<m.pts.length-1?m.pts[k+1].x-.3:ZE; // nur dieser Punkt bewegt sich; Punkte bleiben zeitlich in Reihenfolge
      m.pts[k]={x:Math.max(lo2,Math.min(hi2,Tof(x))),p:Pof(Math.max(6,Math.min(H-BP-2,y)))};if(y<TP+24||y>H-BP-24)grow(m.pts[k].p);redraw(svg,pic())} // am Rand: Achse erweitern
     else if(mode==='h'){sc=clampSc(s0-dx);if(zy)panY(ev.clientY-ly);upd()} // waagerecht verschieben, hineingezoomt auch senkrecht; der Maßstab bleibt
@@ -1583,9 +1608,14 @@ function progn(arg,lvl){
     ly=ev.clientY;lx=ev.clientX};
    // Loslassen ohne Bewegung = Tippen (auch dicht neben einem Punkt: dann entsteht der nächste Punkt, der alte bleibt, wo er ist)
    const up=ev=>{if(ev.pointerId!==id)return;stop();
-    if(mode==='p'&&FR){const q=FR.pts[k];if(q.t<=c0+.5){const sn=snap(X(q.t),Y(q.p));if(sn){q.t=sn.t;q.p=sn.p}}FR.err={};m.lines=[];return frRender()} // im sichtbaren Teil wieder einrasten
+    if(mode==='p'&&FR){const q=FR.pts[k];if(q.t<=c0+.5){const sn=snap(X(q.t),Y(q.p),touch);if(sn)grp.forEach(o=>{o.t=sn.t;o.p=sn.p})}FR.err={};m.lines=[];return frRender()} // im sichtbaren Teil wieder einrasten
     if(mode==='p')return render();
-    if(ev.type==='pointerup'&&!mode&&performance.now()-T0<800){if(FR&&!FR.done&&k>=0){FR.sel=FR.pts[k].id;return frRender(fbLast)}if(!m.done)tap(px,py)}};
+    if(ev.type==='pointerup'&&!mode&&performance.now()-T0<800){
+     if(FR&&!FR.done&&sk>=0){const q=FR.pts[sk];frAdd(FR.z,FR.i,q.t,q.p);return frRender()} // laufende Zählung: Label genau auf den bestehenden Pivot
+     if(FR&&!FR.done&&k>=0){ // auswählen; mehrere Punkte auf demselben Pivot: erst die größte Welle, erneutes Tippen wechselt zur nächsten
+      const lv=c=>(FR.cm[c]||{lev:1}).lev,g=grp.slice().sort((a,b)=>lv(a.c)-lv(b.c)||b.i-a.i),cur=g.findIndex(q=>q.id===FR.sel),q=g[(cur+1)%g.length];
+      FR.sel=q.id;FR.pw={c:q.c,k:Math.max(1,q.i)};return frRender(fbLast)}
+     if(!m.done)tap(px,py,touch)}};
    addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);GEST=stop;stop.touch=touch;stop.pos=()=>({id,x:lx,y:ly})};
   // Zwei Finger: Abstand ändert den Zoom (um die Mitte zwischen den Fingern), die Mitte verschiebt den Chart
   const pinch=(a,b)=>{const r0=svg.getBoundingClientRect(),V0={BW,sc,yr:yr.slice()},cur={[a.id]:{x:a.x,y:a.y},[b.id]:{x:b.x,y:b.y}},d0=Math.hypot(a.x-b.x,a.y-b.y)||1,mx0=(a.x+b.x)/2-r0.left,my0=(a.y+b.y)/2-r0.top;
@@ -1642,50 +1672,59 @@ function progn(arg,lvl){
  // Liegt eine Zählung ganz in einer Welle einer anderen, ist sie eine Wellengröße kleiner. Die Beschriftung folgt automatisch
  // (größte ①, mittlere (1), kleinste 1) und stellt sich um, wenn später eine größere Zählung dazukommt.
  const frSeq=z=>PAT[PGZL[z]].labels; // Labels 0..n einer Zählweise
- const frTxt=(lev,z,i)=>pgTxt(lev,pgLab(PGZL[z],i)),frHtml=(lev,z,i)=>lev===1?C1(frTxt(lev,z,i)):frTxt(lev,z,i);
+ const frTxt=(lev,z,i)=>pgTxt(lev,pgLab(PGZL[z],i)),frHtml=(lev,z,i)=>!i?'Start':lev===1?C1(frTxt(lev,z,i)):frTxt(lev,z,i); // Start (0) ohne Label (seit 12.11.2026)
  const SIZE=['','große Welle','mittlere Welle','kleine Welle'];
  // Zählungen mit Wellengröße. Je Zählung: own = eigene Punkte (nach Zeit), ps = Punkte ab Start 0 (fehlender Start bzw. fehlendes letztes Label
  // aus der Welle darüber ergänzt, impl), par/pk = Zählung und Welle darüber, lev = Wellengröße (1 = größte), bad = Labels folgen nicht aufeinander.
+ // Seit 12.11.2026 (Lenny) feste Reihenfolge der Wellengrößen: Die Größe jeder Zählung wird beim Start festgelegt (FR.cm, siehe frMeta)
+ // und nicht mehr aus der Lage erraten. frSeries sucht nur noch die übergeordnete Zählung: gewählt (par/pk) oder die Welle einer Zählung
+ // genau eine Größe größer, in der die Zählung liegt.
  const frSeries=()=>{const by={};FR.pts.forEach(q=>(by[q.c]=by[q.c]||[]).push(q));
-  const out=Object.keys(by).map(c=>{const pts=by[c].slice().sort((a,b)=>a.t-b.t||a.i-b.i);
-   return{c:+c,z:pts[0].z,pts,own:pts.map(q=>({t:q.t,p:q.p,id:q.id})),par:null,pk:0,open:false,ps:null,endImpl:false,bad:null,lev:1}});
+  const out=Object.keys(by).map(c=>{const pts=by[c].slice().sort((a,b)=>a.t-b.t||a.i-b.i),cm=FR.cm[c]||{lev:1};
+   return{c:+c,z:pts[0].z,pts,own:pts.map(q=>({t:q.t,p:q.p,id:q.id})),par:null,pk:0,open:false,ps:null,endImpl:false,bad:null,lev:Math.max(1,Math.min(3,cm.lev||1)),cm}});
   out.forEach(S=>{for(let j=1;j<S.pts.length;j++)if(S.pts[j].i!==S.pts[j-1].i+1){S.bad={a:S.pts[j-1],b:S.pts[j]};break}});
   const P_=S=>S.ps||S.own,i0=S=>S.ps?0:S.pts[0].i,len=S=>{const a=P_(S);return a[a.length-1].t-a[0].t};
   // Welle von S (Label-Index ihres Endes), in der C ganz liegt; 0 = keine. Beginnt C mit 0, darf C am Start der Welle beginnen, sonst danach.
-  const waveOf=(C,S)=>{if(C===S)return 0; // auch Zählungen mit Label-Fehler ordnen sich nach ihrer Lage ein (der Fehler wird beim Prüfen gemeldet)
-  const P=P_(S),f=C.own[0].t,l=C.own[C.own.length-1].t,z0=C.pts[0].i===0;
+  const waveOf=(C,S)=>{if(C===S)return 0;const P=P_(S),f=C.own[0].t,l=C.own[C.own.length-1].t,z0=C.pts[0].i===0;
    for(let j=1;j<P.length;j++){const a=P[j-1].t,b=P[j].t;if((z0?a<=f:a<f)&&l<=b&&(f>a||l<b||C.own.length>2))return i0(S)+j}return 0};
-  // Durchschnittliche Wellendauer: Liegen zwei Zählungen je in einer Welle der anderen (möglich, solange ergänzte Start- und Endpunkte noch
-  // aus einer zu großen Welle stammen), ist die mit den längeren Wellen die größere.
-  const gw=S=>{const a=S.own.length>1?S.own:P_(S);return a.length>1?(a[a.length-1].t-a[0].t)/(a.length-1):0};
-  for(let it=0;it<6;it++){
-   out.forEach(C=>{let best=null;C.open=false;
-    out.forEach(S=>{const k=waveOf(C,S);if(!k||(waveOf(S,C)&&gw(S)<=gw(C)))return;const P=P_(S),j=k-i0(S),d=P[j].t-P[j-1].t;if(!best||d<best.d)best={S,k,d}});
-    if(!best&&!C.bad&&C.pts[0].i<=1){ // offene Welle: C setzt eine unfertige, mindestens so lange Zählung fort (z. B. Unterteilung der nächsten Welle in der Prognose)
+  // von groß nach klein: so steht die Zählung darüber (samt ergänztem Start bzw. Ende) schon fest
+  [1,2,3].forEach(L=>out.filter(C=>C.lev===L).forEach(C=>{let best=null;
+   const ex=C.cm.par!=null&&out.find(S=>S.c===C.cm.par&&S.lev===L-1);
+   if(ex)best={S:ex,k:C.cm.pk,open:!P_(ex)[C.cm.pk-i0(ex)]};
+   else if(L>1){out.forEach(S=>{if(S.lev!==L-1)return;const k=waveOf(C,S);if(!k)return;const P=P_(S),j=k-i0(S),d=P[j].t-P[j-1].t;if(!best||d<best.d)best={S,k,d}});
+    if(!best&&!C.bad&&C.pts[0].i<=1){ // offene Welle: C unterteilt die nächste, noch nicht gesetzte Welle einer unfertigen Zählung eine Größe darüber
      const f=C.own[0].t;let o=null;
-     out.forEach(S=>{if(S===C||S.bad||S.endImpl||waveOf(S,C))return;const n=frSeq(S.z).length-1,li=S.pts[S.pts.length-1].i;if(li>=n)return;
-      const P=P_(S),lt=P[P.length-1].t;if(len(S)<len(C))return;if(C.pts[0].i?lt<f:lt===f)if(!o||lt>o.lt)o={S,lt,k:li+1}});
-     if(o){best=o;C.open=true}}
-    C.par=best?best.S:null;C.pk=best?best.k:0});
-   out.forEach(C=>{const own=C.own;let ps=null;C.endImpl=false;
-    const P=C.par&&P_(C.par),j=C.par&&C.pk-i0(C.par);
-    if(C.pts[0].i===0)ps=own.slice();
-    else if(C.pts[0].i===1&&C.par){const st=C.open?P[P.length-1]:P[j-1];if(st)ps=[{t:st.t,p:st.p,impl:1}].concat(own)}
-    // letztes Label weggelassen: Die Zählung endet am Ende der Welle darüber
-    if(ps&&C.par&&!C.open&&!C.bad&&P[j]&&C.pts[C.pts.length-1].i===frSeq(C.z).length-2&&own[own.length-1].t<P[j].t){ps=ps.concat({t:P[j].t,p:P[j].p,impl:1});C.endImpl=true}
-    C.ps=ps})}
-  out.forEach(C=>{let d=1,x=C.par;const seen=new Set([C]);while(x&&!seen.has(x)){seen.add(x);d++;x=x.par}if(x){C.cyc=true;d=1}C.depth=d;C.lev=Math.min(3,d)});
-  // Nicht eindeutig: Zeiträume überschneiden sich, aber keine Zählung liegt in einer Welle der anderen
-  const sp=S=>{const a=P_(S);return[a[0].t,a[a.length-1].t]},anc=(A,B)=>{let x=A.par;const seen=new Set();while(x&&!seen.has(x)){if(x===B)return true;seen.add(x);x=x.par}return false};
+     out.forEach(S=>{if(S.lev!==L-1||S.bad||S.endImpl)return;const n=frSeq(S.z).length-1,li=S.pts[S.pts.length-1].i;if(li>=n)return;
+      const P=P_(S),lt=P[P.length-1].t;if(C.pts[0].i?lt<f:Math.abs(lt-f)<1e-6)if(!o||lt>o.lt)o={S,lt,k:li+1}});
+     if(o)best={...o,open:true}}}
+   C.par=best?best.S:null;C.pk=best?best.k:0;C.open=!!(best&&best.open);
+   const own=C.own,P=C.par&&P_(C.par),j=C.par&&C.pk-i0(C.par);let ps=null;
+   if(C.pts[0].i===0)ps=own.slice();
+   else if(C.pts[0].i===1&&C.par){const st=C.open?P[P.length-1]:P[j-1];if(st)ps=[{t:st.t,p:st.p,impl:1}].concat(own)}
+   // letztes Label weggelassen: Die Zählung endet am Ende der Welle darüber
+   if(ps&&C.par&&!C.open&&!C.bad&&P[j]&&C.pts[C.pts.length-1].i===frSeq(C.z).length-2&&own[own.length-1].t<P[j].t){ps=ps.concat({t:P[j].t,p:P[j].p,impl:1});C.endImpl=true}
+   C.ps=ps}));
+  out.forEach(C=>{C.depth=C.lev});
+  // Nicht eindeutig: zwei Zählungen derselben Größe überschneiden sich, oder eine kleinere liegt nicht in einer Welle der größeren
+  const sp=S=>{const a=P_(S);return[a[0].t,a[a.length-1].t]};
   out.conf=[];out.forEach((A,x)=>out.forEach((B,y)=>{if(y<=x||A.bad||B.bad)return;const[a0,a1]=sp(A),[b0,b1]=sp(B);if(Math.min(a1,b1)-Math.max(a0,b0)<=.5)return;
-   if(A.cyc||B.cyc||!(anc(A,B)||anc(B,A)))out.conf.push([A,B])}));
+   if(A.lev===B.lev||(A.lev===B.lev-1&&B.par!==A&&!B.par)||(B.lev===A.lev-1&&A.par!==B&&!A.par))out.conf.push([A,B])}));
+  out.i0=i0;out.P_=P_;
   return out};
+ // Wellengröße einer neuen Zählung ohne gewählte Welle (erster Punkt bei Zeit t):
+ // a) die erste Zählung ist die große Welle; b) beginnt sie in einer Welle einer bestehenden Zählung (auch an deren Start), ist sie
+ // eine Größe kleiner; c) sonst (außerhalb aller Wellen, z. B. am Ende einer Zählung) dieselbe Größe wie die Zählung, an die sie anschließt.
+ const frMeta=t=>{const all=frSeries();if(!all.length)return{lev:1,par:null,pk:0};let inn=null,near=null;
+  all.forEach(S=>{const P=all.P_(S);for(let j=1;j<P.length;j++){const a=P[j-1].t,b=P[j].t;if(a-1e-6<=t&&t<b-1e-6){const d=b-a;if(!inn||d<inn.d||(d===inn.d&&S.lev>inn.S.lev))inn={S,d,k:all.i0(S)+j}}}
+   const [a0,a1]=[P[0].t,P[P.length-1].t],dd=t>=a1?t-a1:a0-t;if(dd>=-1e-6&&(!near||dd<near.d))near={S,d:dd}});
+  if(inn)return inn.S.lev>=3?{lev:3,par:null,pk:0}:{lev:inn.S.lev+1,par:inn.S.c,pk:inn.k};
+  return{lev:near?near.S.lev:1,par:null,pk:0}};
  // Prüfen geht, sobald eine Zählung der größten Wellengröße mindestens einen Punkt in der Zukunftszone hat
  const frReady=()=>FR.pts.length>0&&frSeries().some(S=>S.lev===1&&S.pts.some(q=>q.t>c0+.5));
  // Eine Zählung gegen das Regelwerk prüfen: null = regelkonform, sonst der Befund (pid = betroffener Punkt) der Musterart, die am weitesten kommt
  const frCheck=(S,all)=>{const lab=frSeq(S.z),n=lab.length-1,nm=j=>frHtml(S.lev,S.z,j);
   if(S.bad)return{st:0,pid:S.bad.b.id,msg:'In einer Zählung folgt auf '+nm(S.bad.a.i)+' nicht '+nm(S.bad.a.i+1)+', sondern '+nm(S.bad.b.i)+'. Benenne den Punkt um, setze das fehlende Label oder beginne eine neue Zählung (Zählweise antippen).'};
-  if(!S.ps){const f=S.pts[0];return{st:0,pid:f.id,msg:f.i>1?'Die Zählung beginnt mit '+nm(f.i)+', davor fehlt '+nm(f.i-1)+'. Eine Zählung beginnt mit '+nm(0)+' oder '+nm(1)+'.':'Vor '+nm(1)+' fehlt der Startpunkt: Setze '+nm(0)+', oder zähle auch die größere Welle, in der diese Zählung liegt.'}}
+  if(!S.ps){const f=S.pts[0];return{st:0,pid:f.id,msg:f.i>1?'Die Zählung beginnt mit '+nm(f.i)+', davor fehlt '+nm(f.i-1)+'. Eine Zählung beginnt mit ihrem Startpunkt oder mit '+nm(1)+'.':'Vor '+nm(1)+' fehlt der Startpunkt: Setze den Start (Label „Start“ in der Leiste), oder unterteile damit eine Welle einer größeren Zählung (Welle antippen, dann Zählweise).'}}
   const ps=S.ps,last=ps.length-1,pr=ps.map(q=>q.p),idOf=j=>ps[j].id||(ps[j+1]&&ps[j+1].id)||(ps[j-1]&&ps[j-1].id)||S.pts[0].id;
   for(let j=1;j<=last;j++){const d=Math.sign(pr[j]-pr[j-1]);if(!d||(j>1&&d===Math.sign(pr[j-1]-pr[j-2])))return{st:1,pid:idOf(j),msg:'Bei '+nm(j)+' wechselt die Richtung nicht. Hoch und Tief müssen sich abwechseln.'}}
   // Jeder sichtbare Punkt ist das Hoch bzw. Tief seiner Umgebung (je ein Fünftel der angrenzenden Wellen). Weiter weg darf eine Teilwelle
@@ -1724,7 +1763,7 @@ function progn(arg,lvl){
  const frName=S=>{const a=S.pts[0],b=S.pts[S.pts.length-1];return frHtml(S.lev,S.z,a.i)+(b!==a?'–'+frHtml(S.lev,S.z,b.i):'')};
  const frVerify=()=>{const all=frSeries(),errs=[];FR.err={};m.lines=[];
   // Zuordnung nicht eindeutig: freundlich darauf hinweisen, nicht raten
-  all.conf.forEach(([A,B])=>errs.push({st:0,pids:[A.pts[0].id,B.pts[0].id],msg:'Die Zählungen '+frName(A)+' ('+PGK[A.z].t+') und '+frName(B)+' ('+PGK[B.z].t+') überschneiden sich nur teilweise. So ist nicht klar, welche die größere Welle ist. Lege die kleinere Zählung ganz in eine Welle der größeren (Start und Ende dürfen auf deren Punkten liegen), oder lass die beiden nacheinander folgen.'}));
+  all.conf.forEach(([A,B])=>errs.push({st:0,pids:[A.pts[0].id,B.pts[0].id],msg:'Die Zählungen '+frName(A)+' ('+PGK[A.z].t+') und '+frName(B)+' ('+PGK[B.z].t+') überschneiden sich'+(A.lev===B.lev?', sind aber gleich groß ('+SIZE[A.lev]+').':', aber die kleinere liegt nicht ganz in einer Welle der größeren.')+' Die erste Zählung ist immer die große Welle. Für eine Unterteilung tippe zuerst die übergeordnete Welle an (ihren Endpunkt), dann die Zählweise: Sie startet dann automatisch am Start dieser Welle.'}));
   const deep=all.find(S=>S.depth>3);if(deep)errs.push({st:0,pid:deep.pts[0].id,msg:'Hier liegen mehr als drei Wellengrößen ineinander. Die App unterscheidet große, mittlere und kleine Wellen: Lass die feinste Zählung weg.'});
   all.forEach(S=>{const e=frCheck(S,all);if(e)errs.push(e)});
   if(errs.length){m.failed=true;if(st.streak)st.streak=0,stats();FR.errs=errs;errs.forEach(e=>{(e.pids||[e.pid]).forEach(id=>FR.err[id]=1);if(e.Q)m.lines.push(...frLines(e))});FR.tips=0;return frTips()}
@@ -1738,55 +1777,78 @@ function progn(arg,lvl){
   frRender('<p class="bad">Noch nicht ganz.</p>'+lines.map(tipLine).join('')+(more?'<p class="mut">Dazu '+more+(more>1?' weitere Stellen':' weitere Stelle')+', ebenfalls rot markiert.</p>':'')+((e.Q?FR.tips<3:FR.tips<1)?'<button id="ftip">Tipp anzeigen</button>':''));
   const b=$('#ftip');if(b)b.onclick=()=>{FR.tips++;frTips()}};
  // Punkt setzen. c: Zahl = an diese Zählung anhängen, 'neu' = neue Zählung, sonst automatisch: Der Punkt setzt die laufende Zählung fort,
- // wenn er deren nächstes Label trägt und rechts von ihr liegt; sonst beginnt er eine neue. Nach dem letzten Label endet die Zählung.
+ // wenn er deren nächstes Label trägt und rechts von ihr liegt; sonst beginnt er eine neue (Wellengröße nach frMeta). Nach dem letzten Label endet die Zählung.
  const frAdd=(z,i,t,p,c)=>{if(typeof c!=='number'){const ac=FR.ac!==null?FR.pts.filter(q=>q.c===FR.ac):null,lst=ac&&ac.length?ac.reduce((a,b)=>b.i>a.i?b:a):null;
    c=c!=='neu'&&ac&&(!lst||(lst.z===z&&lst.i===i-1&&t>lst.t))?FR.ac:++FR.cn}
+  if(!FR.cm[c])FR.cm[c]=frMeta(t);
   FR.pts.push({id:++FR.n,c,z,i,t,p});
-  if(i>=frSeq(z).length-1){FR.ac=null;FR.i=1}else{FR.ac=c;FR.i=i+1}FR.z=z;
-  FR.sel=null;FR.err={};m.lines=[];return c};
+  if(i>=frSeq(z).length-1){FR.ac=null;FR.i=0}else{FR.ac=c;FR.i=i+1}FR.z=z;
+  FR.sel=null;FR.pw=null;FR.err={};m.lines=[];return c};
+ // Unterteilung der gewählten Welle FR.pw beginnen: eine Größe kleiner, Start (0) automatisch am Start dieser Welle
+ const frStartSub=z=>{const all=frSeries(),S=all.find(x=>x.c===FR.pw.c),k=FR.pw.k;FR.pw=null;FR.sel=null;if(!S)return;
+  if(S.lev>=3){FR.z=z;return toast('Kleiner als die kleine Welle geht es nicht: Die App unterscheidet große, mittlere und kleine Wellen.')}
+  const P=all.P_(S),st=P[k-1-all.i0(S)],c=++FR.cn;FR.cm[c]={lev:S.lev+1,par:S.c,pk:k};FR.z=z;
+  if(st){FR.pts.push({id:++FR.n,c,z,i:0,t:st.t,p:st.p});FR.ac=c;FR.i=1}else{FR.ac=c;FR.i=0}FR.err={};m.lines=[]};
+ // Laufende Zählung beenden (sie bleibt unfertig stehen); danach lassen sich Punkte wieder auswählen
+ const frEnd=()=>{FR.ac=null;FR.i=0;FR.pw=null};
  // Tippen auf freie Fläche: das markierte Label setzen (im sichtbaren Teil am nächsten Hoch oder Tief, in der Zukunftszone frei)
- const frTap=(px,py)=>{if(FR.done)return;const t=Tof(px);let q;
-  if(t<=c0+.5){q=snap(px,py);if(!q)return}else{if(t>ZE)return toast('Setze den Punkt in den Chart oder in die graue Zone.');q={t,p:Pof(Math.max(6,Math.min(H-BP-2,py)))}}
+ const frTap=(px,py,touch)=>{if(FR.done)return;const t=Tof(px);let q;
+  if(FR.sel||FR.pw){FR.sel=null;FR.pw=null;return frRender(fbLast)} // Auswahl aufheben statt einen Punkt zu setzen
+  if(t<=c0+.5){q=snap(px,py,touch);if(!q)return}else{if(t>ZE)return toast('Setze den Punkt in den Chart oder in die graue Zone.');q={t,p:Pof(Math.max(6,Math.min(H-BP-2,py)))}}
   if(py<TP+24||py>H-BP-24)grow(q.p);frAdd(FR.z,FR.i,q.t,q.p);frRender()};
- // Löschen (seit 12.11.2026): immer die ganze Zählung des ausgewählten Punkts; die Wellengrößen der übrigen rechnet frSeries neu.
+ // Löschen (seit 12.11.2026): immer die ganze Zählung des ausgewählten Punkts. Ihre Unterteilungen bleiben stehen und rücken eine Größe auf.
  // Danach kurz „Zählung gelöscht · Rückgängig“.
- const frDel=()=>{const q=FR.pts.find(x=>x.id===FR.sel);if(!q||FR.done)return;const gone=FR.pts.filter(x=>x.c===q.c),st0={ac:FR.ac,z:FR.z,i:FR.i};
-  FR.pts=FR.pts.filter(x=>x.c!==q.c);if(FR.ac===q.c){FR.ac=null;FR.i=FR.pts.length?1:0}FR.sel=null;FR.err={};m.lines=[];frRender();
-  toast('Zählung gelöscht ('+gone.length+(gone.length>1?' Punkte':' Punkt')+') · <button id="fundel" class="tbtn">Rückgängig</button>');
+ const frDel=()=>{const q=FR.pts.find(x=>x.id===FR.sel);if(!q||FR.done||FR.ac!==null)return;const all=frSeries(),gone=FR.pts.filter(x=>x.c===q.c),st0={ac:FR.ac,z:FR.z,i:FR.i},cm0=JSON.parse(JSON.stringify(FR.cm));
+  const anc=(S,c)=>{let x=S.par;const seen=new Set();while(x&&!seen.has(x)){if(x.c===c)return true;seen.add(x);x=x.par}return false};
+  const desc=all.filter(S=>anc(S,q.c)),pm=FR.cm[q.c]||{};
+  desc.forEach(S=>{const o=FR.cm[S.c]=FR.cm[S.c]||{lev:S.lev,par:null,pk:0};o.lev=Math.max(1,S.lev-1);if(S.par&&S.par.c===q.c){o.par=pm.par!=null?pm.par:null;o.pk=pm.par!=null?pm.pk:0}});
+  delete FR.cm[q.c];FR.pts=FR.pts.filter(x=>x.c!==q.c);FR.sel=null;FR.pw=null;FR.err={};m.lines=[];frRender();
+  toast('Zählung gelöscht ('+gone.length+(gone.length>1?' Punkte':' Punkt')+')'+(desc.length?', Unterteilungen eine Größe größer':'')+' · <button id="fundel" class="tbtn">Rückgängig</button>');
   const b=$('#fundel');if(b)b.onclick=e=>{e.stopPropagation();if(PGS.m!==m||FR.done)return;const ids=new Set(FR.pts.map(x=>x.id));gone.forEach(x=>{if(!ids.has(x.id))FR.pts.push(x)});
-   FR.ac=st0.ac;FR.z=st0.z;FR.i=st0.i;FR.sel=null;FR.err={};m.lines=[];$('#toast').className='';frRender()}};
- // Entf- und Rücktaste löschen die ausgewählte Zählung, Esc hebt die Auswahl auf
+   FR.cm=cm0;FR.ac=st0.ac;FR.z=st0.z;FR.i=st0.i;FR.sel=null;FR.err={};m.lines=[];$('#toast').className='';frRender()}};
+ // Entf- und Rücktaste löschen die ausgewählte Zählung, Esc hebt die Auswahl auf bzw. beendet die laufende Zählung
  const onKey=e=>{if(PGS.m!==m)return removeEventListener('keydown',onKey);if(!FR||FR.done||/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||''))return;
-  if((e.key==='Delete'||e.key==='Backspace')&&FR.sel){e.preventDefault();frDel()}else if(e.key==='Escape'&&FR.sel){FR.sel=null;frRender(fbLast)}};
+  if((e.key==='Delete'||e.key==='Backspace')&&FR.sel){e.preventDefault();frDel()}else if(e.key==='Escape'&&(FR.sel||FR.pw||FR.ac!==null)){if(FR.sel||FR.pw){FR.sel=null;FR.pw=null}else frEnd();frRender(fbLast)}};
  addEventListener('keydown',onKey);
- // Leiste: Zählweise (antippen = neue Zählung beginnen) und nächstes Label. Keine Wellengröße: die erkennt die App.
- const frBar=()=>{const S=FR.ac!==null&&frSeries().find(x=>x.c===FR.ac),lv=S?S.lev:1,cont=S&&S.z===FR.z&&S.pts[S.pts.length-1].i===FR.i-1,lb=i=>S?frHtml(lv,FR.z,i):pgLab(PGZL[FR.z],i);
-  return'<div class="pgbar"><div class="pgk" role="group" aria-label="Zählweise (antippen beginnt eine neue Zählung)">'+Object.keys(PGK).map(z=>'<button data-fz="'+z+'" class="'+(FR.z===z?'on':'')+'" aria-pressed="'+(FR.z===z)+'">'+PGK[z].t+'</button>').join('')+'</div>'+
+ // Leiste: Zählweise (antippen = neue Zählung beginnen bzw. die ausgewählte Welle unterteilen) und nächstes Label.
+ // Während eine Zählung läuft: kleiner Knopf „Zählung beenden“.
+ const frBar=()=>{const all=frSeries(),S=FR.ac!==null&&all.find(x=>x.c===FR.ac),lv=S?S.lev:(FR.ac!==null&&FR.cm[FR.ac]?FR.cm[FR.ac].lev:0),cont=S&&S.z===FR.z&&S.pts[S.pts.length-1].i===FR.i-1,
+   pw=FR.pw&&all.find(x=>x.c===FR.pw.c),lb=i=>!i?'Start':lv?frHtml(lv,FR.z,i):pgLab(PGZL[FR.z],i);
+  const stx=pw?'Zählweise antippen: unterteilt Welle '+frHtml(pw.lev,pw.z,FR.pw.k)+(pw.lev<3?' ('+SIZE[pw.lev+1]+')':''):cont?'setzt die Zählung '+frName(S)+' fort ('+SIZE[lv]+')':FR.ac!==null&&lv?'neue Unterteilung ('+SIZE[lv]+')':'beginnt eine neue Zählung';
+  return'<div class="pgbar"><div class="pgk" role="group" aria-label="Zählweise (antippen beginnt eine neue Zählung)">'+Object.keys(PGK).map(z=>'<button data-fz="'+z+'" class="'+(FR.z===z&&!pw?'on':'')+'" aria-pressed="'+(FR.z===z)+'">'+PGK[z].t+'</button>').join('')+'</div>'+
   '<div class="pgk pgnx" role="group" aria-label="Nächstes Label"><span class="mut">Nächstes Label:</span>'+frSeq(FR.z).map((_,i)=>'<button data-fi="'+i+'" class="'+(FR.i===i?'on':'')+'" aria-pressed="'+(FR.i===i)+'">'+lb(i)+'</button>').join('')+
-  '<span class="mut pgst">'+(cont?'setzt die Zählung '+frName(S)+' fort':'beginnt eine neue Zählung')+'</span></div></div>'};
- const frSelUI=()=>{const q=FR.pts.find(x=>x.id===FR.sel);if(!q)return'';const S=frSeries().find(x=>x.c===q.c),lv=S?S.lev:1,n=frSeq(q.z).length-1,top=S?S.pts[S.pts.length-1].i:q.i;
-  return'<div class="card pgsel"><p><b>Punkt '+frHtml(lv,q.z,q.i)+'</b> <span class="mut">('+SIZE[lv]+', '+PGK[q.z].t+')</span></p>'+
-   '<p><button class="p" id="fadd">'+pgLab(PGZL[FR.z],FR.i)+' hier zusätzlich setzen</button>'+(top<n?' <button id="fcont">Diese Zählung ab '+frHtml(lv,q.z,top+1)+' fortsetzen</button>':'')+'</p>'+
-   '<p><span class="mut">Umbenennen:</span> '+frSeq(q.z).map((_,i)=>'<button data-fren="'+i+'" class="'+(q.i===i?'on':'')+'">'+frHtml(lv,q.z,i)+'</button>').join('')+'</p>'+
+  '<span class="mut pgst">'+stx+'</span>'+(FR.ac!==null?' <button id="fend" class="pgendc" title="Esc">Zählung beenden</button>':'')+'</div></div>'};
+ // Ausgewählte Welle (oder die Welle über der laufenden Unterteilung): Zeitbereich für die Hervorhebung im Chart
+ const frBand=()=>{if(!FR||FR.done)return null;const all=frSeries();let S,k;
+  if(FR.pw){S=all.find(x=>x.c===FR.pw.c);k=FR.pw.k}else if(FR.ac!==null){const C=all.find(x=>x.c===FR.ac),cm=FR.cm[FR.ac];if(C&&C.par){S=C.par;k=C.pk}else if(cm&&cm.par!=null){S=all.find(x=>x.c===cm.par);k=cm.pk}}
+  if(!S)return null;const P=all.P_(S),j=k-all.i0(S),a=P[j-1];if(!a)return null;return[a.t,P[j]?P[j].t:ZE]};
+ const frSelUI=()=>{const q=FR.pts.find(x=>x.id===FR.sel);if(!q)return'';const S=frSeries().find(x=>x.c===q.c),lv=S?S.lev:1,n=frSeq(q.z).length-1,top=S?S.pts[S.pts.length-1].i:q.i,k=FR.pw?FR.pw.k:Math.max(1,q.i);
+  return'<div class="card pgsel"><p><b>Punkt '+(q.i?frHtml(lv,q.z,q.i):'Start')+'</b> <span class="mut">('+SIZE[lv]+', '+PGK[q.z].t+')</span></p>'+
+   (lv<3?'<p>Welle '+frHtml(lv,q.z,k)+' ist hervorgehoben. <b>Zählweise oben antippen</b>, um sie zu unterteilen ('+SIZE[lv+1]+'): Der Start wird automatisch an den Start dieser Welle gesetzt.'+
+    (top<n&&q.i===top&&k===top?' <button id="fopen">Stattdessen die nächste Welle '+frHtml(lv,q.z,top+1)+' unterteilen</button>':'')+'</p>':'')+
+   '<p><button class="p" id="fadd">'+(FR.i?pgLab(PGZL[FR.z],FR.i):'Start')+' hier zusätzlich setzen</button>'+(top<n?' <button id="fcont">Diese Zählung ab '+frHtml(lv,q.z,top+1)+' fortsetzen</button>':'')+'</p>'+
+   '<p><span class="mut">Umbenennen:</span> '+frSeq(q.z).map((_,i)=>'<button data-fren="'+i+'" class="'+(q.i===i?'on':'')+'">'+(i?frHtml(lv,q.z,i):'Start')+'</button>').join('')+'</p>'+
    '<p><button id="fdel">Ganze Zählung löschen</button><button id="fsx">Schließen</button></p></div>'};
  const frRender=fb=>{fbLast=fb;const ready=frReady();
-  $('#view').innerHTML='<p class="kick">Wie geht es weiter? · Schwer</p><p class="task">'+(FR.done?'Geprüft.':FR.pts.length?'<b>Zähle frei und plane die Fortsetzung.</b> Zählweise antippen beginnt eine neue Zählung, Tippen auf den Chart setzt das nächste Label. Welche Zählung die größere Welle ist, erkennt die App. Punkt antippen: löschen, umbenennen, fortsetzen.':'<b>Zähle frei und plane die Fortsetzung.</b> Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, danach springt die Leiste weiter. Im sichtbaren Teil rastet der Punkt am nächsten Hoch oder Tief ein, in der grauen Zone setzt du frei. Für eine weitere Zählung (größer oder kleiner) tippst du wieder eine Zählweise an. Die Wellengröße erkennt die App selbst: Liegt eine Zählung in einer Welle einer anderen, ist sie kleiner.')+'</p>'+
+  $('#view').innerHTML='<p class="kick">Wie geht es weiter? · Schwer</p><p class="task">'+(FR.done?'Geprüft.':FR.ac!==null?'<b>Zählung läuft.</b> Tippen auf den Chart setzt das nächste Label (am nächsten Hoch oder Tief), Tippen auf einen bestehenden Punkt setzt es genau auf diesen Pivot. Andere Punkte auswählen geht wieder, wenn die Zählung fertig ist oder du sie beendest.':FR.pts.length?'<b>Zähle frei und plane die Fortsetzung.</b> Für eine Unterteilung tippe zuerst die übergeordnete Welle an (ihren Endpunkt), dann die Zählweise. Ohne Auswahl beginnt die Zählweise eine neue Zählung derselben Größe wie die, an die sie anschließt. Punkt antippen: unterteilen, umbenennen, fortsetzen, löschen.':'<b>Zähle frei und plane die Fortsetzung.</b> Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, danach springt die Leiste weiter. Im sichtbaren Teil rastet der Punkt am nächsten Hoch oder Tief ein, in der grauen Zone setzt du frei. Die erste Zählung ist die große Welle; Unterteilungen setzt du danach über die Auswahl einer Welle.')+'</p>'+
    (FR.done?'':frBar())+'<div class="chart pgc" id="pgc"></div>'+legend+(FR.sel&&!FR.done?frSelUI():'')+
    '<div class="dock">'+(FR.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
-    '<button class="p" id="fchk" '+(ready?'':'disabled')+'>Prüfen</button><button id="ftrash" class="pgtrash" '+(FR.sel?'':'disabled')+' aria-label="Ausgewählte Zählung löschen" title="Ausgewählte Zählung löschen (Entf)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="fund">Zurück</button><button id="frst">Neu setzen</button>'+(ready?'':'<p class="mut pghint">Prüfen geht, sobald mindestens die nächste große Welle in der grauen Zone steht.</p>'))+'</div>'+
+    '<button class="p" id="fchk" '+(ready?'':'disabled')+'>Prüfen</button><button id="ftrash" class="pgtrash" '+(FR.sel&&FR.ac===null?'':'disabled')+' aria-label="Ausgewählte Zählung löschen" title="Ausgewählte Zählung löschen (Entf)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="fund">Zurück</button><button id="frst">Neu setzen</button>'+(ready?'':'<p class="mut pghint">Prüfen geht, sobald mindestens die nächste große Welle in der grauen Zone steht.</p>'))+'</div>'+
    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
   initView();$('#pgc').innerHTML=pic()+tfBar()+'<button id="pgend" class="pgend" hidden>Zum Ende springen</button>';bindChart();
   if(FR.done){$('#real').onclick=()=>{m.shown=true;frRender(fb+'<p class="mut">Darübergelegt: der tatsächliche Verlauf mit der erzeugten Zählung der großen Welle. Gestrichelt darunter: deine Prognose. Nur zum Vergleich: Punkte gibt es für regelkonformes Zählen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(arg,lvl);return}
-  document.querySelectorAll('[data-fz]').forEach(b=>b.onclick=()=>{FR.z=b.dataset.fz;FR.ac=null;FR.i=FR.pts.length?1:0;frRender(fbLast)}); // neue Zählung
+  document.querySelectorAll('[data-fz]').forEach(b=>b.onclick=()=>{if(FR.pw)frStartSub(b.dataset.fz);else{FR.z=b.dataset.fz;FR.ac=null;FR.i=0;FR.sel=null}frRender(fbLast)}); // Unterteilung der ausgewählten Welle bzw. neue Zählung
+  const fe=$('#fend');if(fe)fe.onclick=()=>{frEnd();frRender(fbLast)};
   document.querySelectorAll('[data-fi]').forEach(b=>b.onclick=()=>{FR.i=+b.dataset.fi;frRender(fbLast)});
   const q=FR.pts.find(x=>x.id===FR.sel);
   if(q){$('#fadd').onclick=()=>{frAdd(FR.z,FR.i,q.t,q.p);frRender()};
-   const fc=$('#fcont');if(fc)fc.onclick=()=>{const top=FR.pts.filter(x=>x.c===q.c).reduce((a,b)=>Math.max(a,b.i),0);FR.ac=q.c;FR.z=q.z;FR.i=top+1;FR.sel=null;frRender(fbLast)};
+   const fc=$('#fcont');if(fc)fc.onclick=()=>{const top=FR.pts.filter(x=>x.c===q.c).reduce((a,b)=>Math.max(a,b.i),0);FR.ac=q.c;FR.z=q.z;FR.i=top+1;FR.sel=null;FR.pw=null;frRender(fbLast)};
+   const fo=$('#fopen');if(fo)fo.onclick=()=>{const top=FR.pts.filter(x=>x.c===q.c).reduce((a,b)=>Math.max(a,b.i),0);FR.pw={c:q.c,k:top+1};frRender(fbLast)};
    document.querySelectorAll('[data-fren]').forEach(b=>b.onclick=()=>{q.i=+b.dataset.fren;FR.sel=null;FR.err={};m.lines=[];frRender()});
-   $('#fdel').onclick=frDel;$('#fsx').onclick=()=>{FR.sel=null;frRender(fbLast)}}
+   $('#fdel').onclick=frDel;$('#fsx').onclick=()=>{FR.sel=null;FR.pw=null;frRender(fbLast)}}
   $('#ftrash').onclick=frDel;
-  $('#fund').onclick=()=>{const q=FR.pts.pop();if(q){FR.ac=q.c;FR.z=q.z;FR.i=q.i}FR.sel=null;FR.err={};m.lines=[];frRender()}; // Zurück: das Label kommt wieder dran
-  $('#frst').onclick=()=>{FR.pts=[];FR.ac=null;FR.i=0;FR.sel=null;FR.err={};m.lines=[];frRender()};
+  $('#fund').onclick=()=>{const q=FR.pts.pop();if(q){FR.ac=q.c;FR.z=q.z;FR.i=q.i}FR.sel=null;FR.pw=null;FR.err={};m.lines=[];frRender()}; // Zurück: das Label kommt wieder dran
+  $('#frst').onclick=()=>{FR.pts=[];FR.cm={};FR.ac=null;FR.i=0;FR.sel=null;FR.pw=null;FR.err={};m.lines=[];frRender()};
   $('#fchk').onclick=frVerify};
  // Faustregeln und Warnsignale für die gezeichneten Wellen (nur Hinweise, kein Fehler)
  const hints=(Q,v,gs)=>{const out=[];let inR=true,pc=x=>pct(x);const key=Q.key;
