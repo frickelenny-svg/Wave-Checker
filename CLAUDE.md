@@ -1,7 +1,7 @@
 # Wave-Checker
 
 Lern-App für Elliott-Wellen (Deutsch). Alles steckt in einer Datei: `index.html` (HTML, CSS, JS, ohne Build-Schritt).
-Veröffentlicht wird über `main` (GitHub Pages). Lerninhalte: `lernen/` (Regelwerk-Lernversion + Abbildungen), Quiz: `quiz/`.
+Veröffentlicht wird über `main` (GitHub Pages). Gestaltungsregeln: `DESIGN.md`. Lerninhalte: `lernen/` (Regelwerk-Lernversion + Abbildungen), Quiz: `quiz/`.
 
 ## Arbeitsweise
 - Texte in der App auf Deutsch, Anrede „du“. Kommentare im Code ebenfalls Deutsch, mit Datum und „Lenny“ bei Umbauten.
@@ -22,18 +22,24 @@ groß ①, mittel (1), klein 1.
 - Gemeinsame Pivots: Labels bilden einen Stapel, kleinste Welle innen am Punkt, größte außen
   (am Hoch steht die größere darüber, am Tief darunter). Umgesetzt in `lab()`/`put()` über `stk` und `rank`.
 
-### Schwer: Punkte setzen
-- Läuft eine Zählung (noch nicht alle Labels gesetzt, `FR.ac !== null`), lassen sich keine Punkte auswählen, verschieben oder
-  löschen. Tippen auf einen bestehenden Punkt setzt das nächste Label genau auf diesen Pivot (gemeinsamer Punkt).
-  Knopf „Zählung beenden“ (oder Esc) beendet die Zählung vorzeitig.
-- Sonst rastet ein neuer Punkt im sichtbaren Teil auf Hoch bzw. Tief der nächsten Kerze ein (`snap`), in der Zukunftszone frei.
-  Fangradius: Finger 28 px, Maus 12 px.
-- Ziehen eines gemeinsamen Pivots bewegt alle Punkte darauf zusammen.
+### Schwer: Werkzeuge Zeichnen und Auswählen (Stand 13.11.2026, `FR.md`)
+Werkzeugleiste links am Chart unter den Zeiteinheiten (siehe DESIGN.md, Werkzeugleiste). Kein Werkzeug tut, was das andere tut.
+- **Zeichnen** (`'draw'`, Fadenkreuz, Mauszeiger crosshair): Standard. Jeder Tipp setzt einen Punkt, auch den Start einer neuen
+  Zählung. Tipp auf einen bestehenden Punkt: neuer Punkt genau auf diesem Pivot (gemeinsamer Pivot). Punkte werden hier nie
+  ausgewählt, verschoben oder gelöscht; Ziehen verschiebt nur den Chart.
+- **Auswählen** (`'sel'`, Pfeil): Tipp auf einen Punkt wählt ihn und seine Zählung (mehrere auf einem Pivot: größte zuerst, erneut
+  tippen wechselt). Dann verschieben (Ziehen), umbenennen, löschen (Mülleimer, Entf/Rücktaste), Welle für eine Unterteilung wählen.
+  Tipp ins Leere hebt nur die Auswahl auf, setzt nie einen Punkt.
+- Wechsel: Zählweise wählen → Zeichnen. Nach einer fertigen Zählung bleibt Zeichnen aktiv. „Zählung beenden“ → Auswählen.
+  Tasten: V = Auswählen, C = Zeichnen, Esc = laufende Zählung beenden und Auswählen.
+- Beim ersten Öffnen ein Satz Hinweis zu den Werkzeugen (gemerkt in `localStorage` `waveChecker.pgTools`).
+- Im sichtbaren Teil rastet ein neuer Punkt auf Hoch bzw. Tief der nächsten Kerze ein (`snap`), in der Zukunftszone frei.
+  Fangradius für Punkte: Finger 28 px, Maus 12 px. Ziehen eines gemeinsamen Pivots bewegt alle Punkte darauf zusammen.
 
 ### Schwer: feste Reihenfolge der Wellengrößen
 Die Größe wird beim Start einer Zählung festgelegt und in `FR.cm[c] = {lev, par, pk}` gespeichert (nicht mehr erraten):
 1. Die erste Zählung ist die große Welle.
-2. Welle antippen (Endpunkt; wird hervorgehoben), dann Zählweise wählen: Unterteilung genau eine Größe kleiner,
+2. Im Auswahlmodus Welle antippen (Endpunkt; wird hervorgehoben), dann Zählweise wählen: Unterteilung genau eine Größe kleiner,
    Start automatisch am Start dieser Welle (`frStartSub`). Für die nächste, noch offene Welle gibt es einen eigenen Knopf.
 3. Ohne Auswahl (`frMeta`): beginnt die Zählung in einer Welle einer bestehenden Zählung, ist sie eine Größe kleiner;
    sonst dieselbe Größe wie die Zählung, an die sie anschließt.
