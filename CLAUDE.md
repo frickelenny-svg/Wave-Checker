@@ -20,6 +20,8 @@ groß ①, mittel (1), klein 1.
 - Strg/Cmd + Mausrad, Knöpfe + / − und zwei Finger: Zoom in alle Richtungen (`zoomAt`).
 - Zeitachse unten ziehen (alle Geräte, `axisDrag`): nach rechts strecken, nach links stauchen. Doppelklick/Doppeltipp auf die
   Zeitachse: Breite der Start-Ansicht (`resetX`). Gesten auf der Zeitachse setzen nie einen Punkt.
+- Rand (seit 13.11.2026): Start-Ansicht mit 24 px Innenabstand (`EP`); man kann so weit wischen, dass jede Kerze in die Mitte kommt
+  (`clampSc`). Die Fangzone eines Punkts reicht über den Chartrand hinaus.
 - Ziehen im Chart verschiebt wie bisher. Punkte und Prognose-Kerzen hängen an Zeit und Preis, nicht an Pixeln.
 
 ### Beschriftung (Stand 12.11.2026)
@@ -41,7 +43,13 @@ Werkzeugleiste links am Chart unter den Zeiteinheiten (siehe DESIGN.md, Werkzeug
 - Wechsel: Zählweise wählen → Zeichnen. Nach einer fertigen Zählung bleibt Zeichnen aktiv. „Zählung beenden“ → Auswählen.
   Tasten: V = Auswählen, C = Zeichnen, Esc = laufende Zählung beenden und Auswählen.
 - Beim ersten Öffnen ein Satz Hinweis zu den Werkzeugen (gemerkt in `localStorage` `waveChecker.pgTools`).
-- Im sichtbaren Teil rastet ein neuer Punkt auf Hoch bzw. Tief der nächsten Kerze ein (`snap`), in der Zukunftszone frei.
+- Reihenfolge (seit 13.11.2026, `frAdd`/`frLast`): Eine laufende Zählung vergibt die Labels strikt in ihrer Reihenfolge
+  (Start, A, B, C bzw. Start, 1 … 5). Gesetzte Labels werden nie umbenannt oder umsortiert, die Label-Leiste geht nur vorwärts
+  (frühere Labels gesperrt), fertig erst nach dem letzten Label. Ein Punkt links vom (oder auf der Zeit des) vorherigen Punkts der
+  Zählung wird nicht gesetzt: Hinweis „Punkte bitte von links nach rechts setzen“. Früher begann so still eine neue Zählung.
+- Doppelt ausgelöste Tipps (gleiche Stelle, < 350 ms) zählen einmal.
+- Im sichtbaren Teil rastet ein neuer Punkt auf Hoch bzw. Tief der nächsten Kerze ein (`snap`, bei laufender Zählung nur rechts
+  vom letzten Punkt), in der Zukunftszone frei.
   Fangradius für Punkte: Finger 28 px, Maus 12 px. Ziehen eines gemeinsamen Pivots bewegt alle Punkte darauf zusammen.
 
 ### Schwer: feste Reihenfolge der Wellengrößen
