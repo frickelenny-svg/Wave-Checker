@@ -1403,6 +1403,9 @@ function progn(arg,lvl){
  // Zoomen um Bildpunkt (px, py): Zeit und Preis unter dem Finger bzw. der Maus bleiben stehen
  const zoomAt=(f,px,py)=>{const nb=Math.max(bwMin(),Math.min(bwMax(),BW*f)),g=nb/BW;if(Math.abs(g-1)<1e-4)return;const t=Tof(px),p=Pof(py),sp=Math.min(6*(yBase()[1]-yBase()[0]),(yr[1]-yr[0])/g),r=(py-TP)/(H-TP-BP);
   BW=nb;sc=clampSc((t+.5)*BW/tf-px);yr=[p+r*sp-sp,p+r*sp]};
+ // Nur die Zeitachse strecken/stauchen (seit 13.11.2026, Lenny): Kerzenbreite ändern, die Zeit unter px bleibt stehen, Preisachse unverändert
+ const zoomX=(f,px)=>{const nb=Math.max(bwMin(),Math.min(bwMax(),BW*f));if(Math.abs(nb/BW-1)<1e-4)return;const t=Tof(px);BW=nb;sc=clampSc((t+.5)*BW/tf-px)};
+ const resetX=()=>{const bw=Math.min(40,bwFit(tf)),t=Tof(W/2);BW=Math.max(bwMin(),bw>=1?bw:2);sc=clampSc((t+.5)*BW/tf-W/2)}; // Doppeltipp auf die Zeitachse: Breite der Start-Ansicht
  const zoomedY=()=>yr[1]-yr[0]<.97*(yBase()[1]-yBase()[0]); // hineingezoomt: dann darf man auch senkrecht verschieben
  const panY=dy=>{const d=dy*(yr[1]-yr[0])/(H-TP-BP);yr=[yr[0]+d,yr[1]+d]};
  const X=t=>(t+.5)*BW/tf-sc,Tof=x=>(x+sc)*tf/BW-.5,Y=p=>TP+(yr[1]-p)/(yr[1]-yr[0])*(H-TP-BP),Pof=y=>yr[1]-(y-TP)/(H-TP-BP)*(yr[1]-yr[0]);
@@ -1465,7 +1468,7 @@ function progn(arg,lvl){
   const hl=focus();if(hl){const a=Math.max(0,X(hl[0])),b=Math.min(W,X(hl[1]));if(b>a)s+='<rect class="pgfoc" x="'+a+'" y="0" width="'+(b-a)+'" height="'+(H-BP)+'"/>'} // Welle, die gerade dran ist
   const cx=X(c0+.5);if(cx>-2&&cx<W+2)s+='<line class="pgcut" x1="'+cx+'" x2="'+cx+'" y1="0" y2="'+(H-BP)+'"/>';
   for(let y=20;y<H-BP;y+=50)s+='<line x1="0" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width=".6"/>';
-  s+='<line x1="0" x2="'+W+'" y1="'+(H-BP+4)+'" y2="'+(H-BP+4)+'" stroke="var(--line)" stroke-width="1"/>'+axis();
+  s+='<line x1="0" x2="'+W+'" y1="'+(H-BP+4)+'" y2="'+(H-BP+4)+'" stroke="var(--line)" stroke-width="1"/>'+axis()+'<rect class="pgax" x="0" y="'+(H-BP)+'" width="'+W+'" height="'+BP+'" fill="transparent" style="cursor:ew-resize"/>';
   // Kerzen: steigend blau gefüllt, fallend weiß mit blauem Rand (wie im Wellen-Pfad); der wahre Rest nach dem Auflösen blass
   const thin=BW<2.5; // sehr weit herausgezoomt: nur Dochte
   const candles=(a,g0,g1,cls)=>{let o='<g class="'+cls+'" clip-path="url(#pgclip)">';for(let g=Math.max(0,g0);g<=Math.min(a.c.length-1,g1);g++){if(a.c[g]===undefined)continue;const x=(g+.5)*BW-sc,up=a.c[g]>=a.o[g],yt=Y(Math.max(a.o[g],a.c[g])),yb=Y(Math.min(a.o[g],a.c[g]));
@@ -1593,13 +1596,19 @@ function progn(arg,lvl){
   // Zoom-Knöpfe: um die Bildmitte
   document.querySelectorAll('[data-zm]').forEach(b=>b.onclick=()=>{zoomAt(b.dataset.zm==='+'?1.5:1/1.5,W/2,(H-BP)/2);saveV();redraw(svg,pic());endBtn()});
   // Strg/Cmd + Mausrad bzw. Trackpad-Zoom: um die Mausposition. Sonst verschieben Mausrad und Trackpad den Chart; am Anschlag scrollt die Seite normal weiter
-  svg.onwheel=e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();const [x,y]=loc(e);zoomAt(Math.exp(-Math.max(-60,Math.min(60,e.deltaY))*.004),x,y);saveV();redraw(svg,pic());endBtn();return}
-   const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY,n=clampSc(sc+d);if(n===sc)return;e.preventDefault();sc=n;upd()};
+  // Mausrad (seit 13.11.2026): ohne Taste nur die Zeitachse strecken (nach oben) bzw. stauchen (nach unten), um die Mausposition;
+  // Strg/Cmd + Mausrad zoomt in alle Richtungen; waagerechtes Wischen am Trackpad verschiebt. Über dem Chart scrollt die Seite nie.
+  svg.onwheel=e=>{e.preventDefault();const [x,y]=loc(e),k=e.deltaMode===1?33:e.deltaMode===2?400:1,dx=e.deltaX*k,dy=e.deltaY*k;
+   if(e.ctrlKey||e.metaKey){zoomAt(Math.exp(-Math.max(-60,Math.min(60,dy))*.004),x,y);saveV();redraw(svg,pic());endBtn();return}
+   if(Math.abs(dx)>Math.abs(dy)){const n=clampSc(sc+dx);if(n!==sc){sc=n;upd()}return}
+   zoomX(Math.exp(-Math.max(-120,Math.min(120,dy))*.002),x);saveV();upd()};
   svg.onpointerdown=e=>{if(e.button)return;
    if(GEST){const g=GEST;if(e.pointerType==='touch'&&g.touch&&!g.pinch){e.preventDefault();const a=g.pos();g();pinch(a,{id:e.pointerId,x:e.clientX,y:e.clientY})}else g();return} // zweiter Finger: Zwei-Finger-Zoom, nichts setzen
    // Fangradius: Finger größer als Maus. Läuft eine Zählung, wird ein Punkt nicht ausgewählt oder verschoben: Tippen setzt dann das
    // nächste Label genau auf diesen Pivot (sk), Ziehen verschiebt den Chart.
-   e.preventDefault();const [px,py]=loc(e),touch=e.pointerType==='touch';let k=-1,sk=-1,best=touch?28:12,grp=[];
+   e.preventDefault();const [px,py]=loc(e),touch=e.pointerType==='touch';
+   if(py>=H-BP)return axisDrag(e,px); // Zeitachse: ziehen staucht/streckt, Doppeltipp setzt zurück, nie einen Punkt setzen
+   let k=-1,sk=-1,best=touch?28:12,grp=[];
    // Werkzeug (seit 13.11.2026, Lenny): Zeichnen = Tipp auf einen Punkt setzt den neuen Punkt genau auf diesen Pivot (sk), Ziehen verschiebt
    // nur den Chart; Auswählen = Tipp wählt aus, Ziehen auf einem Punkt verschiebt ihn (k). Kein Werkzeug tut, was das andere tut.
    if(FR&&!FR.done){const dr=FR.md==='draw';FR.pts.forEach((q,j)=>{if(dr&&FR.ac!==null&&q.c===FR.ac)return;const d=Math.hypot(X(q.t)-px,Y(q.p)-py);if(d<best){best=d;k=j}});
@@ -1626,6 +1635,15 @@ function progn(arg,lvl){
       FR.sel=q.id;FR.pw={c:q.c,k:Math.max(1,q.i)};return frRender(fbLast)}
      if(!m.done)tap(px,py,touch)}};
    addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);GEST=stop;stop.touch=touch;stop.pos=()=>({id,x:lx,y:ly})};
+  // Zeitachse ziehen (alle Geräte): nach rechts strecken, nach links stauchen, um die Stelle, an der man ansetzt. Doppeltipp: zurücksetzen.
+  let axLast=0;
+  const axisDrag=(e,px)=>{const id=e.pointerId,x0=e.clientX,B0=BW,s0=sc,t0=Tof(px),T0=performance.now();let moved=false;
+   const mv=ev=>{if(ev.pointerId!==id)return;const dx=ev.clientX-x0;if(!moved&&Math.abs(dx)<4)return;moved=true;
+    BW=Math.max(bwMin(),Math.min(bwMax(),B0*Math.exp(dx*.006)));sc=clampSc((t0+.5)*BW/tf-px);redraw(svg,pic());endBtn()};
+   const end=()=>{GEST=null;removeEventListener('pointermove',mv);removeEventListener('pointerup',fin);removeEventListener('pointercancel',fin);saveV()};
+   const fin=ev=>{if(ev.pointerId!==id)return;end();if(moved||ev.type!=='pointerup'||performance.now()-T0>500)return;
+    const now=performance.now();if(now-axLast<400){axLast=0;resetX();saveV();upd()}else axLast=now};
+   addEventListener('pointermove',mv);addEventListener('pointerup',fin);addEventListener('pointercancel',fin);GEST=end;end.touch=e.pointerType==='touch';end.pos=()=>({id,x:x0,y:e.clientY})};
   // Zwei Finger: Abstand ändert den Zoom (um die Mitte zwischen den Fingern), die Mitte verschiebt den Chart
   const pinch=(a,b)=>{const r0=svg.getBoundingClientRect(),V0={BW,sc,yr:yr.slice()},cur={[a.id]:{x:a.x,y:a.y},[b.id]:{x:b.x,y:b.y}},d0=Math.hypot(a.x-b.x,a.y-b.y)||1,mx0=(a.x+b.x)/2-r0.left,my0=(a.y+b.y)/2-r0.top;
    const mv=ev=>{if(!cur[ev.pointerId])return;ev.preventDefault();cur[ev.pointerId]={x:ev.clientX,y:ev.clientY};const A=cur[a.id],B=cur[b.id],d=Math.hypot(A.x-B.x,A.y-B.y)||1;

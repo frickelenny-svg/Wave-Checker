@@ -10,6 +10,8 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
 
 ## 11. Chart in „Wie geht es weiter?“
 - Groß, länger als der Bildschirm, seitlich verschiebbar, zoombar (zwei Finger, Strg+Mausrad, −/+).
+- Zeitachse wie bei TradingView: Mausrad streckt/staucht nur die Zeit, Ziehen an der Zeitachse ebenso (Mauszeiger `ew-resize`),
+  Doppelklick/Doppeltipp auf die Zeitachse setzt die Breite zurück.
 - Oben links: Zeiteinheiten W, D, 4h, 1h (`.pgtf`). Oben rechts: Zoom (`.pgzm`).
 - Graue Zukunftszone rechts der gestrichelten Grenzlinie, Text „Ab hier: deine Prognose“.
 - Beschriftung: groß ① im Kreis, mittel (1), klein 1 (kleiner, gedämpft). Kein Label für den Start einer Zählung.
