@@ -16,6 +16,9 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
 - Graue Zukunftszone rechts der gestrichelten Grenzlinie, Text „Ab hier: deine Prognose“.
 - Beschriftung: groß ① im Kreis, mittel (1), klein 1 (kleiner, gedämpft). Kein Label für den Start einer Zählung.
   Gemeinsame Pivots: kleinste Welle innen am Punkt, größte außen.
+- Gewähltes Label (Schwer, Auswählen, seit 14.11.2026): großes Label mit blauem Kreisrand (`--accent`, 2,6 px), mittleres und
+  kleines mit blau hinterlegtem, abgerundetem Feld (Füllung 14 %, Rand 1,6 px). Am gemeinsamen Pivot ist immer nur ein Label gewählt.
+- Label-Leiste (Schwer): Während eine Zählung läuft, ist nur das nächste Label aktiv, alle anderen Knöpfe sind gesperrt (nur Anzeige).
 
 ### Werkzeugleiste (Schwer, seit 13.11.2026)
 - Position: links im Chart, senkrecht unter den Zeiteinheiten (`.pgtool`, 8 px vom Rand, 44 px von oben), Abstand 4 px.
