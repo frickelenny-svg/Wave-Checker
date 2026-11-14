@@ -1,0 +1,298 @@
+{
+  "_anleitung": [
+    "Begriffslisten für „Fehler finden“ Schwer (Freitext). Angelegt am 14.11.2026 (Lenny). Grundlage: Regelwerk v15.",
+    "Jede Regel hat Pflichtgruppen. Eine Antwort ist richtig, wenn aus JEDER Pflichtgruppe mindestens ein Begriff vorkommt.",
+    "Hat eine Regel mehrere „varianten“, reicht es, wenn eine davon passt.",
+    "Toleranz: Groß/klein egal, ä = ae, ö = oe, ü = ue, ß = ss. Zahlen als Ziffer oder Wort (vierte = vier = 4, dreiteilig = 3 teilig).",
+    "Ein Begriff trifft auch längere Wörter, die mit ihm anfangen (überlapp trifft überlappt, Überlappung). Ab 6 Buchstaben auch mitten im Wort (Wellenüberlappung).",
+    "Ab 5 Buchstaben ist ein Tippfehler erlaubt (1 Buchstabe falsch, fehlt, zu viel oder vertauscht).",
+    "Kurze Wörter wie unter, über, den, dem, als, zu, von, nur, wie und einzelne Buchstaben (a, b, c …) und Zahlen müssen genau so dastehen.",
+    "Mehrere Wörter in einem Begriff müssen direkt nacheinander stehen. Ein * dazwischen erlaubt bis zu 3 beliebige Wörter (unter * tief trifft „unter das alte Tief“).",
+    "@NAME setzt eine Liste aus „listen“ ein. {welle} steht für die Welle, die der Spieler gewählt hat (nur bei Regeln, deren Welle von der Runde abhängt).",
+    "„sinn“ prüft Verneinungen in einer Gruppe: fehler = bejaht heißt, der Fehler wird ohne Verneinung beschrieben (Welle 3 IST die kürzeste);",
+    "fehler = verneint heißt, der Fehler ist eine Verneinung (Welle B überschreitet den Start NICHT). „gegenteil“ sind Begriffe, die das Gegenteil meinen (bleibt unter, zu kurz).",
+    "Verneinung = nicht, kein, nie, niemals, weder, ohne, fehlt, höchstens, maximal, statt (im selben Satzteil; Komma, Punkt, und, aber, sondern trennen Satzteile).",
+    "Eine Regel-Formulierung mit muss, müsste, sollte, darf, kann, jede, alle, „geht nicht“, „nicht erlaubt“, „gibt es nie“ dreht den Sinn um: „Welle 3 darf nicht die kürzeste sein“ zählt wie „Welle 3 ist die kürzeste“.",
+    "Kommen Begriffe aus der Sinn-Gruppe mehrmals vor, müssen mehr Stellen den richtigen Sinn haben als den umgekehrten.",
+    "Aufzählungen wie „Welle 1 und 4“ trennen keine Satzteile.",
+    "richtung = auf/ab: Die Begriffe sind für diese Richtung geschrieben (Impuls aufwärts, Korrektur abwärts). Ist der Chart gespiegelt, tauscht die App unter/über, Tief/Hoch usw. in der Antwort.",
+    "wie = andere Regel: nimmt deren Begriffe (eigener Text „einfach“ bleibt). je_welle: je nach gewählter Welle die Begriffe einer anderen Regel.",
+    "„einfach“ ist der Satz, den der Spieler nach dem Auswerten sieht. Die Regel-Kürzel (IMP-1 …) erscheinen nie in der App.",
+    "Nicht erkannte Antworten: in der App die Adresse mit #fehlertexte öffnen (oder Umschalt+Alt+F)."
+  ],
+
+  "listen": {
+    "START": ["start", "anfang", "beginn", "ursprung", "ausgangspunkt", "begonnen", "beginnt", "startet", "gestartet"],
+    "JENSEITS_START": [
+      "unter den", "unter das", "unter dem", "unter die", "unterhalb", "über den", "über das", "über dem", "über die", "oberhalb",
+      "darunter", "darüber", "drunter", "drüber", "tiefer", "höher", "unter * tief", "über * hoch",
+      "unterschreit", "überschreit", "übersteig", "unterbiet", "überbiet", "durchbr", "durchstoß", "bricht", "jenseits", "hinaus", "hinter",
+      "überschieß", "überschoss", "fällt unter", "steigt über", "geht über", "geht unter",
+      "mehr als 100", "über 100", "100 prozent", "komplett", "vollständig", "ganz zurück", "zu tief", "zu hoch", "zu weit", "zu stark", "zu lang",
+      "länger als", "größer als", "überragt"
+    ],
+    "INNERHALB_START": [
+      "bleibt unter", "bleibt über", "bleibt unterhalb", "bleibt oberhalb", "bleibt vor", "bleibt darunter", "bleibt darüber",
+      "weniger als 100", "unter 100", "kürzer als", "kleiner als", "nähert", "annäher", "respektiert"
+    ],
+    "UEBERLAPP": [
+      "überlapp", "überschneid", "schneid", "ragt in", "ragt ins", "hineinrag", "reicht in", "reicht ins", "hineinreich", "läuft in", "läuft ins",
+      "hineinläuf", "dringt", "eindring", "territorium", "preisbereich", "preisgebiet", "preiszone", "bereich", "gebiet", "berühr",
+      "unter * hoch", "unter * spitze", "unter * top", "unter * ende", "unter * endpunkt", "tiefer als * hoch", "tiefer als * 1", "unter * 1",
+      "überlagert", "überdeckt", "kreuz", "greift"
+    ],
+    "UEBERLAPP_NICHT": ["bleibt über", "bleibt oberhalb", "über * hoch", "oberhalb * hoch", "höher als * hoch", "abstand", "lücke", "getrennt"],
+    "ENDE_JENSEITS": [
+      "unter * tief", "unterhalb * tief", "unter * a", "unter * ende", "unter * endpunkt", "tiefer", "neues tief", "neue tief", "neuen tief",
+      "unterschreit", "unterbiet", "jenseits", "hinaus", "darunter", "drunter", "fällt unter", "durchbr", "bricht", "erreicht", "weiter als", "überschieß"
+    ],
+    "ENDE_DIESSEITS": [
+      "über * tief", "oberhalb * tief", "höher als", "bleibt über", "bleibt oberhalb", "über * a", "oberhalb", "darüber", "drüber",
+      "vor * tief", "vor * ende", "kurz vor", "zu kurz", "zu früh", "zu schwach", "kürzer als", "kleiner als"
+    ],
+    "LAENGER": ["länger", "größer", "weiter", "stärker", "zu lang", "zu groß", "gleich lang", "genauso lang", "so lang wie", "gleich groß", "genauso groß", "ebenso lang"],
+    "KUERZER": ["kürzer", "kleiner", "schwächer", "zu kurz", "zu klein"],
+    "MEHR_100": [
+      "mehr als 100", "über 100", "100", "komplett", "vollständig", "ganz zurück", "ganz", "zu weit", "zu tief", "zu hoch", "zu stark", "zu lang",
+      "länger als", "größer als", "unter * start", "über * start", "unter * anfang", "über * anfang", "unter * beginn", "über * beginn",
+      "unterschreit", "überschreit", "überschieß", "überschoss", "jenseits", "hinaus", "durchbr"
+    ],
+    "WENIGER_100": ["weniger als", "unter 100", "unter 99", "kürzer als", "kleiner als", "bleibt"],
+    "DREITEILIG": [
+      "aus 3", "hat 3", "hat nur 3", "nur 3", "3 subwell", "3 unterwell", "3 teil", "3 er", "3 bewegung", "3 abschnitt", "3 wellig",
+      "a b c", "abc", "korrektiv", "korrektur", "zigzag", "zickzack", "flat"
+    ],
+    "FUENFTEILIG": [
+      "aus 5", "hat 5", "5 subwell", "5 unterwell", "5 teil", "5 er", "5 wellen", "5 bewegung", "5 abschnitt", "5 wellig",
+      "1 2 3 4 5", "impuls", "motiv"
+    ]
+  },
+
+  "regeln": {
+    "IMP-1": {
+      "thema": "Welle 2 unter dem Start von Welle 1",
+      "einfach": "Welle 2 darf nie unter den Startpunkt von Welle 1 fallen (im Abwärtstrend: nie darüber steigen).",
+      "pflicht": [["2"], ["1", "@START"], ["@JENSEITS_START"]],
+      "sinn": { "gruppe": 3, "fehler": "bejaht", "gegenteil": ["@INNERHALB_START"] }
+    },
+    "IMP-2": {
+      "thema": "Welle 3 ist die kürzeste Impulswelle",
+      "einfach": "Welle 3 darf nie die kürzeste der drei Antriebswellen 1, 3 und 5 sein.",
+      "pflicht": [["3"], ["kürzeste", "am kürzesten", "kleinste", "am kleinsten", "@KUERZER"]],
+      "sinn": { "gruppe": 2, "fehler": "bejaht", "gegenteil": ["länger als", "größer als"] }
+    },
+    "IMP-3": {
+      "thema": "Welle 4 überschneidet Welle 1",
+      "einfach": "Welle 4 darf nicht in den Preisbereich von Welle 1 hineinlaufen. Schon eine Berührung zählt als Überlappung.",
+      "richtung": "auf",
+      "pflicht": [["4"], ["@UEBERLAPP"], ["1"]],
+      "sinn": { "gruppe": 2, "fehler": "bejaht", "gegenteil": ["@UEBERLAPP_NICHT"] }
+    },
+
+    "ZZ-2": {
+      "thema": "Zigzag: Welle B überschreitet den Start von Welle A",
+      "einfach": "Im Zigzag darf Welle B nicht über den Startpunkt von Welle A hinauslaufen.",
+      "pflicht": [["b"], ["a", "@START"], ["@JENSEITS_START"]],
+      "sinn": { "gruppe": 3, "fehler": "bejaht", "gegenteil": ["@INNERHALB_START"] }
+    },
+    "ZZ-3": {
+      "thema": "Zigzag: Welle C endet nicht jenseits vom Ende der Welle A",
+      "einfach": "Im Zigzag muss Welle C über das Ende von Welle A hinauslaufen.",
+      "richtung": "ab",
+      "pflicht": [["c"], ["a"], ["@ENDE_JENSEITS"]],
+      "sinn": { "gruppe": 3, "fehler": "verneint", "gegenteil": ["@ENDE_DIESSEITS"] }
+    },
+    "FR-2": {
+      "thema": "Regular Flat: Welle B überschreitet den Start von Welle A",
+      "einfach": "Im Regular Flat nähert sich Welle B dem Startpunkt von Welle A nur an, sie läuft nicht darüber hinaus.",
+      "wie": "ZZ-2"
+    },
+    "FR-3": {
+      "thema": "Regular Flat: Welle C endet nicht jenseits vom Ende der Welle A",
+      "einfach": "Im Regular Flat endet Welle C leicht jenseits des Endes von Welle A (im Abwärtstrend leicht darunter).",
+      "wie": "ZZ-3"
+    },
+    "FE-2": {
+      "thema": "Expanded Flat: Welle B überschreitet den Start von Welle A nicht",
+      "einfach": "Im Expanded Flat läuft Welle B über den Startpunkt von Welle A hinaus.",
+      "pflicht": [["b"], ["a", "@START"], ["@JENSEITS_START", "erreicht"]],
+      "sinn": { "gruppe": 3, "fehler": "verneint", "gegenteil": ["@INNERHALB_START", "zu kurz", "zu schwach", "nur bis", "vor dem start", "vor dem anfang"] }
+    },
+    "FE-3": {
+      "thema": "Expanded Flat: Welle C endet nicht jenseits vom Ende der Welle A",
+      "einfach": "Im Expanded Flat endet Welle C jenseits des Endes von Welle A (im Abwärtstrend darunter).",
+      "wie": "ZZ-3"
+    },
+    "FRU-2": {
+      "thema": "Running Flat: Welle B überschießt den Start von Welle A nicht",
+      "einfach": "Im Running Flat schießt Welle B über den Startpunkt von Welle A hinaus.",
+      "wie": "FE-2"
+    },
+    "FRU-3": {
+      "thema": "Running Flat: Welle C bildet ein neues Extrem jenseits von Welle A",
+      "einfach": "Im Running Flat schafft Welle C kein neues Extrem jenseits von Welle A (im Abwärtstrend kein neues Tief).",
+      "richtung": "ab",
+      "pflicht": [["c"], ["a"], ["@ENDE_JENSEITS"]],
+      "sinn": { "gruppe": 3, "fehler": "bejaht", "gegenteil": ["@ENDE_DIESSEITS"] }
+    },
+
+    "DRE-7": {
+      "thema": "Kontrahierendes Dreieck: eine Welle ist nicht kürzer als die vorherige",
+      "einfach": "Im kontrahierenden Dreieck ist jede Welle kürzer als die vorherige.",
+      "varianten": [
+        { "pflicht": [["{welle}"], ["@LAENGER"]],
+          "sinn": { "gruppe": 2, "fehler": "bejaht", "gegenteil": ["kürzer", "kleiner", "zu kurz", "zu klein"] } },
+        { "pflicht": [["vorherig", "vorangeh", "vorangegangen", "vorige", "davor", "vorhergehend", "vorausgeh", "jede welle", "alle wellen", "jeweils", "nacheinander", "dreieck"],
+                      ["@LAENGER", "wächst", "wachs", "expandier", "breiter", "kürzer", "kleiner", "schrumpf", "enger", "zusammen", "kontrahier", "verkürz"]],
+          "sinn": { "gruppe": 2, "fehler": "bejaht", "gegenteil": ["kürzer", "kleiner", "schrumpf", "enger", "zusammen", "kontrahier", "verkürz"] } }
+      ]
+    },
+    "DRE-8": {
+      "thema": "Expandierendes Dreieck: eine Welle ist nicht länger als die vorherige",
+      "einfach": "Im expandierenden Dreieck ist jede Welle länger als die vorherige.",
+      "varianten": [
+        { "pflicht": [["{welle}"], ["@KUERZER", "gleich lang", "genauso lang", "so lang wie", "gleich groß", "länger", "größer"]],
+          "sinn": { "gruppe": 2, "fehler": "bejaht", "gegenteil": ["länger", "größer"] } },
+        { "pflicht": [["vorherig", "vorangeh", "vorangegangen", "vorige", "davor", "vorhergehend", "vorausgeh", "jede welle", "alle wellen", "jeweils", "nacheinander", "dreieck"],
+                      ["@KUERZER", "schrumpf", "kontrahier", "zusammen", "enger", "gleich lang", "länger", "größer", "wächst", "wachs", "expandier", "breiter"]],
+          "sinn": { "gruppe": 2, "fehler": "bejaht", "gegenteil": ["länger", "größer", "wächst", "wachs", "expandier", "breiter"] } }
+      ]
+    },
+
+    "DIAG-2": {
+      "thema": "Diagonale: Welle 4 überlappt Welle 1 nicht",
+      "einfach": "In einer Diagonale überlappen sich Welle 1 und Welle 4: Welle 4 läuft in den Preisbereich von Welle 1 hinein.",
+      "richtung": "auf",
+      "pflicht": [["4"], ["@UEBERLAPP"], ["1"]],
+      "sinn": { "gruppe": 2, "fehler": "verneint", "gegenteil": ["@UEBERLAPP_NICHT"] }
+    },
+    "DL-4": {
+      "thema": "Leading Diagonale: Welle 1 ist nicht die längste",
+      "einfach": "In der Leading Diagonale ist Welle 1 die längste der Wellen 1, 3 und 5.",
+      "varianten": [
+        { "pflicht": [["1 * längste", "1 * am längsten", "1 * größte", "1 * am größten", "1 * länger als", "1 * größer als", "1 * kürzer", "1 * kleiner", "1 * zu kurz"]],
+          "sinn": { "gruppe": 1, "fehler": "verneint", "gegenteil": ["1 * kürzer", "1 * kleiner", "1 * zu kurz"] } },
+        { "pflicht": [["1", "längste", "am längsten"],
+                      ["3 * länger als", "5 * länger als", "3 * größer als", "5 * größer als", "3 * längste", "5 * längste", "3 * am längsten", "5 * am längsten",
+                       "3 * gleich lang", "5 * gleich lang", "3 * genauso lang", "5 * genauso lang", "3 * kürzer als", "5 * kürzer als"]],
+          "sinn": { "gruppe": 2, "fehler": "bejaht", "gegenteil": ["3 * kürzer als", "5 * kürzer als"] } }
+      ]
+    },
+    "DL-8": {
+      "thema": "Leading Diagonale: Welle 5 ist nicht kürzer als Welle 3",
+      "einfach": "In der Leading Diagonale muss Welle 5 kürzer als Welle 3 sein. Gleich lang reicht nicht.",
+      "pflicht": [["3"], ["5 * kürzer als * 3", "5 * kleiner als * 3", "3 * länger als * 5", "3 * größer als * 5"]],
+      "sinn": { "gruppe": 2, "fehler": "verneint",
+                "gegenteil": ["5 * länger als * 3", "5 * größer als * 3", "5 * gleich lang", "5 * genauso lang", "5 * so lang wie * 3", "5 * zu lang", "5 * gleich groß",
+                              "3 * kürzer als * 5", "3 * kleiner als * 5"] }
+    },
+    "DB-10": {
+      "thema": "Beendende Diagonale: Welle 5 ist nicht kürzer als Welle 3",
+      "einfach": "In der Beendenden Diagonale darf Welle 5 nicht länger als Welle 3 sein (höchstens 99,9 % von Welle 3).",
+      "wie": "DL-8"
+    },
+    "DB-4": {
+      "thema": "Beendende Diagonale: Welle 3 ist nicht kürzer als Welle 1",
+      "einfach": "In der Beendenden Diagonale ist Welle 3 kürzer als Welle 1.",
+      "pflicht": [["1"], ["3 * kürzer als * 1", "3 * kleiner als * 1", "1 * länger als * 3", "1 * größer als * 3"]],
+      "sinn": { "gruppe": 2, "fehler": "verneint",
+                "gegenteil": ["3 * länger als * 1", "3 * größer als * 1", "3 * gleich lang", "3 * genauso lang", "3 * so lang wie * 1", "3 * zu lang", "3 * gleich groß",
+                              "1 * kürzer als * 3", "1 * kleiner als * 3"] }
+    },
+    "DE-3": {
+      "thema": "Expandierende Diagonale: die Wellen 1, 3 und 5 werden nicht immer länger",
+      "einfach": "In der Expandierenden Diagonale wird jede Antriebswelle länger: Welle 1 ist die kürzeste, Welle 5 die längste.",
+      "varianten": [
+        { "pflicht": [["{welle} * kürzer", "{welle} * kleiner", "{welle} * gleich lang", "{welle} * genauso lang", "{welle} * so lang wie", "{welle} * zu kurz", "{welle} * zu klein",
+                       "{welle} * länger", "{welle} * größer"]],
+          "sinn": { "gruppe": 1, "fehler": "bejaht", "gegenteil": ["{welle} * länger", "{welle} * größer"] } },
+        { "pflicht": [["immer", "jede", "nacheinander", "zunehm", "stetig", "folgend", "1 3 * 5"],
+                      ["länger", "größer", "wachs", "wächst", "zunehm", "expandier", "kürzer", "kleiner", "schrumpf"]],
+          "sinn": { "gruppe": 2, "fehler": "verneint", "gegenteil": ["kürzer", "kleiner", "schrumpf"] } }
+      ]
+    },
+    "DE-9": {
+      "thema": "Expandierende Diagonale: Welle 4 läuft mehr als 99,9 % von Welle 3 zurück",
+      "einfach": "In der Expandierenden Diagonale darf Welle 4 höchstens 99,9 % von Welle 3 zurücklaufen.",
+      "pflicht": [["4"], ["mehr als 99", "über 99", "99 9", "@MEHR_100", "@WENIGER_100"], ["3"]],
+      "sinn": { "gruppe": 2, "fehler": "bejaht", "gegenteil": ["@WENIGER_100"] }
+    },
+
+    "WX-2": {
+      "thema": "Welle X läuft 100 % oder mehr von Welle W zurück",
+      "einfach": "Eine Welle X darf die Welle davor nicht zu 100 % oder mehr zurücklaufen.",
+      "pflicht": [["x"], ["@MEHR_100", "@WENIGER_100"], ["w"]],
+      "sinn": { "gruppe": 2, "fehler": "bejaht", "gegenteil": ["@WENIGER_100"] }
+    },
+    "WX-2b": {
+      "thema": "Die zweite Welle X läuft 100 % oder mehr von Welle Y zurück",
+      "einfach": "Eine Welle X darf die Welle davor nicht zu 100 % oder mehr zurücklaufen.",
+      "pflicht": [["x"], ["@MEHR_100", "@WENIGER_100"], ["y"]],
+      "sinn": { "gruppe": 2, "fehler": "bejaht", "gegenteil": ["@WENIGER_100"] }
+    },
+    "DRE-1": {
+      "thema": "Dreieck an einer verbotenen Stelle (Welle 2, C oder W)",
+      "einfach": "Ein Dreieck kommt nie in Welle 2, C oder W vor.",
+      "pflicht": [["dreieck", "triangle"]],
+      "sinn": { "gruppe": 1, "fehler": "bejaht" }
+    },
+    "W4-3": {
+      "thema": "Alternation: Welle 2 und Welle 4 bilden dasselbe Korrekturmuster",
+      "einfach": "Alternation: Welle 4 bildet ein anderes Korrekturmuster als Welle 2.",
+      "pflicht": [["2"], ["4"],
+                  ["gleich", "dasselbe", "denselben", "dieselbe", "das selbe", "die selbe", "den selben", "identisch", "beide", "ebenfalls", "auch", "genauso", "wie * 2", "wie die", "ähnlich",
+                   "alternation", "altern", "abwechs", "unterschied", "verschieden", "anders", "andere", "variier", "ungleich"]],
+      "sinn": { "gruppe": 3, "fehler": "bejaht", "gegenteil": ["alternation", "altern", "abwechs", "unterschied", "verschieden", "anders", "andere", "variier", "ungleich"] }
+    },
+
+    "s:IMP-1": {
+      "thema": "Subwellen: Welle (2) unter dem Start von Welle (1)",
+      "einfach": "Auch in den Subwellen gilt: Welle (2) darf nie über den Startpunkt von Welle (1) hinauslaufen.",
+      "wie": "IMP-1"
+    },
+    "s:IMP-2": {
+      "thema": "Subwellen: Welle (3) ist die kürzeste",
+      "einfach": "Auch in den Subwellen gilt: Welle (3) darf nie die kürzeste von (1), (3) und (5) sein.",
+      "wie": "IMP-2"
+    },
+    "s:IMP-3": {
+      "thema": "Subwellen: Welle (4) überschneidet Welle (1)",
+      "einfach": "Auch in den Subwellen gilt: Welle (4) darf nicht in den Preisbereich von Welle (1) hineinlaufen.",
+      "wie": "IMP-3"
+    },
+    "s:IMP-4": {
+      "thema": "Eine Impulswelle (1, 3 oder 5) ist nicht fünfteilig",
+      "einfach": "Die Wellen 1, 3 und 5 eines Impulses sind fünfteilig.",
+      "pflicht": [["@DREITEILIG", "@FUENFTEILIG"]],
+      "sinn": { "gruppe": 1, "fehler": "bejaht", "gegenteil": ["@FUENFTEILIG"] }
+    },
+    "s:ZZ-1": {
+      "thema": "Zigzag: Welle A oder C ist nicht fünfteilig",
+      "einfach": "Die Wellen A und C eines Zigzags sind fünfteilig.",
+      "wie": "s:IMP-4"
+    },
+    "s:WC-2": {
+      "thema": "Flat: Welle C ist nicht fünfteilig",
+      "einfach": "Welle C eines Flats ist fünfteilig (ein klassischer Fünfteiler oder eine Ending Diagonale).",
+      "wie": "s:IMP-4"
+    },
+    "s:ZZ-2": {
+      "thema": "Zigzag: Welle B ist nicht dreiteilig",
+      "einfach": "Welle B eines Zigzags ist dreiteilig.",
+      "pflicht": [["@FUENFTEILIG", "@DREITEILIG"]],
+      "sinn": { "gruppe": 1, "fehler": "bejaht", "gegenteil": ["@DREITEILIG"] }
+    },
+    "s:FL-A": { "thema": "Flat: Welle A ist nicht dreiteilig", "einfach": "Welle A eines Flats ist dreiteilig.", "wie": "s:ZZ-2" },
+    "s:WB-2": { "thema": "Flat: Welle B ist nicht dreiteilig", "einfach": "Welle B eines Flats ist dreiteilig.", "wie": "s:ZZ-2" },
+    "s:DRE-4": { "thema": "Dreieck: eine Welle ist nicht dreiteilig", "einfach": "Jede der fünf Wellen eines Dreiecks ist dreiteilig.", "wie": "s:ZZ-2" },
+    "s:DB-2": { "thema": "Beendende Diagonale: eine Welle ist nicht dreiteilig", "einfach": "Jede Welle der Beendenden Diagonale ist dreiteilig (3-3-3-3-3).", "wie": "s:ZZ-2" },
+    "s:DE-2": { "thema": "Expandierende Diagonale: eine Welle ist nicht dreiteilig", "einfach": "Jede Welle der Expandierenden Diagonale ist dreiteilig (3-3-3-3-3).", "wie": "s:ZZ-2" },
+    "s:DL-2": {
+      "thema": "Leading Diagonale: Teilstruktur passt nicht zu 5-3-5-3-5 oder 3-3-3-3-3",
+      "einfach": "Die Leading Diagonale ist 5-3-5-3-5 oder 3-3-3-3-3 aufgebaut.",
+      "je_welle": { "1": "s:IMP-4", "3": "s:IMP-4", "5": "s:IMP-4", "2": "s:ZZ-2", "4": "s:ZZ-2" },
+      "pflicht": [["5 3 5 3 5", "3 3 3 3 3"], ["passt", "entspricht", "folgt", "stimmt", "erfüll", "gemischt", "weicht", "bricht", "falsch", "durcheinander", "verletzt"]],
+      "sinn": { "gruppe": 2, "fehler": "verneint", "gegenteil": ["gemischt", "weicht", "bricht", "falsch", "durcheinander", "verletzt"] }
+    }
+  }
+}

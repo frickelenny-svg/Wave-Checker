@@ -16,6 +16,24 @@ Veröffentlicht wird über `main` (GitHub Pages). Gestaltungsregeln: `DESIGN.md`
   Vor jedem Veröffentlichen von Änderungen an Schwer laufen lassen. Hinweis für Tests: Nach einem synthetischen Wisch mit Schwung
   verschluckt der Test-Browser den nächsten Tipp (Finger vor dem Loslassen ruhen lassen); der Click eines Touch-Tipps kommt verzögert.
 
+## „Fehler finden“ (Funktion `findSub`), Schwer seit 14.11.2026
+- Im Menü (`pick('find')`) Schwierigkeit wählen: Leicht (Regel aus einer Auswahl) oder Schwer (Freitext), gemerkt in
+  `localStorage` `waveChecker.findLvl`. Welle wählen wie in Leicht, dann Textfeld „Was ist falsch?“ (Enter oder Auswerten).
+- Prüfung ohne KI per Schlüsselwörtern (`FFT`, Block zwischen `// FFT-START` und `// FFT-END`, ohne Bezug auf den Rest der App).
+  Begriffe in `fehler-schluesselwoerter.json` (Anleitung oben in der Datei): je Regel Pflichtgruppen, aus jeder Gruppe muss ein Begriff
+  vorkommen; `sinn` prüft Verneinungen (nicht, kein, statt …; Regel-Formulierungen mit muss/darf/„geht nicht“ drehen den Sinn um),
+  `richtung` tauscht bei gespiegeltem Chart unter/über, Tief/Hoch; `wie`, `je_welle`, `varianten`, `@LISTE`, `{welle}`.
+  Toleranz: Groß/klein, ae/oe/ue, Zahlwörter, Wortanfänge, ab 5 Buchstaben ein Tippfehler. Regel-IDs nie in der Oberfläche.
+- Ausgänge: erkannt +10 („Richtig erkannt“ und die Regel in einfachen Worten, Feld `einfach`); nicht erkannt: „Das konnte ich nicht
+  sicher zuordnen.“, richtige Regel, Knöpfe „Das meinte ich“ (+5, Serie bleibt) / „Lag daneben“ (0, Serie weg); falsche Welle wie Leicht.
+- Nicht erkannte Antworten (bei richtiger Welle) in `localStorage` `waveChecker.fehlerTexte` (höchstens 300). Übersicht nur für Lenny:
+  Adresse mit `#fehlertexte` oder Umschalt+Alt+F (`fehlerTexte()`), mit Kopieren und Leeren.
+- Handy/iPad: Beim Tippen bekommt `#view` die Klasse `fft-typing`: Chart höchstens 30 % der sichtbaren Höhe (`--vvh` aus
+  `visualViewport`), rückt nach oben, Leiste unten weicht einem Knopf unter dem Feld, damit die Tastatur nichts verdeckt.
+- Tests: `node tests/fehler-text.js` (ohne Browser: je Regel mindestens 5 richtige und 3 falsche Formulierungen, vage Antworten,
+  jede Regel aus `findSub` in der Datei) und `node tests/fehler-schwer-ui.js [Runden]` (Playwright, Handy/iPad/PC, Testzugriff `FFS`
+  = gesuchte Regel und Welle). Nach jeder Änderung an der Begriffsdatei `tests/fehler-text.js` laufen lassen.
+
 ## „Wie geht es weiter?“ (Funktion `progn`)
 Großer, verschiebbarer und zoombarer Kerzenchart in vier Zeiteinheiten (W, D, 4h, 1h), drei Wellengrößen:
 groß ①, mittel (1), klein 1.

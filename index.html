@@ -93,6 +93,13 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .nextpt{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 6px;border:2px dashed var(--accent-text);border-radius:999px;color:var(--accent-text);font-weight:700;vertical-align:middle;font-size:.9rem}
 /* feste Button-Leiste unten: Hauptaktion groß und blau links, Nebenaktionen rechts */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line-soft);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;align-items:center;gap:8px;box-shadow:0 -6px 20px rgba(30,60,140,.08)}
+/* Fehler finden Schwer (14.11.2026): Textfeld; beim Tippen am Handy/iPad wird der Chart kompakter, die Leiste unten weicht einem Knopf unter dem Feld */
+.fftl{display:block;margin-top:10px}.ffta{display:block;width:100%;box-sizing:border-box;margin:6px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--text);font:inherit;font-size:16px;line-height:1.4;min-height:64px;resize:vertical}
+.ffta:focus{outline:2px solid var(--accent);outline-offset:1px}.ffta:disabled{opacity:.8}
+.fftgo{display:none}#view.fft-typing .fftgo{display:block;width:100%;margin:8px 0 0;min-height:44px}
+#view.fft-typing .kick,#view.fft-typing .task,#view.fft-typing .dock{display:none}#view.fft-typing{padding-bottom:100vh} /* Platz, damit der Chart ganz nach oben scrollen kann */
+#view.fft-typing .chart svg{max-height:calc(var(--vvh,100vh)*.3)}#view.fft-typing .ffw{padding:8px 12px}#view.fft-typing .ffw button[data-w]{min-height:32px;padding:3px 10px;margin:2px 4px 2px 0}#view.fft-typing .fftl{margin-top:4px}
+.ffb{display:flex;flex-wrap:wrap;gap:8px}.ffb button{margin:0}.ffitem{border-top:1px solid var(--line-soft);padding:6px 0}.ffitem p{margin:4px 0}
 .dock>*{margin:0}.dock p{flex:1 1 100%;margin:0}.dock button[hidden]{display:none}
 .dock button.p{flex:1 1 auto;min-height:52px;font-size:1.02rem}
 @media(min-width:840px){.dock{left:50%;right:auto;width:800px;transform:translateX(-50%);border:1px solid var(--line-soft);border-bottom:0;border-radius:20px 20px 0 0;padding-left:48px;padding-right:48px}}
@@ -901,11 +908,15 @@ const STUFENNAME={1:'Stufe 1 (Impuls, Zigzag)',2:'Stufe 2 (Flats, Dreiecke, Diag
 // Musterwahl, gruppiert nach Stufe; die empfohlene Stufe ist markiert
 function pick(mode){
  const rec=recStage();
- $('#view').innerHTML='<div class="card"><h2>'+(mode==='count'?'Chart durchzählen':mode==='sub'?'Subwellen zählen':'Fehler finden')+'</h2><p><b>Muster wählen</b></p>'+
+ const fl=FLV(); // Fehler finden: Schwierigkeit (14.11.2026, Lenny)
+ $('#view').innerHTML='<div class="card"><h2>'+(mode==='count'?'Chart durchzählen':mode==='sub'?'Subwellen zählen':'Fehler finden')+'</h2>'+
+  (mode==='find'?'<p><b>Schwierigkeit</b></p><p class="fflv">'+[['leicht','Leicht'],['schwer','Schwer']].map(([k,l])=>'<button data-fl="'+k+'" class="'+(fl===k?'on':'')+'" aria-pressed="'+(fl===k)+'">'+l+'</button>').join('')+'</p><p class="mut">'+(fl==='schwer'?'Du wählst die Welle und beschreibst in eigenen Worten, was falsch ist.':'Du wählst die Welle und die verletzte Regel aus einer Liste.')+'</p>':'')+
+  '<p><b>Muster wählen</b></p>'+
   STUFEN.map(([n,t,items])=>'<p class="mut" style="margin:10px 0 0">'+t+(n===rec?' · <b>Empfohlen</b>':'')+'</p>'+items.map(([k,l])=>'<button class="p" onclick="go(\''+mode+'\',\''+k+'\')">'+l+'</button>').join('')).join('')+
   '<p><button onclick="home()">Zurück</button></p></div>';
+ document.querySelectorAll('[data-fl]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('waveChecker.findLvl',b.dataset.fl)}catch(e){}pick('find')});
 }
-function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key):find(PAT[key])}
+function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key,FLV()):find(PAT[key])}
 // Hauptmenü-Button: erscheint, sobald ein Modus gestartet wird (pick, recognize, pickSub), und verschwindet im Hauptmenü
 ['pick','recognize','pickSub','daily','ranks','dailyCal','progn','blitz','blitzKap','pathBlitz'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;window.scrollTo(0,0);return f.apply(this,arguments)}});
 {const h0=home;window.home=function(){$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
@@ -2063,11 +2074,117 @@ function bzCard(){const b=bzLoad().best||{},t=k=>(b[k].ok!==undefined?b[k].ok:Ma
 // Blitz-Training aus einem Kapitel: Muster des Kapitels plus ihre Verwechslungspartner
 function blitzKap(prefix){const e=UEBEN.find(x=>x[0]===prefix),keys=[...new Set(e[1].concat(...e[1].map(bzPartners)))];
  blitz({id:'kap-'+prefix,name:'Blitz-Training: '+e[1].map(k=>PAT[k].title).join(', ').replace(/ \(.*?\)/g,''),keys});}
+// ---- „Fehler finden“ Schwer (14.11.2026, Lenny): Freitext „Was ist falsch?“ per Schlüsselwörtern prüfen, ohne KI, alles hier im Code.
+// Die Begriffe stehen in fehler-schluesselwoerter.json (Anleitung oben in der Datei). Der Test tests/fehler-text.js führt den Block
+// zwischen FFT-START und FFT-END direkt aus, deshalb bleibt er ohne Bezug auf den Rest der App.
+// FFT-START
+const FFT=(()=>{
+ const FEST=new Set('unter ueber den dem das die der des als von vom zu ist hat in im ins an am auf aus mit nach vor bei bis nur wie so ein eine auch und'.split(' ')); // nur genau so
+ const NUM={eins:'1',zwei:'2',drei:'3',dri:'3',drie:'3',vier:'4',fuenf:'5',funf:'5',fuenv:'5'},ORD=/^(erst|zweit|dritt|viert|fuenft)(e|er|en|es|em)?$/,ORDN={erst:'1',zweit:'2',dritt:'3',viert:'4',fuenft:'5'};
+ const NUMF=[['erste','1'],['zweite','2'],['dritte','3'],['vierte','4'],['fuenfte','5'],['fuenf','5'],['zweiten','2'],['dritten','3'],['vierten','4'],['fuenften','5']];
+ const SPLIT=new Set('und aber sondern oder doch jedoch waehrend weil denn obwohl deshalb daher also'.split(' ')),STATT=new Set(['statt','anstatt','anstelle']);
+ const NEG=t=>/^(nicht|kein)/.test(t)||/^(nie|niemals|weder|ohne|fehlt|fehlen|fehlend|fehlende|hoechstens|maximal|max)$/.test(t)||(t.length>=4&&t.length<=6&&osa(t,'nicht')<=1);
+ const MODAL=t=>/^(muss|muess|soll|darf|duerf)/.test(t)||/^(kann|kannst|koennen)$/.test(t);
+ // Spiegeln (Chart in der Gegenrichtung zur Schreibweise der Begriffe): oben und unten tauschen
+ const SW={unter:'ueber',ueber:'unter',unterhalb:'oberhalb',oberhalb:'unterhalb',darunter:'darueber',darueber:'darunter',drunter:'drueber',drueber:'drunter',
+  tief:'hoch',hoch:'tief',tiefer:'hoeher',hoeher:'tiefer',niedriger:'hoeher',tiefe:'hohe',hohe:'tiefe',tiefen:'hohen',hohen:'tiefen',tiefs:'hochs',hochs:'tiefs',
+  unten:'oben',oben:'unten',abwaerts:'aufwaerts',aufwaerts:'abwaerts',faellt:'steigt',steigt:'faellt',sinkt:'steigt',fallen:'steigen',steigen:'fallen',fiel:'stieg',stieg:'fiel',
+  gefallen:'gestiegen',gestiegen:'gefallen',top:'boden',spitze:'boden',gipfel:'boden',boden:'top'};
+ const SWP=[['unterschreit','ueberschreit'],['ueberschreit','unterschreit'],['unterbiet','ueberbiet'],['ueberbiet','unterbiet'],['tiefpunkt','hochpunkt'],['hochpunkt','tiefpunkt'],['tiefst','hoechst'],['hoechst','tiefst']];
+ // Abstand mit Vertauschung (ein vertauschtes Buchstabenpaar zählt als ein Fehler)
+ function osa(a,b){const m=a.length,n=b.length;if(Math.abs(m-n)>1)return 9;const d=[];for(let i=0;i<=m;i++){d[i]=[i];for(let j=1;j<=n;j++)d[i][j]=i?0:j}
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){const c=a[i-1]===b[j-1]?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
+   if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1)}return d[m][n]}
+ const base=s=>String(s).toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/(\d)[.,](\d)/g,'$1 $2').replace(/%/g,' prozent ')
+  .replace(/(\d)([a-z])/g,'$1 $2').replace(/([a-z])(\d)/g,'$1 $2').replace(/(eins|zwei|drei|drie|dri|vier|fuenf|funf|fuenv)(teil|wellig|er\b|gliedr|schritt)/g,'$1 $2');
+ const num=t=>{if(NUM[t])return NUM[t];const o=t.match(ORD);if(o)return ORDN[o[1]];if(t.length>=5)for(const[w,d]of NUMF)if(osa(t,w)<=1)return d;return t};
+ const swap=t=>{if(SW[t])return SW[t];for(const[a,b]of SWP)if(t.startsWith(a))return b+t.slice(a.length);return t};
+ // Antwort → Wörter mit Satzteil-Nummer; je Satzteil: Zahl der Verneinungen und ob eine Regel-Formulierung (muss, darf …) darin steht
+ // Aufzählungen („Welle 1 und 4“, „A oder C“) trennen keine Satzteile. Regel-Formulierungen ohne muss/darf: „geht nicht“, „nicht erlaubt“,
+ // „gibt es nie“, „kommt nie vor“, „jede Welle ist …“
+ const ITEM=w=>/^\d+$/.test(w)||w.length===1,ITEM2=w=>ITEM(w)||/^(welle|wellen|subwelle|subwellen|unterwelle|unterwellen)$/.test(w);
+ function prep(text,spiegel){const toks=[],cl=[];
+  base(text).split(/[.;:!?,\n–—]+/).forEach(part=>{let c={neg:0,modal:false};cl.push(c);
+   const ws=part.replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(Boolean).map(num);
+   ws.forEach((w,i)=>{
+    if((SPLIT.has(w)&&!((w==='und'||w==='oder')&&i&&ITEM(ws[i-1])&&ITEM2(ws[i+1]||'')))||STATT.has(w)){c={neg:STATT.has(w)?1:0,modal:false};cl.push(c);return} // „statt“: der Teil danach ist verneint
+    const p=ws[i-1]||'',q=ws[i+1]||'';
+    if(NEG(w)){c.neg++;
+     if(/^(geht|gehen)$/.test(p)||/^(erlaubt|zulaessig|moeglich|gestattet|regelkonform)/.test(q)||(/^(nie|niemals)$/.test(w)&&ws.some(x=>/^(gibt|gibts|kommt|kommen|tritt|treten|vorkommen|auftreten)$/.test(x))))c.modal=true}
+    if(MODAL(w)||/^(jede|jeder|jedes|alle|stets)$/.test(w))c.modal=true;
+    if(spiegel)w=swap(w);toks.push({w,c:cl.length-1})})});
+  return{toks,cl}}
+ const wm=(tw,tok)=>{if(tw===tok)return true;if(/^\d+$/.test(tw)||tw.length<=2||FEST.has(tw))return false;if(tok.startsWith(tw))return true;
+  if(tw.length>=6&&tok.includes(tw))return true;
+  if(tw.length>=5&&tok.length>=tw.length-1)for(const L of [tw.length-1,tw.length,tw.length+1])if(osa(tw,tok.slice(0,L))<=1)return true;return false};
+ // Begriff → Wortliste (wie die Antwort aufbereitet, * = bis zu 3 beliebige Wörter)
+ const terms=(list,J,welle)=>{const out=[];(list||[]).forEach(t=>{if(t[0]==='@'){const l=J.listen&&J.listen[t.slice(1)];if(!l)console.warn('Liste fehlt: '+t);else out.push(...terms(l,J,welle));return}
+  if(t.includes('{welle}')){if(!welle)return;t=t.split('{welle}').join(welle)}
+  const w=base(t).replace(/[^a-z0-9*]+/g,' ').trim().split(' ').filter(Boolean).map(x=>x==='*'?x:num(x));if(w.length)out.push(w)});return out};
+ // Fundstellen eines Begriffs: [Anfang, Ende] im selben Satzteil, ohne gesperrte Wörter
+ function find(tw,T,mask){const res=[];
+  const go=(i,k,s)=>{if(k===tw.length)return res.push([s,i-1]);
+   if(tw[k]==='*'){for(let g=0;g<=3;g++){if(g&&(i+g-1>=T.length||T[i+g-1].c!==T[s].c))break;go(i+g,k+1,s)}return}
+   if(i<T.length&&T[i].c===T[s].c&&!(mask&&mask[i])&&wm(tw[k],T[i].w))go(i+1,k+1,s)};
+  for(let s=0;s<T.length;s++)if(!(mask&&mask[s])&&wm(tw[0],T[s].w))go(s,0,s);
+  const seen={};return res.filter(([a])=>seen[a]?false:(seen[a]=1))} // je Anfang eine Fundstelle
+ // Varianten einer Regel einsammeln (wie, je_welle)
+ function variants(J,id,welle,seen){seen=seen||{};if(seen[id])return[];seen[id]=1;const r=J.regeln&&J.regeln[id];if(!r)return[];const out=[];
+  if(r.je_welle&&welle&&r.je_welle[welle])out.push(...variants(J,r.je_welle[welle],welle,seen));
+  if(r.wie)out.push(...variants(J,r.wie,welle,seen));
+  (r.varianten||(r.pflicht?[r]:[])).forEach(v=>out.push({pflicht:v.pflicht,sinn:v.sinn,richtung:v.richtung||r.richtung}));return out}
+ function tryVar(v,P,J,welle){const T=P.toks;
+  for(let g=0;g<v.pflicht.length;g++){const s=v.sinn&&v.sinn.gruppe===g+1;
+   if(!s){if(!terms(v.pflicht[g],J,welle).some(t=>find(t,T).length))return{ok:false,why:'Gruppe '+(g+1)+' fehlt'};continue}
+   // Sinn: zuerst Gegenteil-Begriffe (sperren ihre Wörter), dann die übrigen; jede Fundstelle braucht die passende Verneinung
+   const mask=[],geg=terms(v.sinn.gegenteil,J,welle),nor=terms(v.pflicht[g],J,welle),hit=[],ver=v.sinn.fehler==='verneint';
+   geg.forEach(t=>find(t,T,mask).forEach(([a,b])=>{for(let i=a;i<=b;i++)mask[i]=1;hit.push([a,true])}));
+   nor.forEach(t=>find(t,T,mask).forEach(([a,b])=>{for(let i=a;i<=b;i++)mask[i]=1;hit.push([a,false])}));
+   if(!hit.length)return{ok:false,why:'Gruppe '+(g+1)+' fehlt'};
+   let good=0,bad=0;hit.forEach(([a,isG])=>{const c=P.cl[T[a].c],N=(c.neg%2===1)!==c.modal;(N===(ver!==isG))?good++:bad++});
+   if(good<=bad)return{ok:false,why:'Sinn in Gruppe '+(g+1)+' passt nicht ('+good+' passend, '+bad+' umgekehrt)'}}
+  return{ok:true}}
+ // opts: welle = gewählte Welle (für {welle} und je_welle), dir = 'auf'/'ab': Richtung der Welle, auf die sich die Regel bezieht
+ function check(J,id,text,opts){opts=opts||{};const welle=opts.welle?base(opts.welle).replace(/[^a-z0-9]+/g,' ').trim():'',vs=variants(J,id,opts.welle);
+  if(!vs.length)return{ok:false,why:'Regel nicht in der Liste'};const P={},why=[];
+  for(const v of vs){const sp=!!(v.richtung&&opts.dir&&v.richtung!==opts.dir);P[sp]=P[sp]||prep(text,sp);const r=tryVar(v,P[sp],J,welle);if(r.ok)return r;why.push(r.why)}
+  return{ok:false,why:why.join('; ')}}
+ const einfach=(J,id)=>{const r=J.regeln&&J.regeln[id];return r?(r.einfach||(r.wie?einfach(J,r.wie):'')):''};
+ const thema=(J,id)=>{const r=J.regeln&&J.regeln[id];return r&&r.thema||''};
+ return{check,einfach,thema,prep};
+})();
+// FFT-END
 // Modus 5 (Fehler finden für Impuls, Zigzag und Flats): Alle Haupt- und Subpunkte sind beschriftet, genau ein Verstoß steckt im Count.
 // Der Fehler liegt entweder auf Hauptebene (Regeln des Musters) oder in der Teilstruktur einer Welle: falsche Teilzahl (5 statt 3 oder umgekehrt)
 // oder eine fünfteilige Welle verletzt IMP-1 bis IMP-3 in ihren Subwellen. Nach der Wahl der Welle zeigt die App nur die Regeln, die diese Welle betreffen.
 const SUBOK=Object.keys(PAT); // alle Muster haben einen Subwellen-Aufbau
-function findSub(key){
+// Schwierigkeit (14.11.2026, Lenny): Leicht = Regel aus einer Auswahl, Schwer = Fehler in eigenen Worten (FFT). Gemerkt in waveChecker.findLvl.
+const FLV=()=>{try{return localStorage.getItem('waveChecker.findLvl')==='schwer'?'schwer':'leicht'}catch(e){return 'leicht'}};
+let FFJ=null; // fehler-schluesselwoerter.json, einmal geladen
+async function ffLoad(){if(FFJ)return true;try{const r=await fetch('fehler-schluesselwoerter.json',{cache:'no-cache'});if(!r.ok)throw new Error(r.status);FFJ=await r.json();return true}catch(e){return false}}
+// Nicht erkannte Antworten (nur auf diesem Gerät), Übersicht über #fehlertexte oder Umschalt+Alt+F
+const FFLOG='waveChecker.fehlerTexte';
+const ffLogGet=()=>{try{const a=JSON.parse(localStorage.getItem(FFLOG)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}};
+const ffLogSet=a=>{try{localStorage.setItem(FFLOG,JSON.stringify(a.slice(-300)))}catch(e){}};
+// Handy/iPad: Beim Tippen wird der Chart kompakter und rückt nach oben, damit die Tastatur ihn nicht verdeckt
+const ffVVH=()=>document.documentElement.style.setProperty('--vvh',(window.visualViewport?visualViewport.height:innerHeight)+'px');
+function ffFit(){const c=$('#view .chart');if(c&&$('#view').classList.contains('fft-typing'))c.scrollIntoView({block:'start'})}
+function ffTyping(on){const v=$('#view');if(!v)return;v.classList.toggle('fft-typing',on);ffVVH();if(on){setTimeout(ffFit,60);setTimeout(ffFit,380)}}
+if(window.visualViewport)visualViewport.addEventListener('resize',()=>{ffVVH();ffFit()});
+function fehlerTexte(){
+ $('#menu').hidden=false;window.scrollTo(0,0);const a=ffLogGet().slice().reverse(),ent={offen:'ohne Entscheidung',meinte:'„Das meinte ich“',daneben:'„Lag daneben“'};
+ $('#view').innerHTML='<div class="card"><h2>Nicht erkannte Antworten</h2><p class="mut">„Fehler finden“ Schwer, nur auf diesem Gerät gespeichert ('+a.length+'). Zum Ergänzen der Begriffe in fehler-schluesselwoerter.json nach dem Thema suchen.</p>'+
+  (a.length?a.map(x=>'<div class="ffitem"><p class="mut">'+esc(new Date(x.d).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'}))+' · '+esc(x.m||'')+' · Welle '+esc(x.w||'')+' · '+(ent[x.e]||'')+'</p><p><b>„'+esc(x.t||'')+'“</b></p><p class="mut">Gesucht: '+esc(x.th||'')+'</p></div>').join(''):'<p>Noch keine.</p>')+
+  '<p><button class="p" id="ffcp" '+(a.length?'':'disabled')+'>Als Text kopieren</button><button id="ffcl" '+(a.length?'':'disabled')+'>Liste leeren</button><button onclick="home()">Zurück</button></p><p class="mut" id="ffmsg"></p></div>';
+ $('#ffcp').onclick=()=>{const t=JSON.stringify(ffLogGet(),null,1);(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>$('#ffmsg').textContent='Kopiert.',()=>{$('#ffmsg').innerHTML='<textarea rows="6" style="width:100%">'+esc(t)+'</textarea>'})};
+ $('#ffcl').onclick=function(){if(!this.dataset.ok){this.dataset.ok=1;this.textContent='Wirklich leeren?';return}ffLogSet([]);fehlerTexte()};
+}
+addEventListener('hashchange',()=>{if(location.hash==='#fehlertexte')fehlerTexte()});
+document.addEventListener('keydown',e=>{if(e.code==='KeyF'&&e.altKey&&e.shiftKey&&!e.ctrlKey&&!e.metaKey){e.preventDefault();fehlerTexte()}});
+function findSub(key,lvl){
+ const hard=(lvl||FLV())==='schwer';
+ if(hard&&!FFJ){$('#view').innerHTML='<p class="kick">Fehler finden · Schwer</p><p class="mut">Lädt …</p>';
+  return ffLoad().then(ok=>ok?findSub(key,'schwer'):($('#view').innerHTML='<div class="card"><p class="bad">Die Begriffsliste für „Schwer“ konnte nicht geladen werden.</p><p>Prüfe die Internetverbindung oder spiele „Leicht“.</p><p><button class="p" id="ffl">Leicht spielen</button><button onclick="home()">Zurück</button></p></div>',$('#ffl').onclick=()=>findSub(key,'leicht')))}
  const P=PAT[key],IM=PAT.imp,sub5=['IMP-1','IMP-2','IMP-3'],imp=key==='imp';
  const SR={}; // alle möglichen Regeln: Hauptebene unter der Regel-ID, Teilstruktur mit Präfix „s:“
  P.viol.forEach(id=>SR[id]=P.rules[id]);
@@ -2112,19 +2229,48 @@ function findSub(key){
  const render=fb=>{
   let rl=m.w?[...new Set(all.filter(x=>x.wave===m.w||x.wave==='*').map(x=>x.id))]:[];
   if(m.w&&rl.length<3)rl=FX[m.w]||(FX[m.w]=shuffle(rl.concat(shuffle([...new Set(all.map(x=>x.id))].filter(x=>!rl.includes(x))).slice(0,3-rl.length))));
-  $('#view').innerHTML='<p class="kick">Fehler finden · '+P.title+'</p><p class="task">Diese Zählung enthält genau einen Regelverstoß, auf Hauptebene oder in den Subwellen. Wähle die fehlerhafte Welle und die verletzte Regel.</p><div class="chart">'+drawS(R,pts,null)+'</div>'+
-   '<div class="card"><b>Welche Welle?</b><br>'+P.waves.map(w=>'<button data-w="'+w+'" class="'+(m.w===w?'on':'')+'" '+(fb?'disabled':'')+'>Welle '+w+'</button>').join('')+
+  $('#view').classList.remove('fft-typing');
+  $('#view').innerHTML='<p class="kick">Fehler finden · '+(hard?'Schwer · ':'')+P.title+'</p><p class="task">Diese Zählung enthält genau einen Regelverstoß, auf Hauptebene oder in den Subwellen. '+(hard?'Wähle die fehlerhafte Welle und beschreibe in eigenen Worten, was falsch ist.':'Wähle die fehlerhafte Welle und die verletzte Regel.')+'</p><div class="chart">'+drawS(R,pts,null)+'</div>'+
+   '<div class="card ffw"><b>Welche Welle?</b><br>'+P.waves.map(w=>'<button data-w="'+w+'" class="'+(m.w===w?'on':'')+'" '+(fb?'disabled':'')+'>Welle '+w+'</button>').join('')+
+   (hard?(m.w?'<label class="fftl" for="fft"><b>Was ist falsch?</b> <span class="mut">(1–2 Sätze)</span></label><textarea id="fft" class="ffta" rows="2" maxlength="280" enterkeyhint="send" autocomplete="off" autocapitalize="sentences" placeholder="Beschreibe den Regelverstoß in eigenen Worten" '+(fb?'disabled':'')+'>'+esc(m.txt||'')+'</textarea>'+(fb?'':'<button class="p fftgo" id="fftgo" type="button">Auswerten</button>'):'<br><span class="mut">Tippe zuerst die Welle an, in der du den Fehler vermutest. Danach beschreibst du ihn in eigenen Worten.</span>')+
+    '</div><div class="dock"><button class="p" id="go" '+(canGo()&&!fb?'':'disabled')+'>Auswerten</button><button id="dk" '+(fb?'disabled':'')+'>Ich weiß nicht</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>':
    (m.w?'<br><b>Welche Regel?</b> <span class="mut">(Regeln zu Welle '+m.w+' und ihren Subwellen)</span><br>'+(rl.length?rl.map(x=>'<button data-r="'+x+'" class="'+(m.r===x?'on':'')+'" '+(fb?'disabled':'')+'>'+mt(SR[x].name)+'</button>').join(''):'<span class="mut">Zu dieser Welle gibt es in diesem Muster keinen Regelverstoß.</span>'):'<br><span class="mut">Klicke zuerst die Welle an, in der du den Fehler vermutest. Danach siehst du die Regeln zur Auswahl.</span>')+
-   '</div><div class="dock"><button class="p" id="go" '+(m.w&&m.r&&!fb?'':'disabled')+'>Auswerten</button><button id="dk" '+(fb?'disabled':'')+'>Ich weiß nicht</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
+   '</div><div class="dock"><button class="p" id="go" '+(m.w&&m.r&&!fb?'':'disabled')+'>Auswerten</button><button id="dk" '+(fb?'disabled':'')+'>Ich weiß nicht</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>');
   if(fb)return;
   document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{m.w=b.dataset.w;if(!all.some(x=>(x.wave===m.w||x.wave==='*')&&x.id===m.r))m.r=null;render()});
   document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{m.r=b.dataset.r;render()});
-  $('#dk').onclick=()=>{pathMark('find');render('<p class="mut">Kein Problem, hier die Auflösung (keine Punkte, deine Serie bleibt).</p><p>'+solution()+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=()=>findSub(key);};
+  $('#dk').onclick=()=>{pathMark('find');render('<p class="mut">Kein Problem, hier die Auflösung (keine Punkte, deine Serie bleibt).</p><p>'+(hard?hsol():solution())+'</p><button class="p" id="nxt">Nächster Chart</button>');$('#nxt').onclick=()=>findSub(key,lvl);};
+  if(hard){const ta=$('#fft');if(!ta)return;
+   const upd=()=>{m.txt=ta.value;$('#go').disabled=!canGo();const g=$('#fftgo');if(g)g.disabled=!canGo()};upd();
+   ta.oninput=upd;ta.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();if(canGo())goHard()}};
+   if(matchMedia('(pointer:coarse)').matches){ta.onfocus=()=>ffTyping(true);ta.onblur=()=>setTimeout(()=>{if(document.activeElement!==ta)ffTyping(false)},150)}
+   $('#fftgo').onpointerdown=e=>e.preventDefault(); // Tastatur bleibt offen, bis ausgewertet ist
+   $('#fftgo').onclick=$('#go').onclick=()=>{if(canGo())goHard()};return}
   $('#go').onclick=()=>{pathMark('find');const wOk=m.w===wv||!!(alt&&alt.includes(m.w)),rOk=m.r===id,ok=wOk&&rOk;
    if(ok){st.streak++;st.pts+=10;exSolved(P.key,0)}else st.streak=0;stats();
    render('<p class="'+(ok?'ok':'bad')+'">'+(ok?'Richtig! +10 Punkte':wOk?'Die Welle stimmt, die Regel nicht.':rOk?'Die Regel stimmt, die Welle nicht.':'Leider daneben.')+'</p><p>'+solution()+'</p><button class="p" id="nxt">Nächster Chart</button>');
-   $('#nxt').onclick=()=>findSub(key);};
+   $('#nxt').onclick=()=>findSub(key,lvl);};
  };
+ // Schwer: Freitext prüfen. Richtung der Bezugswelle: Hauptebene = erste Welle des Musters, Subwellen = die Welle, in der sie liegen.
+ function canGo(){return hard?!!(m.w&&(m.txt||'').trim().length>=3):!!(m.w&&m.r)}
+ const einf=()=>(hard&&FFT.einfach(FFJ,id))||mt(SR[id].ex),wtxt=()=>alt?alt.join(' oder '):wv;
+ const hsol=()=>'Gesucht war Welle '+wtxt()+'. <b>'+esc(einf())+'</b> <span class="mut">('+tag({rules:SR},id)+')</span>';
+ function goHard(){
+  const txt=(m.txt||'').trim();if(!txt||!m.w)return;pathMark('find');if(document.activeElement)document.activeElement.blur();
+  const k0=o.main?1:o.k,dir=R.pr[R.mp[k0]]>R.pr[R.mp[k0-1]]?'auf':'ab',wOk=m.w===wv||!!(alt&&alt.includes(m.w));
+  const ok=FFT.check(FFJ,id,txt,{welle:wv,dir}).ok,you='<p class="mut">Deine Antwort: „'+esc(txt)+'“</p>',nx='<button class="p" id="nxt">Nächster Chart</button>';
+  const done=h=>{render(h);$('#nxt').onclick=()=>findSub(key,lvl)};
+  if(!wOk){st.streak=0;stats();return done('<p class="bad">'+(ok?'Die Regel stimmt, die Welle nicht.':'Leider daneben.')+'</p>'+you+'<p>'+hsol()+'</p>'+nx)}
+  if(ok){st.streak++;st.pts+=10;stats();exSolved(P.key,0);return done('<p class="ok">Richtig erkannt! +10 Punkte</p>'+you+'<p>Die Regel in einfachen Worten: <b>'+esc(einf())+'</b> <span class="mut">('+tag({rules:SR},id)+')</span></p>'+nx)}
+  // nicht sicher zugeordnet: richtige Regel zeigen, der Spieler entscheidet selbst; die Antwort wird für die Begriffslisten gemerkt
+  const log=ffLogGet(),e={d:new Date().toISOString(),m:P.title,w:m.w,id,th:FFT.thema(FFJ,id)||SR[id].name,t:txt,e:'offen'};log.push(e);ffLogSet(log);
+  const mark=v=>{const a=ffLogGet(),x=a.find(q=>q.d===e.d&&q.t===e.t);if(x){x.e=v;ffLogSet(a)}};
+  const ask='<p class="bad">Das konnte ich nicht sicher zuordnen.</p>'+you+'<p>Gesucht war in Welle '+wtxt()+': <b>'+esc(einf())+'</b> <span class="mut">('+tag({rules:SR},id)+')</span></p>';
+  render(ask+'<p>Hast du das gemeint?</p><p class="ffb"><button class="p" id="ffy">Das meinte ich</button><button id="ffn">Lag daneben</button></p>');
+  $('#ffy').onclick=()=>{mark('meinte');st.pts+=5;stats();done(ask+'<p class="ok">Halbe Punkte: +5</p>'+nx)};
+  $('#ffn').onclick=()=>{mark('daneben');st.streak=0;stats();done(ask+'<p class="mut">Keine Punkte. Schau dir die Regel oben noch einmal an.</p>'+nx)};
+ }
+ window.FFS={id,wv,alt,hard}; // Testzugriff (tests/fehler-schwer-ui.js): gesuchte Regel und Welle der laufenden Runde
  render();
 }
 // ---- 5) Lernbereich: zeigt lernen/regelwerk-lernversion.md (die menschenlesbare Fassung des Regelwerks) 1:1 als Seite.
@@ -2467,6 +2613,7 @@ $('#learn').onclick=()=>learn();
 $('#tolearn').onclick=()=>learn($('#tolearn').dataset.kap);
 {const h1=window.home;window.home=function(){LEARN=PEEK=null;$('#tolearn').hidden=true;return h1.apply(this,arguments)}} // Hauptmenü verlässt Lernseite und „Jetzt üben“ endgültig
 stats();home();rankCheck(); // bisherige Quiz-Daten zählen mit
+if(location.hash==='#fehlertexte')fehlerTexte(); // versteckte Übersicht der nicht erkannten Antworten (Fehler finden Schwer)
 </script>
 </body>
 </html>
