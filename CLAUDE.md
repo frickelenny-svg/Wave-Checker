@@ -32,7 +32,37 @@ Veröffentlicht wird über `main` (GitHub Pages). Gestaltungsregeln: `DESIGN.md`
   `visualViewport`), rückt nach oben, Leiste unten weicht einem Knopf unter dem Feld, damit die Tastatur nichts verdeckt.
 - Tests: `node tests/fehler-text.js` (ohne Browser: je Regel mindestens 5 richtige und 3 falsche Formulierungen, vage Antworten,
   jede Regel aus `findSub` in der Datei) und `node tests/fehler-schwer-ui.js [Runden]` (Playwright, Handy/iPad/PC, Testzugriff `FFS`
-  = gesuchte Regel, Welle, Runde R, Option o, Versuche tries). Nach jeder Änderung an der Begriffsdatei `tests/fehler-text.js` laufen lassen.
+  = gesuchte Regel, Welle, beteiligte Wellen inv, Runde R, Option o, Versuche tries). Nach jeder Änderung an der Begriffsdatei
+  `tests/fehler-text.js` laufen lassen.
+
+### Beteiligte Wellen (seit 15.11.2026, Leicht und Schwer)
+Jede beteiligte Welle zählt als richtige Wellenwahl (`ffInv(P,R,o,wv)` = [Welle der Regel, Partner …], je Runde; `FFPS` = mögliche
+Partner für die Regelauswahl in Leicht). In Leicht steht die Regel auch bei der Partnerwelle zur Auswahl.
+
+| Regel | Welle der Regel | Partner |
+|---|---|---|
+| IMP-1 Welle 2 unter Start von 1 | 2 | 1 |
+| IMP-2 Welle 3 die kürzeste | 3 | die kürzere von 1 und 5 |
+| IMP-3 Überlappung / DIAG-2 keine Überlappung | 4 | 1 |
+| ZZ-2, FR-2, FE-2, FRU-2 (Welle B und Start von A) | B | A |
+| ZZ-3, FR-3, FE-3, FRU-3 (Welle C und Ende von A) | C | A |
+| DRE-7 / DRE-8 (Dreieck, Längenfolge) | die Welle mit falschem Verhältnis | ihre Vorgängerin |
+| DL-4 Welle 1 nicht die längste | 3 | 1 (und 5, falls mindestens so lang wie 1) |
+| DL-8, DB-10 Welle 5 nicht kürzer als 3 | 5 | 3 |
+| DB-4 Welle 3 nicht kürzer als 1 | 3 | 1 |
+| DE-3 Wellen werden nicht immer länger | 3 bzw. 5 | 1 bzw. 3 |
+| DE-9 Welle 4 über 99,9 % von 3 | 4 | 3 |
+| WX-2 / WX-2b Welle X ≥ 100 % | X (X1) bzw. X2 | W bzw. Y |
+| W4-3 Alternation | 4 | 2 |
+| DRE-1 Dreieck in W bzw. 2, alle Subwellen-Regeln (s:…) | nur diese Welle | – |
+
+KOM-5 und andere Regeln, die der Generator nicht verletzt, kommen in „Fehler finden“ nicht vor.
+- Freitext je Blickwinkel: Varianten mit `welle` in der Begriffsdatei gelten nur für die passende gewählte Welle; `{welle}`/`{partner}`
+  als Platzhalter. Nennt die Antwort die gewählte Welle nicht (und keine unbeteiligte), setzt `FFT.check` sie als Satzgegenstand davor
+  („nicht die längste“ bei Welle 1). `*` springt nie über eine Wellenbezeichnung. Umlaute: ä = ae = a (ebenso ö, ü).
+- Nach einer richtigen Antwort „Anders gesagt: …“ (Feld `anders` mit `haupt`/`partner`) aus dem Blickwinkel der anderen Welle.
+- `tests/fehler-text.js` prüft je Regel mit mehreren Wellen und je Blickwinkel mindestens 3 richtige Formulierungen;
+  `tests/generator.js` prüft in Leicht, dass jede beteiligte Welle die Regel anbietet und als richtig zählt.
 
 ### Generator: genau ein Verstoß (seit 15.11.2026)
 - Beschriftete Teilmuster (Muster der Wellen 2/4 im Impuls, W/X/Y/Z bei Double Zigzag und Dreifacher Form) kommen aus den echten

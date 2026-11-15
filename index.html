@@ -1177,6 +1177,19 @@ const lab=legNames?P.labels.map((l,k)=>legNames[k]?l+' '+legNames[k]:l):names?P.
 // 'teil:k' (Welle k hat die falsche Teilzahl), 'imp:k:ID' (fünfteilige Welle k verletzt eine Impulsregel),
 // 'name:k:ID' (das beschriftete Muster der Welle k verletzt eine eigene Regel, z. B. DRE-7 beim Dreieck).
 // „Fehler finden“ erzeugt so lange neu, bis nur der gewollte Verstoß übrig ist.
+// Beteiligte Wellen je Regel (15.11.2026, Lenny): [Welle der Regel, Partner …]. Jede davon zählt als richtige Wellenwahl, in Leicht und Schwer.
+// FFPS: mögliche Partner je Regel (für die Regelauswahl in Leicht, unabhängig von der Runde). Übersicht in CLAUDE.md.
+const FFPS={'IMP-1':['1'],'IMP-2':['1','5'],'IMP-3':['1'],'DIAG-2':['1'],'DL-4':['1','5'],'DL-8':['3'],'DB-10':['3'],'DB-4':['1'],'DE-9':['3'],
+ 'ZZ-2':['A'],'FR-2':['A'],'FE-2':['A'],'FRU-2':['A'],'ZZ-3':['A'],'FR-3':['A'],'FE-3':['A'],'FRU-3':['A'],'WX-2':['W'],'WX-2b':['Y'],'W4-3':['2']};
+function ffInv(P,R,o,wv){if(!o.main)return[wv];
+ const v=R.mp.map(i=>R.pr[i]),L=k=>Math.abs(v[k]-v[k-1]),W=P.waves;
+ switch(o.id){
+  case 'IMP-2':return['3',L(1)<=L(5)?'1':'5'];                                  // Welle 3 und die kürzere Vergleichswelle
+  case 'DL-4':return[wv,'1'].concat(['3','5'].filter(k=>k!==wv&&L(+k)>=L(1)));   // Welle 1 und jede Welle, die mindestens so lang ist
+  case 'DE-3':return[wv,wv==='3'?'1':'3'];                                         // die Welle, die nicht länger wird, und ihre Vorgängerin
+  case 'DRE-7':case 'DRE-8':return[wv,W[W.indexOf(wv)-1]];                         // die beiden Dreieckswellen mit falschem Längenverhältnis
+  case 'W4-3':return['4','2'];
+  default:return[wv].concat(FFPS[o.id]||[]);}}
 // Erfüllt die Runde R genau den gewollten Verstoß der Option o aus findSub? (Folgeregeln der Diagonalen aus P.implied sind erlaubt)
 const findWant=o=>o.main?'main:'+o.id:o.plan.viol?'imp:'+o.k+':'+o.plan.viol:'teil:'+o.k;
 function findOk(P,R,o){const f=roundFails(P,R),w=findWant(o),al=new Set([w].concat(((o.main&&P.implied&&P.implied[o.id])||[]).map(x=>'main:'+x)));
@@ -2117,24 +2130,26 @@ function blitzKap(prefix){const e=UEBEN.find(x=>x[0]===prefix),keys=[...new Set(
 // zwischen FFT-START und FFT-END direkt aus, deshalb bleibt er ohne Bezug auf den Rest der App.
 // FFT-START
 const FFT=(()=>{
- const FEST=new Set('unter ueber den dem das die der des als von vom zu ist hat in im ins an am auf aus mit nach vor bei bis nur wie so ein eine auch und'.split(' ')); // nur genau so
- const NUM={eins:'1',zwei:'2',drei:'3',dri:'3',drie:'3',vier:'4',fuenf:'5',funf:'5',fuenv:'5'},ORD=/^(erst|zweit|dritt|viert|fuenft)(e|er|en|es|em)?$/,ORDN={erst:'1',zweit:'2',dritt:'3',viert:'4',fuenft:'5'};
- const NUMF=[['erste','1'],['zweite','2'],['dritte','3'],['vierte','4'],['fuenfte','5'],['fuenf','5'],['zweiten','2'],['dritten','3'],['vierten','4'],['fuenften','5']];
- const SPLIT=new Set('und aber sondern oder doch jedoch waehrend weil denn obwohl deshalb daher also'.split(' ')),STATT=new Set(['statt','anstatt','anstelle']);
- const NEG=t=>/^(nicht|kein)/.test(t)||/^(nie|niemals|weder|ohne|fehlt|fehlen|fehlend|fehlende|hoechstens|maximal|max)$/.test(t)||(t.length>=4&&t.length<=6&&osa(t,'nicht')<=1);
- const MODAL=t=>/^(muss|muess|soll|darf|duerf)/.test(t)||/^(kann|kannst|koennen)$/.test(t);
+ // Umlaute (15.11.2026, Lenny): ä, ae und a gelten gleich (ebenso ö/oe/o, ü/ue/u). Antwort und Begriffe werden gleich vereinfacht.
+ const st=s=>s.replace(/ae/g,'a').replace(/oe/g,'o').replace(/ue/g,'u');
+ const FEST=new Set('unter ueber den dem das die der des als von vom zu ist hat in im ins an am auf aus mit nach vor bei bis nur wie so ein eine auch und'.split(' ').map(st)); // nur genau so
+ const NUM={eins:'1',zwei:'2',drei:'3',dri:'3',drie:'3',vier:'4',funf:'5',funv:'5'},ORD=/^(erst|zweit|dritt|viert|funft)(e|er|en|es|em)?$/,ORDN={erst:'1',zweit:'2',dritt:'3',viert:'4',funft:'5'};
+ const NUMF=[['erste','1'],['zweite','2'],['dritte','3'],['vierte','4'],['fuenfte','5'],['fuenf','5'],['zweiten','2'],['dritten','3'],['vierten','4'],['fuenften','5']].map(([w,d])=>[st(w),d]);
+ const SPLIT=new Set('und aber sondern oder doch jedoch waehrend weil denn obwohl deshalb daher also'.split(' ').map(st)),STATT=new Set(['statt','anstatt','anstelle']);
+ const NEG=t=>/^(nicht|kein)/.test(t)||/^(nie|niemals|weder|ohne|fehlt|fehlen|fehlend|fehlende|hochstens|maximal|max)$/.test(t)||(t.length>=4&&t.length<=6&&osa(t,'nicht')<=1);
+ const MODAL=t=>/^(muss|soll|darf|durf)/.test(t)||/^(kann|kannst|konnen)$/.test(t);
  // Spiegeln (Chart in der Gegenrichtung zur Schreibweise der Begriffe): oben und unten tauschen
- const SW={unter:'ueber',ueber:'unter',unterhalb:'oberhalb',oberhalb:'unterhalb',darunter:'darueber',darueber:'darunter',drunter:'drueber',drueber:'drunter',
+ const SW0={unter:'ueber',ueber:'unter',unterhalb:'oberhalb',oberhalb:'unterhalb',darunter:'darueber',darueber:'darunter',drunter:'drueber',drueber:'drunter',
   tief:'hoch',hoch:'tief',tiefer:'hoeher',hoeher:'tiefer',niedriger:'hoeher',tiefe:'hohe',hohe:'tiefe',tiefen:'hohen',hohen:'tiefen',tiefs:'hochs',hochs:'tiefs',
   unten:'oben',oben:'unten',abwaerts:'aufwaerts',aufwaerts:'abwaerts',faellt:'steigt',steigt:'faellt',sinkt:'steigt',fallen:'steigen',steigen:'fallen',fiel:'stieg',stieg:'fiel',
-  gefallen:'gestiegen',gestiegen:'gefallen',top:'boden',spitze:'boden',gipfel:'boden',boden:'top'};
- const SWP=[['unterschreit','ueberschreit'],['ueberschreit','unterschreit'],['unterbiet','ueberbiet'],['ueberbiet','unterbiet'],['tiefpunkt','hochpunkt'],['hochpunkt','tiefpunkt'],['tiefst','hoechst'],['hoechst','tiefst']];
+  gefallen:'gestiegen',gestiegen:'gefallen',top:'boden',spitze:'boden',gipfel:'boden',boden:'top'},SW={};for(const k in SW0)SW[st(k)]=st(SW0[k]);
+ const SWP=[['unterschreit','ueberschreit'],['ueberschreit','unterschreit'],['unterbiet','ueberbiet'],['ueberbiet','unterbiet'],['tiefpunkt','hochpunkt'],['hochpunkt','tiefpunkt'],['tiefst','hoechst'],['hoechst','tiefst']].map(([a,b])=>[st(a),st(b)]);
  // Abstand mit Vertauschung (ein vertauschtes Buchstabenpaar zählt als ein Fehler)
  function osa(a,b){const m=a.length,n=b.length;if(Math.abs(m-n)>1)return 9;const d=[];for(let i=0;i<=m;i++){d[i]=[i];for(let j=1;j<=n;j++)d[i][j]=i?0:j}
   for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){const c=a[i-1]===b[j-1]?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
    if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1)}return d[m][n]}
- const base=s=>String(s).toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/(\d)[.,](\d)/g,'$1 $2').replace(/%/g,' prozent ')
-  .replace(/(\d)([a-z])/g,'$1 $2').replace(/([a-z])(\d)/g,'$1 $2').replace(/(eins|zwei|drei|drie|dri|vier|fuenf|funf|fuenv)(teil|wellig|er\b|gliedr|schritt)/g,'$1 $2');
+ const base=s=>st(String(s).toLowerCase().replace(/ä/g,'a').replace(/ö/g,'o').replace(/ü/g,'u').replace(/ß/g,'ss')).replace(/(\d)[.,](\d)/g,'$1 $2').replace(/%/g,' prozent ')
+  .replace(/(\d)([a-z])/g,'$1 $2').replace(/([a-z])(\d)/g,'$1 $2').replace(/(eins|zwei|drei|drie|dri|vier|funf|funv)(teil|wellig|er\b|gliedr|schritt)/g,'$1 $2');
  const num=t=>{if(NUM[t])return NUM[t];const o=t.match(ORD);if(o)return ORDN[o[1]];if(t.length>=5)for(const[w,d]of NUMF)if(osa(t,w)<=1)return d;return t};
  const swap=t=>{if(SW[t])return SW[t];for(const[a,b]of SWP)if(t.startsWith(a))return b+t.slice(a.length);return t};
  // Antwort → Wörter mit Satzteil-Nummer; je Satzteil: Zahl der Verneinungen und ob eine Regel-Formulierung (muss, darf …) darin steht
@@ -2148,7 +2163,7 @@ const FFT=(()=>{
     if((SPLIT.has(w)&&!((w==='und'||w==='oder')&&i&&ITEM(ws[i-1])&&ITEM2(ws[i+1]||'')))||STATT.has(w)){c={neg:STATT.has(w)?1:0,modal:false};cl.push(c);return} // „statt“: der Teil danach ist verneint
     const p=ws[i-1]||'',q=ws[i+1]||'';
     if(NEG(w)){c.neg++;
-     if(/^(geht|gehen)$/.test(p)||/^(erlaubt|zulaessig|moeglich|gestattet|regelkonform)/.test(q)||(/^(nie|niemals)$/.test(w)&&ws.some(x=>/^(gibt|gibts|kommt|kommen|tritt|treten|vorkommen|auftreten)$/.test(x))))c.modal=true}
+     if((/^(geht|gehen)$/.test(p)&&!q)||/^(erlaubt|zulassig|moglich|gestattet|regelkonform)/.test(q)||(/^(nie|niemals)$/.test(w)&&ws.some(x=>/^(gibt|gibts|kommt|kommen|tritt|treten|vorkommen|auftreten)$/.test(x))))c.modal=true}
     if(MODAL(w)||/^(jede|jeder|jedes|alle|stets)$/.test(w))c.modal=true;
     if(spiegel)w=swap(w);toks.push({w,c:cl.length-1})})});
   return{toks,cl}}
@@ -2156,13 +2171,16 @@ const FFT=(()=>{
   if(tw.length>=6&&tok.includes(tw))return true;
   if(tw.length>=5&&tok.length>=tw.length-1)for(const L of [tw.length-1,tw.length,tw.length+1])if(osa(tw,tok.slice(0,L))<=1)return true;return false};
  // Begriff → Wortliste (wie die Antwort aufbereitet, * = bis zu 3 beliebige Wörter)
- const terms=(list,J,welle)=>{const out=[];(list||[]).forEach(t=>{if(t[0]==='@'){const l=J.listen&&J.listen[t.slice(1)];if(!l)console.warn('Liste fehlt: '+t);else out.push(...terms(l,J,welle));return}
-  if(t.includes('{welle}')){if(!welle)return;t=t.split('{welle}').join(welle)}
+ // {welle} = Welle der Regel, {partner} = jede andere beteiligte Welle (der Begriff gilt dann je Partner einmal)
+ const terms=(list,J,O)=>{const out=[];(list||[]).forEach(t=>{if(t[0]==='@'){const l=J.listen&&J.listen[t.slice(1)];if(!l)console.warn('Liste fehlt: '+t);else out.push(...terms(l,J,O));return}
+  if(t.includes('{partner}')){(O.partner||[]).forEach(p=>out.push(...terms([t.split('{partner}').join(p)],J,O)));return}
+  if(t.includes('{welle}')){if(!O.welle)return;t=t.split('{welle}').join(O.welle)}
   const w=base(t).replace(/[^a-z0-9*]+/g,' ').trim().split(' ').filter(Boolean).map(x=>x==='*'?x:num(x));if(w.length)out.push(w)});return out};
+ const LBL=w=>/^[1-5]$/.test(w)||/^[a-ez]$/.test(w)||w==='w'||w==='x'||w==='y';
  // Fundstellen eines Begriffs: [Anfang, Ende] im selben Satzteil, ohne gesperrte Wörter
  function find(tw,T,mask){const res=[];
   const go=(i,k,s)=>{if(k===tw.length)return res.push([s,i-1]);
-   if(tw[k]==='*'){for(let g=0;g<=3;g++){if(g&&(i+g-1>=T.length||T[i+g-1].c!==T[s].c))break;go(i+g,k+1,s)}return}
+   if(tw[k]==='*'){for(let g=0;g<=4;g++){if(g&&(i+g-1>=T.length||T[i+g-1].c!==T[s].c||LBL(T[i+g-1].w)))break;go(i+g,k+1,s)}return} // * springt nie über eine Wellenbezeichnung
    if(i<T.length&&T[i].c===T[s].c&&!(mask&&mask[i])&&wm(tw[k],T[i].w))go(i+1,k+1,s)};
   for(let s=0;s<T.length;s++)if(!(mask&&mask[s])&&wm(tw[0],T[s].w))go(s,0,s);
   const seen={};return res.filter(([a])=>seen[a]?false:(seen[a]=1))} // je Anfang eine Fundstelle
@@ -2170,8 +2188,8 @@ const FFT=(()=>{
  function variants(J,id,welle,seen){seen=seen||{};if(seen[id])return[];seen[id]=1;const r=J.regeln&&J.regeln[id];if(!r)return[];const out=[];
   if(r.je_welle&&welle&&r.je_welle[welle])out.push(...variants(J,r.je_welle[welle],welle,seen));
   if(r.wie)out.push(...variants(J,r.wie,welle,seen));
-  (r.varianten||(r.pflicht?[r]:[])).forEach(v=>out.push({pflicht:v.pflicht,sinn:v.sinn,richtung:v.richtung||r.richtung}));return out}
- function tryVar(v,P,J,welle){const T=P.toks;
+  (r.varianten||(r.pflicht?[r]:[])).forEach(v=>out.push({pflicht:v.pflicht,sinn:v.sinn,richtung:v.richtung||r.richtung,welle:v.welle}));return out}
+ function tryVar(v,P,J,welle){const T=P.toks; // welle: Platzhalter {welle}/{partner}
   for(let g=0;g<v.pflicht.length;g++){const s=v.sinn&&v.sinn.gruppe===g+1;
    if(!s){if(!terms(v.pflicht[g],J,welle).some(t=>find(t,T).length))return{ok:false,why:'Gruppe '+(g+1)+' fehlt'};continue}
    // Sinn: zuerst Gegenteil-Begriffe (sperren ihre Wörter), dann die übrigen; jede Fundstelle braucht die passende Verneinung
@@ -2182,14 +2200,27 @@ const FFT=(()=>{
    let good=0,bad=0;hit.forEach(([a,isG])=>{const c=P.cl[T[a].c],N=(c.neg%2===1)!==c.modal;(N===(ver!==isG))?good++:bad++});
    if(good<=bad)return{ok:false,why:'Sinn in Gruppe '+(g+1)+' passt nicht ('+good+' passend, '+bad+' umgekehrt)'}}
   return{ok:true}}
- // opts: welle = gewählte Welle (für {welle} und je_welle), dir = 'auf'/'ab': Richtung der Welle, auf die sich die Regel bezieht
- function check(J,id,text,opts){opts=opts||{};const welle=opts.welle?base(opts.welle).replace(/[^a-z0-9]+/g,' ').trim():'',vs=variants(J,id,opts.welle);
-  if(!vs.length)return{ok:false,why:'Regel nicht in der Liste'};const P={},why=[];
-  for(const v of vs){const sp=!!(v.richtung&&opts.dir&&v.richtung!==opts.dir);P[sp]=P[sp]||prep(text,sp);const r=tryVar(v,P[sp],J,welle);if(r.ok)return r;why.push(r.why)}
-  return{ok:false,why:why.join('; ')}}
+ // opts: welle = Welle der Regel (für {welle} und je_welle), partner = die anderen beteiligten Wellen ({partner}), bezug = Wellen, die die Regel
+ // außerdem nennt (z. B. 1 und 5 bei IMP-2, gelten nicht als unbeteiligt), gewaehlt = die Welle,
+ // die der Spieler gewählt hat, dir = 'auf'/'ab': Richtung der Welle, auf die sich die Regel bezieht.
+ // Nennt die Antwort die gewählte Welle nicht, ist sie der Satzgegenstand („nicht die längste“ bei Welle 1 = „Welle 1 nicht die längste“).
+ // Varianten mit „welle“ gelten nur, wenn die gewählte Welle dazu passt (Blickwinkel).
+ const lab=x=>base(x).replace(/[^a-z0-9]+/g,' ').trim();
+ function check(J,id,text,opts){opts=opts||{};const O={welle:opts.welle?lab(opts.welle):'',partner:(opts.partner||[]).map(lab)},vs=variants(J,id,opts.welle),g=opts.gewaehlt?lab(opts.gewaehlt):'';
+  if(!vs.length)return{ok:false,why:'Regel nicht in der Liste'};
+    // Blickwinkel-Varianten nur für die passende gewählte Welle und nur, wenn die Antwort keine unbeteiligte Welle nennt.
+  // Die gewählte Welle wird nur dann als Satzgegenstand ergänzt, wenn die Antwort sie nicht nennt und keine unbeteiligte Welle vorkommt.
+  const own=new Set([O.welle].concat(O.partner,g,(opts.bezug||[]).map(lab)).filter(Boolean).map(x=>x.split(' ')[0])),T0=prep(text,false).toks,fremd=T0.some(t=>LBL(t.w)&&!own.has(t.w));
+  if(g&&!fremd){const first=g.split(' ')[0];if(!T0.some(t=>t.w===first))text='Welle '+first+' '+text}
+  const P={},why=[];
+  for(const v of vs){if(v.welle&&(!g||fremd||!v.welle.some(x=>x==='{welle}'?g===O.welle:x==='{partner}'?O.partner.includes(g):lab(x)===g)))continue;
+   const sp=!!(v.richtung&&opts.dir&&v.richtung!==opts.dir);P[sp]=P[sp]||prep(text,sp);const r=tryVar(v,P[sp],J,O);if(r.ok)return r;why.push(r.why)}
+  return{ok:false,why:why.join('; ')||'keine passende Variante'}}
+ // „Anders gesagt“: derselbe Verstoß aus dem Blickwinkel der anderen beteiligten Welle (rolle 'haupt' = Welle der Regel gewählt, sonst 'partner')
+ const anders=(J,id,rolle)=>{const r=J.regeln&&J.regeln[id];if(!r)return'';return(r.anders&&r.anders[rolle])||(r.wie?anders(J,r.wie,rolle):'')};
  const einfach=(J,id)=>{const r=J.regeln&&J.regeln[id];return r?(r.einfach||(r.wie?einfach(J,r.wie):'')):''};
  const thema=(J,id)=>{const r=J.regeln&&J.regeln[id];return r&&r.thema||''};
- return{check,einfach,thema,prep};
+ return{check,einfach,thema,prep,anders};
 })();
 // FFT-END
 // Modus 5 (Fehler finden für Impuls, Zigzag und Flats): Alle Haupt- und Subpunkte sind beschriftet, genau ein Verstoß steckt im Count.
@@ -2256,16 +2287,17 @@ function findSub(key,lvl){
  else if(key==='db')for(let k=1;k<=5;k++)add('s:DB-2',k,{parts:5})
  else if(key==='de')for(let k=1;k<=5;k++)add('s:DE-2',k,{parts:5})
  // dz und tz: nur Hauptebene (Dehnung von X, Dreieck in W); die Muster der Teile stehen im Chart
+ mainOpts.slice().forEach(x=>(FFPS[x.id]||[]).forEach(p=>{if(P.waves.includes(p)&&x.id!=='W4-3')mainOpts.push({...x,wave:p,partner:true})})); // Regelauswahl auch bei der Partnerwelle
  const all=mainOpts.concat(opts).concat(key==='imp'?[{id:'W4-3',wave:'2'}]:[]),pickFrom=a=>a[Math.floor(Math.random()*a.length)];
  // Genau ein Verstoß (15.11.2026, Lenny): die ganze Runde (Haupt- und Subwellen) prüfen, bei weiteren Verstößen neu erzeugen
- let o,R,tries=0;
- for(;tries<4000;tries++){if(tries%200===0)o=(!opts.length||Math.random()<.4)?pickFrom(mainOpts):pickFrom(opts);
+ let o,R,tries=0;const mainO=mainOpts.filter(x=>!x.partner);
+ for(;tries<4000;tries++){if(tries%200===0)o=(!opts.length||Math.random()<.4)?pickFrom(mainO):pickFrom(opts);
   R=o.main?makeSubRound(P,{},o.id,true):makeSubRound(P,{[o.k]:o.plan},null,true);if(findOk(P,R,o))break}
- const id=o.id,m={w:null,r:null},wv=o.main?(R.vwave||o.wave):o.wave,alt=o.alt||null; // alt: gleichwertige Wellen (Alternation: 2 oder 4)
+ const id=o.id,m={w:null,r:null},wv=o.main?(R.vwave||o.wave):o.wave,inv=ffInv(P,R,o,wv); // inv: alle beteiligten Wellen, jede zählt als richtig
  // Beschriftung: alle Hauptpunkte (weiter außen) und alle Subpunkte jeder Welle, einschließlich des letzten ((5) bzw. (c))
  const pts=R.mp.map((i,q)=>({i,l:R.lab?R.lab[q]:P.labels[q],far:true}));
  Object.keys(R.spAll).forEach(q=>{const t=R.spAll[q],lab=t.length===5?(R.tri[q]?['(a)','(b)','(c)','(d)','(e)']:['(1)','(2)','(3)','(4)','(5)']):R.wxy[q]?['(w)','(x)','(y)']:['(a)','(b)','(c)'];t.forEach((i,j)=>pts.push({i,l:lab[j],sub:true}))});
- const solution=()=>'Gesucht war: Welle '+(alt?alt.join(' oder '):wv)+', Regel „'+mt(SR[id].name)+'“ ('+tag({rules:SR},id)+'). '+SR[id].ex;
+ const solution=()=>'Gesucht war: Welle '+inv.join(' oder ')+', Regel „'+mt(SR[id].name)+'“ ('+tag({rules:SR},id)+'). '+SR[id].ex;
  const FX={}; // aufgefüllte Regelauswahl je Welle
  const render=fb=>{
   let rl=m.w?[...new Set(all.filter(x=>x.wave===m.w||x.wave==='*').map(x=>x.id))]:[];
@@ -2287,22 +2319,25 @@ function findSub(key,lvl){
    if(matchMedia('(pointer:coarse)').matches){ta.onfocus=()=>ffTyping(true);ta.onblur=()=>setTimeout(()=>{if(document.activeElement!==ta)ffTyping(false)},150)}
    $('#fftgo').onpointerdown=e=>e.preventDefault(); // Tastatur bleibt offen, bis ausgewertet ist
    $('#fftgo').onclick=$('#go').onclick=()=>{if(canGo())goHard()};return}
-  $('#go').onclick=()=>{pathMark('find');const wOk=m.w===wv||!!(alt&&alt.includes(m.w)),rOk=m.r===id,ok=wOk&&rOk;
+  $('#go').onclick=()=>{pathMark('find');const wOk=inv.includes(m.w),rOk=m.r===id,ok=wOk&&rOk;
    if(ok){st.streak++;st.pts+=10;exSolved(P.key,0)}else st.streak=0;stats();
    render('<p class="'+(ok?'ok':'bad')+'">'+(ok?'Richtig! +10 Punkte':wOk?'Die Welle stimmt, die Regel nicht.':rOk?'Die Regel stimmt, die Welle nicht.':'Leider daneben.')+'</p><p>'+solution()+'</p><button class="p" id="nxt">Nächster Chart</button>');
    $('#nxt').onclick=()=>findSub(key,lvl);};
  };
  // Schwer: Freitext prüfen. Richtung der Bezugswelle: Hauptebene = erste Welle des Musters, Subwellen = die Welle, in der sie liegen.
  function canGo(){return hard?!!(m.w&&(m.txt||'').trim().length>=3):!!(m.w&&m.r)}
- const einf=()=>(hard&&FFT.einfach(FFJ,id))||mt(SR[id].ex),wtxt=()=>alt?alt.join(' oder '):wv;
+ const einf=()=>(hard&&FFT.einfach(FFJ,id))||mt(SR[id].ex),wtxt=()=>inv.join(' oder ');
+ // „Anders gesagt“ (15.11.2026): derselbe Verstoß aus dem Blickwinkel der anderen beteiligten Welle
+ const anders=()=>{if(inv.length<2)return'';const h=m.w===wv,t=FFT.anders(FFJ,id,h?'haupt':'partner');
+  return t?'<p class="mut">Anders gesagt: '+esc(t.split('{welle}').join(wv).split('{partner}').join(h?inv.slice(1).join(' bzw. '):m.w))+'</p>':''};
  const hsol=()=>'Gesucht war Welle '+wtxt()+'. <b>'+esc(einf())+'</b> <span class="mut">('+tag({rules:SR},id)+')</span>';
  function goHard(){
   const txt=(m.txt||'').trim();if(!txt||!m.w)return;pathMark('find');if(document.activeElement)document.activeElement.blur();
-  const k0=o.main?1:o.k,dir=R.pr[R.mp[k0]]>R.pr[R.mp[k0-1]]?'auf':'ab',wOk=m.w===wv||!!(alt&&alt.includes(m.w));
-  const ok=FFT.check(FFJ,id,txt,{welle:wv,dir}).ok,you='<p class="mut">Deine Antwort: „'+esc(txt)+'“</p>',nx='<button class="p" id="nxt">Nächster Chart</button>';
+  const k0=o.main?1:o.k,dir=R.pr[R.mp[k0]]>R.pr[R.mp[k0-1]]?'auf':'ab',wOk=inv.includes(m.w);
+  const ok=FFT.check(FFJ,id,txt,{welle:wv,partner:inv.slice(1),bezug:FFPS[id]||[],gewaehlt:m.w,dir}).ok,you='<p class="mut">Deine Antwort: „'+esc(txt)+'“</p>',nx='<button class="p" id="nxt">Nächster Chart</button>';
   const done=h=>{render(h);$('#nxt').onclick=()=>findSub(key,lvl)};
   if(!wOk){st.streak=0;stats();return done('<p class="bad">'+(ok?'Die Regel stimmt, die Welle nicht.':'Leider daneben.')+'</p>'+you+'<p>'+hsol()+'</p>'+nx)}
-  if(ok){st.streak++;st.pts+=10;stats();exSolved(P.key,0);return done('<p class="ok">Richtig erkannt! +10 Punkte</p>'+you+'<p>Die Regel in einfachen Worten: <b>'+esc(einf())+'</b> <span class="mut">('+tag({rules:SR},id)+')</span></p>'+nx)}
+  if(ok){st.streak++;st.pts+=10;stats();exSolved(P.key,0);return done('<p class="ok">Richtig erkannt! +10 Punkte</p>'+you+'<p>Die Regel in einfachen Worten: <b>'+esc(einf())+'</b> <span class="mut">('+tag({rules:SR},id)+')</span></p>'+anders()+nx)}
   // nicht sicher zugeordnet: richtige Regel zeigen, der Spieler entscheidet selbst; die Antwort wird für die Begriffslisten gemerkt
   const log=ffLogGet(),e={d:new Date().toISOString(),m:P.title,w:m.w,id,th:FFT.thema(FFJ,id)||SR[id].name,t:txt,e:'offen'};log.push(e);ffLogSet(log);
   const mark=v=>{const a=ffLogGet(),x=a.find(q=>q.d===e.d&&q.t===e.t);if(x){x.e=v;ffLogSet(a)}};
@@ -2311,7 +2346,7 @@ function findSub(key,lvl){
   $('#ffy').onclick=()=>{mark('meinte');st.pts+=5;stats();done(ask+'<p class="ok">Halbe Punkte: +5</p>'+nx)};
   $('#ffn').onclick=()=>{mark('daneben');st.streak=0;stats();done(ask+'<p class="mut">Keine Punkte. Schau dir die Regel oben noch einmal an.</p>'+nx)};
  }
- window.FFS={id,wv,alt,hard,P,R,o,tries}; // Testzugriff (tests/fehler-schwer-ui.js): gesuchte Regel und Welle der laufenden Runde
+ window.FFS={id,wv,inv,hard,P,R,o,tries}; // Testzugriff (tests/fehler-schwer-ui.js): gesuchte Regel und Welle der laufenden Runde
  render();
 }
 // ---- 5) Lernbereich: zeigt lernen/regelwerk-lernversion.md (die menschenlesbare Fassung des Regelwerks) 1:1 als Seite.

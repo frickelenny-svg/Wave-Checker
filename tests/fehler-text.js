@@ -152,10 +152,68 @@ const C = [
     no: ['Welle 2 ist dreiteilig', 'Welle 2 ist zu tief', 'Welle 2 ist kein Impuls'] }
 ];
 
+// Seit 15.11.2026: beteiligte Wellen. Partner je Regel wie ffInv in index.html (für die Testrunden fest gewählt).
+const PART = { 'IMP-1': ['1'], 'IMP-2': ['1'], 'IMP-3': ['1'], 'DIAG-2': ['1'], 'ZZ-2': ['A'], 'FR-2': ['A'], 'FE-2': ['A'], 'FRU-2': ['A'], 'ZZ-3': ['A'], 'FR-3': ['A'], 'FE-3': ['A'], 'FRU-3': ['A'],
+  'DL-4': ['1'], 'DL-8': ['3'], 'DB-10': ['3'], 'DB-4': ['1'], 'DE-9': ['3'], 'WX-2': ['W'], 'WX-2b': ['Y'], 'W4-3': ['2'] };
+const partOf = (id, w) => id === 'DRE-7' || id === 'DRE-8' ? ['ABCDE'['ABCDE'.indexOf(w) - 1]] : id === 'DE-3' ? [w === '5' ? '3' : '1'] : (PART[id] || []);
+const BEZ = { 'IMP-2': ['1', '5'], 'DL-4': ['1', '5'] }; // wie FFPS in index.html
+C.forEach(c => { c.o = { partner: partOf(c.id, c.o.welle), bezug: BEZ[c.id] || PART[c.id] || [], gewaehlt: c.o.welle, ...c.o }; });
+// Blickwinkel: gewählt ist die Partnerwelle bzw. die Welle der Regel ohne Nummer im Text. Je Blickwinkel mindestens 3 richtige.
+const PV = [
+  { id: 'DL-4', o: { welle: '3', gewaehlt: '1' }, ok: ['nicht die langste', 'nicht die längste', 'zu kurz', 'kürzer als Welle 3', 'Welle 3 ist länger als Welle 1', 'sie müsste die längste sein'], no: ['die längste', 'länger als Welle 3', 'Welle 1 ist die längste'] },
+  { id: 'DL-4', o: { welle: '3', gewaehlt: '3' }, ok: ['zu lang', 'länger als Welle 1', 'Welle 1 muss die längste sein', 'langer als Welle 1', 'Welle 1 ist nicht die laengste'], no: ['kürzer als Welle 1', 'Welle 1 ist die längste'] },
+  { id: 'IMP-1', o: { welle: '2', gewaehlt: '1' }, ok: ['Ihr Start wird unterschritten', 'Welle 2 fällt unter den Start von Welle 1', 'wird komplett zurückgelaufen', 'Der Anfang wird von Welle 2 gebrochen', 'wird zu mehr als 100 % korrigiert'], no: ['wird nicht komplett zurückgelaufen', 'ist zu kurz', 'Ihr Start bleibt unberührt'] },
+  { id: 'IMP-1', o: { welle: '2', gewaehlt: '2' }, ok: ['zu tief', 'geht unter den Start von Welle 1', 'korrigiert mehr als 100 % von Welle 1', 'ist zu lang, mehr als 100 %'], no: ['bleibt über dem Start von Welle 1', 'ist zu kurz'] },
+  { id: 'IMP-2', o: { welle: '3', partner: ['1'], gewaehlt: '1' }, ok: ['länger als Welle 3', 'Welle 3 ist kürzer als diese', 'größer als die dritte Welle', 'Welle 3 darf nicht kürzer sein als Welle 1', 'langer als Welle 3'], no: ['kürzer als Welle 3', 'Welle 3 ist länger', 'ist die längste'] },
+  { id: 'IMP-2', o: { welle: '3', partner: ['5'], gewaehlt: '3' }, ok: ['zu kurz', 'die kürzeste', 'kurzer als Welle 1 und 5', 'die kurzeste der Impulswellen'], no: ['die längste', 'nicht die kürzeste'] },
+  { id: 'IMP-3', o: { welle: '4', dir: 'auf', gewaehlt: '1' }, ok: ['wird von Welle 4 überlappt', 'wird uberlappt', 'Welle 4 ragt in ihren Bereich', 'ihr Preisbereich wird von der 4 berührt', 'Überlappung mit Welle 4'], no: ['wird nicht überlappt', 'Welle 2 überlappt Welle 1', 'ist zu lang'] },
+  { id: 'IMP-3', o: { welle: '4', dir: 'auf', gewaehlt: '4' }, ok: ['überlappt', 'uberlappt Welle 1', 'ragt in das Gebiet von Welle 1', 'fällt unter das Hoch von Welle 1'], no: ['überlappt nicht', 'Welle 4 überlappt Welle 2', 'ist zu kurz'] },
+  { id: 'DIAG-2', o: { welle: '4', dir: 'auf', gewaehlt: '1' }, ok: ['wird nicht überlappt', 'Welle 4 erreicht ihren Bereich nicht', 'müsste von Welle 4 überlappt werden', 'wird von der 4 nicht beruhrt'], no: ['wird überlappt', 'Welle 4 überlappt Welle 1'] },
+  { id: 'DIAG-2', o: { welle: '4', dir: 'auf', gewaehlt: '4' }, ok: ['überlappt nicht', 'bleibt über dem Hoch von Welle 1', 'müsste Welle 1 überlappen'], no: ['überlappt', 'überlappt Welle 1'] },
+  { id: 'ZZ-2', o: { welle: 'B', gewaehlt: 'A' }, ok: ['Der Start von A wird überschritten', 'ihr Startpunkt wird gebrochen', 'wird komplett zurückgelaufen', 'Welle B geht über den Anfang von A', 'wird von B mehr als 100 % korrigiert'], no: ['ihr Start wird nicht überschritten', 'ist zu kurz', 'wird nur angenähert'] },
+  { id: 'ZZ-2', o: { welle: 'B', gewaehlt: 'B' }, ok: ['zu hoch', 'geht über den Start von A', 'retraced mehr als 100 % von A', 'ist länger als A'], no: ['bleibt unter dem Start von A', 'ist zu kurz'] },
+  { id: 'FE-2', o: { welle: 'B', gewaehlt: 'A' }, ok: ['Der Start von A wird nicht überschritten', 'ihr Startpunkt wird von B nicht erreicht', 'wird nicht komplett zurückgelaufen', 'Welle B geht nicht über den Anfang von A'], no: ['ihr Start wird überschritten', 'wird komplett zurückgelaufen'] },
+  { id: 'FE-2', o: { welle: 'B', gewaehlt: 'B' }, ok: ['zu kurz', 'bleibt unter dem Start von A', 'kommt nicht über den Start von A', 'ist kürzer als A'], no: ['geht über den Start von A', 'ist länger als A'] },
+  { id: 'FR-2', o: { welle: 'B', gewaehlt: 'A' }, ok: ['ihr Start wird überschritten', 'Welle B geht über den Anfang von A', 'wird von B komplett zurückgelaufen'], no: ['ihr Start wird nicht überschritten'] },
+  { id: 'FR-3', o: { welle: 'C', dir: 'ab', gewaehlt: 'A' }, ok: ['ihr Tief wird nicht unterschritten', 'Welle C fällt nicht unter A', 'ihr Ende wird von C nicht übertroffen'], no: ['ihr Tief wird unterschritten'] },
+  { id: 'FRU-2', o: { welle: 'B', gewaehlt: 'A' }, ok: ['ihr Start wird nicht überschritten', 'Welle B erreicht den Anfang von A nicht', 'wird nicht komplett korrigiert'], no: ['ihr Start wird überschritten'] },
+  { id: 'ZZ-3', o: { welle: 'C', dir: 'ab', gewaehlt: 'A' }, ok: ['ihr Ende wird nicht unterschritten', 'Welle C fällt nicht unter das Tief von A', 'ihr Tief wird nicht übertroffen', 'Das Ende von A wird von C nicht erreicht'], no: ['ihr Ende wird unterschritten', 'ihr Tief wird übertroffen'] },
+  { id: 'ZZ-3', o: { welle: 'C', dir: 'ab', gewaehlt: 'C' }, ok: ['zu kurz', 'endet nicht unter dem Tief von A', 'bildet kein neues Tief', 'erreicht das Tief von A nicht'], no: ['endet unter dem Tief von A', 'bildet ein neues Tief'] },
+  { id: 'FE-3', o: { welle: 'C', dir: 'ab', gewaehlt: 'A' }, ok: ['ihr Tief wird nicht unterschritten', 'Welle C fällt nicht unter A', 'ihr Ende wird von C nicht übertroffen'], no: ['ihr Tief wird unterschritten'] },
+  { id: 'FRU-3', o: { welle: 'C', dir: 'ab', gewaehlt: 'A' }, ok: ['ihr Tief wird unterschritten', 'Welle C fällt unter das Tief von A', 'ihr Ende wird übertroffen', 'das Tief von A wird gebrochen'], no: ['ihr Tief wird nicht unterschritten', 'ihr Tief bleibt'] },
+  { id: 'FRU-3', o: { welle: 'C', dir: 'ab', gewaehlt: 'C' }, ok: ['zu tief', 'bildet ein neues Tief', 'fällt unter das Tief von A', 'zu lang'], no: ['bildet kein neues Tief', 'endet über dem Tief von A'] },
+  { id: 'DRE-7', o: { welle: 'D', gewaehlt: 'C' }, ok: ['Welle D ist länger als C', 'kürzer als D', 'die nächste Welle ist länger', 'zu kurz im Vergleich zu D', 'D ist größer als diese Welle'], no: ['länger als D', 'Welle D ist kürzer als C', 'die nächste Welle ist kürzer'] },
+  { id: 'DRE-7', o: { welle: 'D', gewaehlt: 'D' }, ok: ['zu lang', 'länger als C', 'nicht kürzer als C', 'grosser als die vorherige Welle'], no: ['kürzer als C', 'zu kurz'] },
+  { id: 'DRE-8', o: { welle: 'C', gewaehlt: 'B' }, ok: ['Welle C ist kürzer als B', 'länger als C', 'die nächste Welle ist kürzer', 'zu lang im Vergleich zu C'], no: ['kürzer als C', 'die nächste Welle ist länger'] },
+  { id: 'DRE-8', o: { welle: 'C', gewaehlt: 'C' }, ok: ['zu kurz', 'kürzer als B', 'nicht länger als B', 'kleiner als die vorherige'], no: ['länger als B', 'zu lang'] },
+  { id: 'DE-3', o: { welle: '5', gewaehlt: '3' }, ok: ['Welle 5 ist kürzer als Welle 3', 'länger als Welle 5', 'die nächste Antriebswelle ist kürzer', 'Welle 5 müsste länger sein als diese'], no: ['kürzer als Welle 5', 'die nächste Welle ist länger'] },
+  { id: 'DE-3', o: { welle: '5', gewaehlt: '5' }, ok: ['zu kurz', 'kürzer als Welle 3', 'nicht länger als Welle 3'], no: ['länger als Welle 3'] },
+  { id: 'DL-8', o: { welle: '5', gewaehlt: '3' }, ok: ['kürzer als Welle 5', 'zu kurz', 'Welle 5 ist länger als Welle 3', 'Welle 5 müsste kürzer als Welle 3 sein'], no: ['länger als Welle 5', 'Welle 5 ist kürzer als Welle 3'] },
+  { id: 'DL-8', o: { welle: '5', gewaehlt: '5' }, ok: ['zu lang', 'länger als Welle 3', 'nicht kürzer als Welle 3'], no: ['kürzer als Welle 3'] },
+  { id: 'DB-10', o: { welle: '5', gewaehlt: '3' }, ok: ['kürzer als Welle 5', 'zu kurz', 'Welle 5 ist größer als Welle 3'], no: ['länger als Welle 5'] },
+  { id: 'DB-4', o: { welle: '3', gewaehlt: '1' }, ok: ['kürzer als Welle 3', 'zu kurz', 'Welle 3 ist länger als Welle 1', 'Welle 3 müsste kürzer als Welle 1 sein'], no: ['länger als Welle 3', 'Welle 3 ist kürzer als Welle 1'] },
+  { id: 'DB-4', o: { welle: '3', gewaehlt: '3' }, ok: ['zu lang', 'länger als Welle 1', 'nicht kürzer als Welle 1'], no: ['kürzer als Welle 1'] },
+  { id: 'DE-9', o: { welle: '4', gewaehlt: '3' }, ok: ['wird von Welle 4 komplett zurückgelaufen', 'wird zu mehr als 99,9 % korrigiert', 'wird von der 4 vollständig retraced', 'Welle 4 retraced mehr als 99,9 % von Welle 3'], no: ['wird zu weniger als 99 % korrigiert', 'ist zu kurz'] },
+  { id: 'DE-9', o: { welle: '4', gewaehlt: '4' }, ok: ['zu tief', 'retraced mehr als 99,9 % von Welle 3', 'ist länger als Welle 3', 'korrigiert Welle 3 komplett'], no: ['retraced weniger als 99 % von Welle 3', 'ist kürzer als Welle 3'] },
+  { id: 'WX-2', o: { welle: 'X', gewaehlt: 'W' }, ok: ['wird komplett zurückgelaufen', 'ihr Start wird von X überschritten', 'wird zu mehr als 100 % korrigiert', 'Welle X läuft über den Start von W'], no: ['wird zu weniger als 100 % korrigiert', 'ist zu kurz'] },
+  { id: 'WX-2', o: { welle: 'X', gewaehlt: 'X' }, ok: ['zu lang', 'retraced mehr als 100 % von W', 'ist länger als W', 'geht über den Start von W'], no: ['retraced weniger als 100 % von W', 'ist kürzer als W'] },
+  { id: 'WX-2', o: { welle: 'X1', gewaehlt: 'X1' }, ok: ['zu lang', 'retraced mehr als 100 % von W', 'ist länger als Welle W'], no: ['ist kürzer als W'] },
+  { id: 'WX-2b', o: { welle: 'X2', gewaehlt: 'Y' }, ok: ['wird komplett zurückgelaufen', 'wird zu mehr als 100 % korrigiert', 'Welle X läuft über den Start von Y'], no: ['wird zu weniger als 100 % korrigiert'] },
+  { id: 'WX-2b', o: { welle: 'X2', gewaehlt: 'X2' }, ok: ['zu lang', 'retraced mehr als 100 % von Y', 'ist länger als Y'], no: ['ist kürzer als Y'] },
+  { id: 'W4-3', o: { welle: '4', gewaehlt: '2' }, ok: ['dasselbe Muster wie Welle 4', 'beide sind Zigzags', 'keine Alternation mit Welle 4', 'Welle 4 ist genauso ein Flat'], no: ['ein anderes Muster als Welle 4', 'die Wellen 2 und 4 alternieren'] },
+  { id: 'W4-3', o: { welle: '4', gewaehlt: '4' }, ok: ['gleiches Muster wie Welle 2', 'es fehlt die Alternation', 'wie Welle 2 ein Zigzag'], no: ['anders als Welle 2'] }
+];
+PV.forEach(c => { c.o = { partner: partOf(c.id, c.o.welle), bezug: BEZ[c.id] || PART[c.id] || [], ...c.o }; c.pv = true; }); C.push(...PV);
+// je Regel mit mehreren Wellen und je Blickwinkel mindestens 3 richtige Formulierungen
+const PERS = {}; PV.forEach(c => { const k = c.id + ' ' + c.o.gewaehlt; PERS[k] = (PERS[k] || 0) + c.ok.length; });
 let bad = 0, n = 0; const ids = new Set();
+for (const id of Object.keys(PART).concat('DRE-7', 'DRE-8', 'DE-3')) {
+  const s = C.find(c => c.id === id), w = s.o.welle, wsAll = [w].concat(partOf(id, w));
+  for (const g of wsAll) { const k = id + ' ' + g, ok = (PERS[k] || 0) + C.filter(c => !c.pv && c.id === id && c.o.gewaehlt === g).reduce((a, c) => a + c.ok.length, 0);
+    if (ok < 3) { bad++; console.log('ZU WENIG FÜR BLICKWINKEL ' + k + ' (' + ok + ')'); } } }
 for (const c of C) {
   ids.add(c.id);
-  if (c.ok.length < 5 || c.no.length < 3) { bad++; console.log('ZU WENIG BEISPIELE ' + c.id); }
+  if (c.pv ? c.ok.length < 3 : (c.ok.length < 5 || c.no.length < 3)) { bad++; console.log('ZU WENIG BEISPIELE ' + c.id + ' ' + c.o.gewaehlt); }
   for (const t of c.ok) { n++; const r = FFT.check(J, c.id, t, c.o); if (!r.ok) { bad++; console.log('NICHT ERKANNT  ' + c.id + ' ' + JSON.stringify(c.o) + ': „' + t + '“ (' + r.why + ')'); } }
   for (const t of c.no) { n++; const r = FFT.check(J, c.id, t, c.o); if (r.ok) { bad++; console.log('FÄLSCHLICH OK  ' + c.id + ' ' + JSON.stringify(c.o) + ': „' + t + '“'); } }
 }

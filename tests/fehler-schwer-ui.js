@@ -27,13 +27,14 @@ const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, 
     // Menü: Schwer wählen und merken
     await page.evaluate(() => pick('find')); await tap('[data-fl="schwer"]');
     if (await page.evaluate(() => localStorage.getItem('waveChecker.findLvl')) !== 'schwer') fail('Schwer wird im Menü nicht gemerkt'); checks++;
-    const seen = { ok: 0, meinte: 0, daneben: 0, welle: 0, enter: 0 };
+    const seen = { ok: 0, meinte: 0, daneben: 0, welle: 0, enter: 0, partner: 0, anders: 0 };
     for (let r = 0; r < N * 4; r++) {
       const kind = ['ok', 'meinte', 'daneben', 'welle'][r % 4];
       await page.evaluate(() => pick('find')); await tap('button[onclick*="go(\'find\',\'imp\')"]'); await page.waitForSelector('#svg');
       const S = await page.evaluate(() => FFS); if (!S.hard) { fail('Runde läuft nicht im Schwer-Modus'); break; }
       if (await page.$('#fft')) fail('Textfeld erscheint schon vor der Wahl der Welle');
-      const wave = kind === 'welle' ? ['1', '2', '3', '4', '5'].find(w => w !== S.wv && !(S.alt || []).includes(w)) : S.wv;
+      const wave = kind === 'welle' ? ['1', '2', '3', '4', '5'].find(w => !S.inv.includes(w)) : S.inv[(r >> 2) % S.inv.length]; // jede beteiligte Welle zählt (seit 15.11.2026)
+      if (wave !== S.wv && kind !== 'welle') seen.partner++;
       await tap('[data-w="' + wave + '"]');
       if (!(await page.$('#fft'))) { fail('kein Textfeld nach der Wahl der Welle'); continue; }
       if (!(await page.evaluate(() => document.querySelector('#go').disabled))) fail('Auswerten ist ohne Text schon frei');
@@ -57,7 +58,8 @@ const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, 
       await page.waitForTimeout(300); const fb = await fbText(); checks++;
       if (!fb) { fail('keine Rückmeldung nach dem Auswerten (' + kind + ')'); continue; }
       if (touch && await page.evaluate(() => document.querySelector('#view').classList.contains('fft-typing'))) fail('Chart bleibt nach dem Auswerten kompakt');
-      if (kind === 'ok') { if (!/Richtig erkannt! \+10 Punkte/.test(fb) || (await pts()) !== p0 + 10) fail('erkannte Antwort „' + txt + '“ (' + S.id + '): ' + fb.slice(0, 90)); else seen.ok++; }
+      if (kind === 'ok') { if (!/Richtig erkannt! \+10 Punkte/.test(fb) || (await pts()) !== p0 + 10) fail('erkannte Antwort „' + txt + '“ (' + S.id + ', Welle ' + wave + '): ' + fb.slice(0, 90)); else seen.ok++;
+        if (S.inv.length > 1) { if (!/Anders gesagt: /.test(fb) || /{(welle|partner)}/.test(fb)) fail('kein „Anders gesagt“ bei ' + S.id + ': ' + fb.slice(0, 160)); else seen.anders++; } }
       if (kind === 'welle') { if (!/Die Regel stimmt, die Welle nicht\.|Leider daneben\./.test(fb) || (await pts()) !== p0) fail('falsche Welle: ' + fb.slice(0, 90)); else seen.welle++; }
       if (kind === 'meinte' || kind === 'daneben') {
         if (!/Das konnte ich nicht sicher zuordnen\./.test(fb) || !(await page.$('#ffy')) || !(await page.$('#ffn'))) { fail('nicht erkannte Antwort ohne Rückfrage: ' + fb.slice(0, 90)); continue; }
@@ -78,7 +80,7 @@ const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, 
     await page.evaluate(() => { location.hash = ''; home(); });
     if (!touch) { await page.keyboard.press('Shift+Alt+KeyF'); await page.waitForTimeout(150); if ((await page.evaluate(() => (document.querySelector('#view h2') || {}).textContent)) !== 'Nicht erkannte Antworten') fail('Umschalt+Alt+F öffnet die Übersicht nicht'); checks++; }
     if (errs.length) fail('Fehler im Browser: ' + [...new Set(errs)].join(' | '));
-    for (const k of Object.keys(seen)) if (!seen[k]) fail('Fall „' + k + '“ nie geprüft');
+    for (const k of Object.keys(seen)) if (!seen[k] && k !== 'partner' && k !== 'anders') fail('Fall „' + k + '“ nie geprüft');
     console.log(name + ': ' + checks + ' Prüfungen, ' + JSON.stringify(seen));
     await ctx.close();
   }

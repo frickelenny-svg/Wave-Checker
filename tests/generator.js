@@ -17,7 +17,7 @@ const server = http.createServer((q, s) => { let p = decodeURIComponent(q.url.sp
   for (const [name, vp] of [['Handy', { width: 390, height: 844 }], ['PC', { width: 1366, height: 800 }]]) {
     const page = await browser.newPage({ viewport: vp }), errs = []; page.on('pageerror', e => errs.push(e.message));
     await page.goto('http://localhost:' + PORT + '/'); await page.evaluate(() => { localStorage.setItem('waveChecker.guide', '1'); sessionStorage.setItem('waveChecker.intro', '1'); }); await page.reload();
-    const r = await page.evaluate(N => {
+    const r = await page.evaluate(async N => { if (!(await ffLoad())) return { n: 0, bad: 1, fails: ['Begriffsliste nicht geladen'] }; // sonst erzeugt Schwer keine Runde
       const out = { n: 0, fails: [] }, F = m => { if (out.fails.length < 40) out.fails.push(m); out.bad = (out.bad || 0) + 1; }, keys = Object.keys(PAT);
       const triOk = (k, f) => { const Q = PAT[k], u = norm(Q, f); return (!Q.struct || Q.struct(u)) && !hardFails(Q, u).length; };
       // Labels: kein „0“, alles im Bild
@@ -38,7 +38,11 @@ const server = http.createServer((q, s) => { let p = decodeURIComponent(q.url.sp
       for (const k of keys) for (let i = 0; i < N; i++) { out.n++; findSub(k, i % 2 ? 'schwer' : 'leicht'); const S = FFS, f = roundFails(S.P, S.R), w = findWant(S.o);
         cnt[w] = (cnt[w] || 0) + 1;
         if (!findOk(S.P, S.R, S.o)) F('Fehler finden ' + k + ', gewollt ' + w + ', gefunden ' + f.join(' '));
-        if (i < 6) labs('Fehler finden ' + k); }
+        if (i < 6) labs('Fehler finden ' + k);
+        // Leicht: bei jeder beteiligten Welle steht die gesuchte Regel in der Auswahl, und sie zählt als richtig (seit 15.11.2026)
+        if (i % 2 === 0 && i < 80) for (const w of S.inv) { const bw = document.querySelector('[data-w="' + w + '"]'); if (!bw) { F('Leicht ' + k + ': keine Welle ' + w + ' (' + S.id + ', beteiligt ' + S.inv + ')'); continue; } bw.click(); const b = document.querySelector('[data-r="' + CSS.escape(S.id) + '"]');
+          if (!b) { F('Leicht ' + k + ': Regel ' + S.id + ' fehlt in der Auswahl bei Welle ' + w); continue; }
+          if (w === S.inv[S.inv.length - 1]) { b.click(); document.querySelector('#go').click(); if (!/Richtig!/.test(document.querySelector('#fb').textContent)) F('Leicht ' + k + ': Welle ' + w + ' mit ' + S.id + ' nicht richtig'); } } }
       // 3) regelkonforme Charts
       for (const k of keys) for (let i = 0; i < N; i++) { out.n += 2; const P = PAT[k], R = makeRound(P, null), u = norm(P, R.piv.map(j => R.pr[j])), f = hardFails(P, u);
         if (f.length || (P.struct && !P.struct(u))) F('makeRound ' + k + ': ' + f);
