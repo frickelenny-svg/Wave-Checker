@@ -32,7 +32,21 @@ Veröffentlicht wird über `main` (GitHub Pages). Gestaltungsregeln: `DESIGN.md`
   `visualViewport`), rückt nach oben, Leiste unten weicht einem Knopf unter dem Feld, damit die Tastatur nichts verdeckt.
 - Tests: `node tests/fehler-text.js` (ohne Browser: je Regel mindestens 5 richtige und 3 falsche Formulierungen, vage Antworten,
   jede Regel aus `findSub` in der Datei) und `node tests/fehler-schwer-ui.js [Runden]` (Playwright, Handy/iPad/PC, Testzugriff `FFS`
-  = gesuchte Regel und Welle). Nach jeder Änderung an der Begriffsdatei `tests/fehler-text.js` laufen lassen.
+  = gesuchte Regel, Welle, Runde R, Option o, Versuche tries). Nach jeder Änderung an der Begriffsdatei `tests/fehler-text.js` laufen lassen.
+
+### Generator: genau ein Verstoß (seit 15.11.2026)
+- Beschriftete Teilmuster (Muster der Wellen 2/4 im Impuls, W/X/Y/Z bei Double Zigzag und Dreifacher Form) kommen aus den echten
+  Generatoren (`partF(name)` über `pgFr`, wie in „Wie geht es weiter?“). Dreieck = kontrahierend nach DRE-7 (|A| > |B| > |C| > |D| > |E|),
+  die Flats nach FR/FE/FRU. Früher war das Dreieck fest `[0,1,.5,.85,.65,1]` ((e) länger als (d), Verstoß gegen DRE-7).
+- `roundFails(P,R)` prüft eine Runde komplett: Hauptebene (auch mit dem äußersten Punkt jeder Welle, z. B. Welle A eines Dreiecks
+  in X gegen WX-2), Teilzahl je Welle, fünfteilige Wellen gegen die Impulsregeln, beschriftete Teilmuster gegen ihre eigenen Regeln
+  sowie DRE-1/W4-3 aus den Namen. `findSub` erzeugt neu, bis nur der gewollte Verstoß übrig ist (`findOk`/`findWant`; erlaubt sind nur
+  die Folgeregeln der Diagonalen aus `P.implied`). Gilt für Leicht und Schwer.
+- Beschriftung in allen Modi: kein „0“ am Start, im Chart ein kleiner Marker, im Text „Start“ (`L0`). Labels rücken am Chartrand nach
+  innen (`labX`), damit z. B. „Y Regular Flat“ nicht abgeschnitten wird.
+- Test: `node tests/generator.js [Charts je Muster]` (Playwright): Dreiecke aller Modi gegen DRE-7/DRE-8 (auch die Musterbäume von
+  „Wie geht es weiter?“), jede Fehler-Aufgabe mit genau einem Verstoß, regelkonforme Charts ohne Verstoß, kein „0“, Labels im Bild.
+  Mit 250 rund 30.000 geprüfte Charts und Teile. Nach Änderungen an Generatoren laufen lassen.
 
 ## „Wie geht es weiter?“ (Funktion `progn`)
 Großer, verschiebbarer und zoombarer Kerzenchart in vier Zeiteinheiten (W, D, 4h, 1h), drei Wellengrößen:
