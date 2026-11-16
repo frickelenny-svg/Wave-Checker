@@ -103,7 +103,7 @@ groß ①, mittel (1), klein 1.
 ### Schwer: Werkzeuge Zeichnen und Auswählen (Stand 13.11.2026, `FR.md`)
 Werkzeugleiste links am Chart unter den Zeiteinheiten (siehe DESIGN.md, Werkzeugleiste). Kein Werkzeug tut, was das andere tut.
 - **Zeichnen** (`'draw'`, Fadenkreuz, Mauszeiger crosshair): Standard. Jeder Tipp setzt einen Punkt, auch den Start einer neuen
-  Zählung. Tipp auf einen bestehenden Punkt: neuer Punkt genau auf diesem Pivot (gemeinsamer Pivot). Punkte werden hier nie
+  Zählung. Tipp auf oder neben einen bestehenden Punkt: neuer Punkt genau auf diesem Pivot (gemeinsamer Pivot). Punkte werden hier nie
   ausgewählt, verschoben oder gelöscht; Ziehen verschiebt nur den Chart.
 - **Auswählen** (`'sel'`, Pfeil): Tipp auf einen Punkt wählt ihn und seine Zählung (mehrere auf einem Pivot: kleinste zuerst, erneut
   tippen wechselt). Dann verschieben (Ziehen), umbenennen, löschen (Mülleimer, Entf/Rücktaste), Welle für eine Unterteilung wählen.
@@ -126,9 +126,31 @@ Werkzeugleiste links am Chart unter den Zeiteinheiten (siehe DESIGN.md, Werkzeug
   hält den Chart an seiner Stelle im Bild (Scroll-Ausgleich), damit nichts unter dem Finger verrutscht. Ein Punkt links vom (oder auf der Zeit des) vorherigen Punkts der
   Zählung wird nicht gesetzt: Hinweis „Punkte bitte von links nach rechts setzen“. Früher begann so still eine neue Zählung.
 - Doppelt ausgelöste Tipps (gleiche Stelle, < 350 ms) zählen einmal.
-- Im sichtbaren Teil rastet ein neuer Punkt auf Hoch bzw. Tief der nächsten Kerze ein (`snap`, bei laufender Zählung nur rechts
-  vom letzten Punkt), in der Zukunftszone frei.
-  Fangradius für Punkte: Finger 28 px, Maus 12 px.
+- Einrasten: siehe „Schwer: Einrasten auf Pivots“. Fangradius zum Auswählen eines Punkts: Finger 28 px, Maus 12 px.
+
+### Schwer: Einrasten auf Pivots (seit 16.11.2026, `snapPt`)
+Beim Setzen (Zeichnen) und beim Ziehen (Auswählen) springt der Punkt automatisch auf ein echtes Pivot. Reihenfolge in `snapPt(px,py,o)`:
+1. Bestehende Punkte im Fangbereich (gemeinsame Pivots, in der Zukunftszone die Prognose-Punkte) haben Vorrang.
+2. Zukunftszone: frei (keine Kerzen). Nur direkt an der Grenze rastet noch das letzte Pivot des sichtbaren Teils ein.
+3. Wendehoch bzw. Wendetief der Kerzen der aktuellen Zeiteinheit im Fangbereich (Handy/iPad 40 px, PC 15 px). Wendepunkt = Kerze,
+   die in einem Fenster von ±K Kerzen das Extrem ist (K mindestens 1, mindestens ca. 18 px am Handy bzw. 8 px am PC). Markante
+   Wendepunkte (über eine breite Strecke das Extrem) bekommen einen Bonus bis 27 px gegenüber kleinen Neben-Wendepunkten.
+   Flache Spitzen (mehrere Kerzen mit demselben Extrem, im erzeugten Kurs häufig): zuerst die Stunde, die am Extrem schließt,
+   dann die nächste am Finger. Gespeichert wird die Stunde des Extrems (`t`) und sein Preis.
+4. Sonst Hoch bzw. Tief der Kerze unter dem Finger.
+- Richtung (`wantOf`): Aus den letzten beiden Punkten der Zählung folgt, ob ein Hoch (`'h'`) oder Tief (`'l'`) dran ist; dann rastet
+  der Punkt nur auf diese Art ein. Direkt nach dem Start ist die Richtung nur bevorzugt (`'H'`/`'L'`, Bonus 14 px), abgeleitet aus
+  `hl` des Startpunkts (beim Einrasten gemerkt: Hoch oder Tief). Ganz ohne Anhalt: das nächste von beiden.
+- Ziehen: Der Punkt folgt dem Finger (am Handy 34 px darüber), ein Ring (`SNAPR`, `.pgsnap`) zeigt das Ziel, beim Loslassen springt der
+  Punkt dorthin. Wechselt das Ziel, vibriert das Handy kurz (`buzz`, falls verfügbar); ebenso beim Setzen per Tipp.
+- PC: Alt gedrückt = frei platzieren, ohne Einrasten (auch beim Ziehen).
+- Zeichnen hat keinen eigenen Weg mehr für „Tipp auf bestehenden Punkt“: Das erledigt Schritt 1 (Punkte der laufenden Zählung und
+  Punkte links vom letzten Punkt ausgenommen).
+- Test: `node tests/einrasten.js [Runden]` (Playwright, Handy/iPad/PC): grobes Tippen mit zufälligem Versatz (Finger bis 22 px, Maus
+  bis 9 px) muss in mindestens 95 % der Fälle genau den Preis des gewünschten Hochs/Tiefs treffen (Stand 16.11.: Handy und iPad
+  rund 97 %, PC 100 %), dazu Ziehen mit Ring, Zukunftszone, Prognose-Punkte und Alt. Gewertet werden nur Wellenenden, die in der
+  Zeiteinheit wirklich das Extrem ihrer Kerze und der Nachbarkerzen sind (im Wochen-Chart läuft sonst z. B. eine spätere Teilwelle
+  darüber hinaus). `DBG=1` zeigt jeden Fehlgriff. Testzugriff: `PGS.snapAt(px,py,o)`, `PGS.ring()`.
 
 ### Schwer: feste Reihenfolge der Wellengrößen
 Die Größe wird beim Start einer Zählung festgelegt und in `FR.cm[c] = {lev, par, pk}` gespeichert (nicht mehr erraten):
