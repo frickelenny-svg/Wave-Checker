@@ -17,6 +17,22 @@ Veröffentlicht wird über `main` (GitHub Pages). Gestaltungsregeln: `DESIGN.md`
   verschluckt der Test-Browser den nächsten Tipp (Finger vor dem Loslassen ruhen lassen); der Click eines Touch-Tipps kommt verzögert.
 - Seit 18.11.2026 braucht das installierte Edge (Version 157) Playwright ab 1.65; ältere Versionen starten es nicht mehr.
 
+## Punkte ziehen, alle Modi (seit 18.11.2026)
+Gilt für „Chart durchzählen“, „Muster erkennen – Schwer“, Tagesaufgabe (`bindPoints`), „Subwellen zählen“ (`sub`) und
+„Wie geht es weiter?“ Leicht (Prognose-Punkte) und Schwer (Werkzeug Auswählen).
+- Ein gezogener Punkt behält immer sein Label, nichts wird umsortiert oder umbenannt. Er bleibt zwischen Vorgänger und Nachfolger
+  (bzw. in Schwer zwischen den Nachbarn seiner Zählung); weiter gezogen stoppt er an der Grenze, dazu kurz der Hinweis
+  „Punkte bleiben in ihrer Reihenfolge“ (`ordHint`, auch in der Übungsrunde). Schwer: Eingerastet wird nur innerhalb der Grenzen
+  (`snapPt` mit `tmin`/`tmax`); gibt es dort kein Ziel, bleibt das letzte gültige (anfangs die alte Stelle).
+- Während des Ziehens bleiben alle Punkte in normaler Größe mit Markierung sichtbar; nur der gezogene ist hervorgehoben (`DRAGK`,
+  Klasse `.pt.drag` bzw. in `drawS` Feld `drag`).
+- „Subwellen zählen“: Welcher Punkt gegriffen wird, folgt aus der Lage von Punkt und Label (gleiche Geometrie wie `drawS`). Früher
+  wurden die Labels im SVG abgezählt; weil der Start kein Label hat, griff ein Tipp auf die 2 die 1 (Punkt „sprang zurück“, „aus 2 wurde 1“).
+- Test: `node tests/ziehen.js [Runden]` (Playwright, Handy/iPad/PC, echte Tipps und Mausziehen): Punkte setzen, an eine gültige
+  Stelle ziehen (bleibt dort, andere unverändert), über den Nachbarn hinaus ziehen (stoppt an der Grenze, Label und Reihenfolge
+  bleiben, Hinweis erscheint), während des Ziehens alle Punkte sichtbar. `NUR=subwellen` (Teil des Modusnamens) prüft nur passende
+  Modi, `DBG=1` zeigt Details für Schwer. Nach Änderungen am Setzen oder Ziehen von Punkten laufen lassen.
+
 ## Kurz-Tutorials „So geht's“ (seit 18.11.2026)
 - Je Spielbildschirm ein Knopf „So geht's“ (oben rechts, `.tutbtn`), startet nie von selbst. Beim ersten Besuch eines Modus pulsiert er
   einmal (`localStorage` `waveChecker.tutSeen`). Elf Tutorials: `count`, `find`, `find-schwer`, `recog`, `recog-schwer`, `daily`, `sub`,
