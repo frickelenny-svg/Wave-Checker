@@ -1,0 +1,130 @@
+{
+ "_anleitung": [
+  "Texte der Kurz-Tutorials („So geht's“). Hier darfst du alles anpassen, die App liest die Datei bei jedem Start eines Tutorials.",
+  "Je Modus: titel (steht oben in der Sprechblase) und schritte. Jeder Schritt hat eine id (nicht ändern, sie verbindet den Text mit dem Element in der App) und einen text.",
+  "Höchstens zwei kurze Sätze je Schritt, Anrede du, keine Regel-IDs.",
+  "Reihenfolge ändern: Schritte im Block verschieben. Schritt weglassen: Block löschen. Unbekannte ids werden übersprungen.",
+  "Schritte mit Aktion (die App zeigt eine Hand und wartet, bis du es selbst gemacht hast): count punkt/rest/pruefen/tipp, find welle/regel/auswerten, find-schwer welle/text, recog muster/antworten, recog-schwer und daily zaehlweise/punkte/pruefen/bonus, sub haupt/pruefen/tipp/weiter, blitz antwort, progn zaehlweise/punkt, progn-schwer zaehlweise/punkt/werkzeug/auswahl, quiz antwort/antworten.",
+  "Manche Schritte erscheinen nur, wenn es passt (z. B. tipp nur, wenn die Zählung noch nicht stimmt, bonus nur bei einer Bonusfrage)."
+ ],
+ "knopf": "So geht's",
+ "weiter": "Weiter",
+ "ueberspringen": "Überspringen",
+ "los": "Los geht's",
+ "jetzt_du": "Jetzt du.",
+ "fehler_laden": "Das Tutorial konnte nicht geladen werden. Prüfe die Internetverbindung.",
+ "keine_punkte": "keine Punkte (Übungsrunde)",
+ "modi": {
+  "count": {
+   "titel": "Chart durchzählen",
+   "schritte": [
+    {"id": "punkt", "text": "Tippe die Punkte nacheinander an die Wendepunkte, zuerst den Start. Welcher Punkt dran ist, steht im Text über dem Chart."},
+    {"id": "rest", "text": "Setze jetzt die übrigen Punkte bis zum Ende. Liegt einer daneben, ziehst du ihn einfach an die richtige Stelle."},
+    {"id": "pruefen", "text": "Fertig? Tippe auf „Prüfen“."},
+    {"id": "tipp", "text": "Noch nicht regelkonform. Hol dir mit „Tipp anzeigen“ einen Hinweis, es gibt bis zu drei."},
+    {"id": "ergebnis", "text": "Hier steht das Ergebnis mit Erklärung. Je weniger Tipps du brauchst, desto mehr Punkte gibt es."}
+   ]
+  },
+  "find": {
+   "titel": "Fehler finden",
+   "schritte": [
+    {"id": "chart", "text": "In dieser Zählung steckt genau ein Regelverstoß. Große Labels sind die Hauptwellen, die kleinen in Klammern ihre Subwellen."},
+    {"id": "welle", "text": "Tippe die Welle an, in der du den Fehler vermutest."},
+    {"id": "regel", "text": "Jetzt wählst du die Regel, gegen die diese Welle verstößt."},
+    {"id": "auswerten", "text": "Tippe auf „Auswerten“."},
+    {"id": "ergebnis", "text": "Hier siehst du die Auflösung. Mit „Ich weiß nicht“ bekommst du sie jederzeit, ohne deine Serie zu verlieren."}
+   ]
+  },
+  "find-schwer": {
+   "titel": "Fehler finden · Schwer",
+   "schritte": [
+    {"id": "chart", "text": "In dieser Zählung steckt genau ein Regelverstoß. Große Labels sind die Hauptwellen, die kleinen in Klammern ihre Subwellen."},
+    {"id": "welle", "text": "Tippe die Welle an, in der du den Fehler vermutest."},
+    {"id": "text", "text": "Beschreib in ein, zwei Sätzen in deinen eigenen Worten, was falsch ist. Dann tippe auf „Auswerten“ oder drück Enter."},
+    {"id": "ergebnis", "text": "Hier steht, ob deine Beschreibung passt. Konnte die App sie nicht zuordnen, entscheidest du selbst: „Das meinte ich“ oder „Lag daneben“."}
+   ]
+  },
+  "recog": {
+   "titel": "Muster erkennen",
+   "schritte": [
+    {"id": "chart", "text": "Welches Muster zeigt dieser Chart? Achte darauf, wie viele Wellen es sind und wo sie drehen."},
+    {"id": "muster", "text": "Tippe das Muster an, das du erkennst."},
+    {"id": "antworten", "text": "Tippe auf „Antworten“."},
+    {"id": "ergebnis", "text": "Hier siehst du, ob es stimmt, und woran man das Muster erkennt. Passt der Chart auch zu deiner Wahl, zählt sie ebenfalls als richtig."}
+   ]
+  },
+  "recog-schwer": {
+   "titel": "Muster erkennen · Schwer",
+   "schritte": [
+    {"id": "zaehlweise", "text": "Wähle zuerst die Zählweise, die zum Chart passt. Zähl dafür die großen Wendepunkte."},
+    {"id": "punkte", "text": "Setze jetzt die Punkte an die Wendepunkte, zuerst den Start. Gesetzte Punkte kannst du verschieben."},
+    {"id": "pruefen", "text": "Tippe auf „Prüfen“."},
+    {"id": "bonus", "text": "Bonusfrage: Welches Muster genau? Tippe es an."},
+    {"id": "ergebnis", "text": "Hier steht das Ergebnis. Passt etwas noch nicht, helfen dir die Tipps."}
+   ]
+  },
+  "daily": {
+   "titel": "Tagesaufgabe",
+   "geloest": "Gelöst!",
+   "nicht_geloest": "Diesmal nicht gelöst.",
+   "abschluss": "Bei der echten Tagesaufgabe siehst du hier die Lösung, kannst dein Ergebnis teilen und siehst, wann die nächste kommt.",
+   "schritte": [
+    {"id": "aufgabe", "text": "Jeden Tag gibt es einen neuen Chart, für alle derselbe. Du hast drei Versuche, hier übst du mit einem Beispiel."},
+    {"id": "zaehlweise", "text": "Wähle zuerst die Zählweise, die zum Chart passt."},
+    {"id": "punkte", "text": "Setze die Punkte an die Wendepunkte, zuerst den Start."},
+    {"id": "pruefen", "text": "Tippe auf „Prüfen“. Jeder Fehlversuch kostet einen deiner drei Versuche."},
+    {"id": "bonus", "text": "Bonusfrage: Welches Muster genau? Tippe es an."},
+    {"id": "ergebnis", "text": "Geschafft? Danach kannst du dein Ergebnis teilen, und deine Tages-Serie wächst."}
+   ]
+  },
+  "sub": {
+   "titel": "Subwellen zählen",
+   "schritte": [
+    {"id": "haupt", "text": "Zähle zuerst die Hauptwellen: Setze den Start und dann die Punkte bis zum Ende an die großen Wendepunkte."},
+    {"id": "pruefen", "text": "Tippe auf „Prüfen“."},
+    {"id": "tipp", "text": "Noch nicht regelkonform. Mit „Tipp anzeigen“ bekommst du einen Hinweis."},
+    {"id": "weiter", "text": "Die Hauptwellen stimmen. Tippe auf „Weiter“, dann geht es an die Subwellen."},
+    {"id": "ende", "text": "Danach zählst du die Subwellen jeder Welle, die gerade grau hinterlegt ist. So arbeitest du dich Welle für Welle vor."}
+   ]
+  },
+  "blitz": {
+   "titel": "Blitz-Erkennen",
+   "schritte": [
+    {"id": "chart", "text": "Der Chart ist nur ein paar Sekunden zu sehen, der Balken darunter zeigt die Zeit. Präg dir die Form gut ein."},
+    {"id": "antwort", "text": "Welches Muster war es? Tippe es an, unter zwei Sekunden gibt es Extrapunkte."},
+    {"id": "ergebnis", "text": "Drei richtige hintereinander machen die Anzeige kürzer, ein Fehler macht sie länger. Verwechselte Muster kommen in der Runde noch einmal."},
+    {"id": "runde", "text": "Eine Runde hat 20 Charts. Mit „Abbrechen“ kommst du jederzeit raus."}
+   ]
+  },
+  "progn": {
+   "titel": "Wie geht es weiter?",
+   "schritte": [
+    {"id": "aufgabe", "text": "Der Chart bricht ab. Du planst die fehlenden Wellen in der grauen Zone rechts der gestrichelten Linie."},
+    {"id": "zaehlweise", "text": "Wähle, wie sich die nächste große Welle unterteilt."},
+    {"id": "punkt", "text": "Tippe in die graue Zone, wo die erste Teilwelle enden soll. Wischen verschiebt den Chart, ohne einen Punkt zu setzen."},
+    {"id": "zeit", "text": "Mit W, D, 4h und 1h wechselst du die Zeiteinheit, mit + und − zoomst du."},
+    {"id": "pruefen", "text": "Stehen alle Wellen, tippe auf „Prüfen“. „Zurück“ nimmt den letzten Punkt weg."}
+   ]
+  },
+  "progn-schwer": {
+   "titel": "Wie geht es weiter? · Schwer",
+   "schritte": [
+    {"id": "zaehlweise", "text": "Wähle eine Zählweise, zum Beispiel 1-2-3-4-5. Darunter siehst du, welches Label als Nächstes gesetzt wird."},
+    {"id": "punkt", "text": "Tippe ungefähr auf ein Hoch oder Tief: Der Punkt rastet von selbst am Wendepunkt ein. Setz so den Start und die nächste Welle."},
+    {"id": "werkzeug", "text": "Mit dem Pfeil wechselst du zu „Auswählen“. Das Fadenkreuz darüber ist „Zeichnen“ und setzt neue Punkte."},
+    {"id": "auswahl", "text": "Tippe deinen ersten Punkt an. Jetzt kannst du ihn ziehen, unten umbenennen oder die Zählung mit dem Mülleimer löschen."},
+    {"id": "zeit", "text": "Mit W, D, 4h und 1h wechselst du die Zeiteinheit. Kleine Wellen zählst du am besten im 4h- oder 1h-Chart."},
+    {"id": "zone", "text": "In der grauen Zone setzt du deine Prognose frei, dort gibt es keine Kerzen. Steht dort mindestens die nächste große Welle, kannst du prüfen."}
+   ]
+  },
+  "quiz": {
+   "titel": "Quiz",
+   "schritte": [
+    {"id": "antwort", "text": "Lies die Frage und tippe die Antwort an, die du für richtig hältst."},
+    {"id": "antworten", "text": "Tippe auf „Antworten“."},
+    {"id": "erklaerung", "text": "Hier siehst du, ob es stimmt, mit einer kurzen Erklärung. Über den Link liest du die Stelle im Regelwerk nach."},
+    {"id": "runde", "text": "Eine Runde hat fünf Fragen. Falsch beantwortete Fragen kommen in späteren Runden noch einmal."}
+   ]
+  }
+ }
+}

@@ -200,6 +200,25 @@ button.isl:hover{border-color:var(--accent)}
 .gd-arr.t{top:-9px;margin-left:-7px;border-bottom:0;border-right:0}.gd-arr.b{bottom:-9px;margin-left:-7px;border-top:0;border-left:0}
 .lnk{border:0;background:none;color:var(--accent-text);text-decoration:underline;text-underline-offset:3px;font-size:.88rem;min-height:44px;padding:4px 8px}
 @media(prefers-reduced-motion:reduce){.gd-bub{transition:none}}
+/* Kurz-Tutorials „So geht's“ (18.11.2026, DESIGN.md „Tutorial“): Knopf oben rechts im Spielbildschirm, Sprechblase wie der Wegführer, leichtes Abdunkeln */
+#view.tutok{position:relative}#view.tutok>.kick{min-height:40px;display:flex;align-items:center;padding-right:132px}
+.tutbtn{position:absolute;right:0;top:0;margin:0;min-height:40px;padding:6px 13px 6px 9px;display:inline-flex;align-items:center;gap:6px;font-size:.85rem;font-weight:700;color:var(--accent-text);border:1.5px solid var(--accent);border-radius:999px;z-index:2}
+.bzhead .tutbtn{position:static;margin-left:auto}.tutbtn svg{width:18px;height:18px;flex:none}
+.tutbtn.pulse{animation:tutpulse 1.2s ease-out .4s 2}
+@keyframes tutpulse{0%{box-shadow:0 0 0 0 var(--accent)}75%,100%{box-shadow:0 0 0 12px rgba(30,94,255,0)}}
+body.tut-on .tutbtn{visibility:hidden}
+.tut{position:fixed;inset:0;z-index:70;pointer-events:none}
+.tut-spot{position:fixed;border-radius:14px;box-shadow:0 0 0 200vmax rgba(11,27,58,.32);border:2px solid var(--accent);pointer-events:none}
+.tut-bub{pointer-events:auto;z-index:2}.tut-bub .tut-h{margin:0 0 4px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-text)}
+.tut-bub .tut-do{margin:-4px 0 8px;font-weight:700;color:var(--accent-text)}
+.tut-hand{position:fixed;width:44px;height:44px;opacity:0;pointer-events:none;color:var(--text);transform-origin:33% 8%;z-index:1}
+.tut-hand svg{width:44px;height:44px;fill:var(--surface);stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 3px 6px rgba(11,27,58,.3))}
+.tut-rip{position:fixed;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;border:3px solid var(--accent);opacity:0;pointer-events:none}
+.tut-hand.go{animation:tuthand 2s ease-in-out both}.tut-rip.go{animation:tutrip 2s ease-out both}
+@keyframes tuthand{0%{opacity:0;transform:translate(34px,44px)}28%{opacity:1;transform:none}40%{transform:scale(.86)}52%{transform:none}82%{opacity:1}100%{opacity:0}}
+@keyframes tutrip{0%,38%{opacity:0;transform:scale(.3)}46%{opacity:.9}80%,100%{opacity:0;transform:scale(1.7)}}
+@keyframes tutstill{0%,85%{opacity:1}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.tutbtn.pulse{animation:none;background:var(--accent-soft)}.tut-hand.go{animation:tutstill 2.2s linear both}.tut-rip.go{animation:none}}
 .desk{display:none!important}
 .hreset{grid-column:1/-1;text-align:center;margin:0;position:relative;z-index:1}
 @media(min-width:700px){.lead{font-size:48px}.isl b{font-size:17px}.isl .d{font-size:14px}.home{column-gap:24px}}
@@ -738,7 +757,8 @@ new MutationObserver(()=>{const n=$('#view #nxt'),d=$('#view .dock');
  if(n&&d&&!d.contains(n)){d.querySelectorAll('button:disabled').forEach(b=>b.hidden=true);d.prepend(n)}
  lockTap(n);lockTap($('#view #qn'));
  const f=$('#view #fb'),h=f&&!f.hidden?f.innerHTML:'';if(h!==lastFb){lastFb=h;if(h&&f.querySelector('.ok,.bad'))f.scrollIntoView({block:'nearest'})}}).observe(document.getElementById('view'),{childList:true,subtree:true});
-function stats(){saveProgress();const lv=Math.floor(st.pts/50)+1;$('#lv').textContent=lv;$('#pt').textContent=st.pts;$('#sr').textContent=st.streak;$('#pb').style.width=(st.pts%50)*2+'%';}
+function stats(){if(TUT)return;saveProgress(); // Tutorial: Anzeige bleibt (Punkte zählen dort nicht)
+const lv=Math.floor(st.pts/50)+1;$('#lv').textContent=lv;$('#pt').textContent=st.pts;$('#sr').textContent=st.streak;$('#pb').style.width=(st.pts%50)*2+'%';}
 // Startseite (DESIGN.md, Abschnitt 4 und 5): Modi als Inseln an den Bildschirmrändern, in der Mitte Leitsatz und Tagesaufgabe,
 // dahinter der impulsive Hintergrund-Chart. Links Lernen, Quiz, Ränge (Handy: auch Blitz), rechts die Übungsmodi, unten die Prognose
 // (Desktop: auch Blitz). Neue Modi bekommen ebenfalls eine Insel.
@@ -933,7 +953,7 @@ function pick(mode){
 function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key,FLV()):find(PAT[key])}
 // Hauptmenü-Button: erscheint, sobald ein Modus gestartet wird (pick, recognize, pickSub), und verschwindet im Hauptmenü
 ['pick','recognize','pickSub','daily','ranks','dailyCal','progn','blitz','blitzKap','pathBlitz'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;window.scrollTo(0,0);return f.apply(this,arguments)}});
-{const h0=home;window.home=function(){$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
+{const h0=home;window.home=function(){TUTCTX=null;$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
 $('#menu').onclick=()=>home();
 $('#home').onclick=()=>home();$('#home').onkeydown=e=>{if(e.key==='Enter')home()};
 
@@ -958,7 +978,7 @@ function bindPoints(m,n,pic,render){
 }
 // Modus 1: Chart durchzählen
 function count(P){
- const R=makeRound(P,null),n=P.labels.length,m={sel:[],tips:0,failed:false,done:false};
+ const R=makeRound(P,null),n=P.labels.length,m={sel:[],tips:0,failed:false,done:false};tutCtx('count',()=>count(P),{R,m,n}); // So geht's (18.11.2026)
  const render=(fb)=>{
   $('#view').innerHTML='<p class="kick">Chart durchzählen · '+P.title+'</p><p class="task">Tippe nacheinander die Punkte '+P.labels.map(L0).join(', ')+' auf den Chart. Gesetzte Punkte kannst du anfassen und verschieben. Nächster Punkt: <span class="nextpt">'+(m.sel.length<n?L0(P.labels[m.sel.length]):'fertig')+'</span></p><div class="chart">'+draw(R,m.sel,false,m.tl&&P.tri?m.sel:null)+'</div>'+(m.tl&&P.tri?'<p class="mut">Gestrichelt: Trendlinien durch '+(P.waves[0]==='A'?'A, C (bis E) und durch B, D.':'die Enden der Wellen 1, 3 (bis 5) und der Wellen 2, 4.')+'</p>':'')+'<div class="dock">'+
   '<button class="p" id="chk" '+(m.sel.length<n||m.done?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
@@ -1038,8 +1058,8 @@ function recognize(){
   '<p><button class="p" onclick="recogHard()">Schwer: Chart selbst zählen</button><br><span class="mut">Zählweise wählen, Punkte setzen, dann das genaue Muster bestimmen (+20 Punkte, Bonus +10).</span></p>'+
   '<p><button onclick="home()">Zurück</button></p></div>';
 }
-function recogNormal(){
- const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=PAT[keys[Math.floor(Math.random()*keys.length)]],R=makeRound(P,null),m={sel:null};
+function recogNormal(k0){ // k0: festes Muster (Tutorial)
+ const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=PAT[typeof k0==='string'&&PAT[k0]?k0:keys[Math.floor(Math.random()*keys.length)]],R=makeRound(P,null),m={sel:null};tutCtx('recog',recogNormal,{P,m});
  const render=(fb)=>{
   $('#view').innerHTML='<p class="kick">Muster erkennen · Normal</p><p class="task">Welches Muster zeigt dieser Chart? Schau dir die Teilbewegungen und die Lage der Wendepunkte an.</p><div class="chart">'+draw(R,[],!!fb,fb&&P.tri?R.piv:null)+'</div>'+(fb&&P.tri?'<p class="mut">Gestrichelt: die Trendlinien des Musters.</p>':'')+
   '<div class="card"><b>Muster</b><br>'+keys.map(k=>'<button data-k="'+k+'" class="'+(m.sel===k?'on':'')+'" '+(fb?'disabled':'')+'>'+PAT[k].title+'</button>').join('')+
@@ -1072,10 +1092,10 @@ function fitPts(Q,R,idx){
 }
 const fitWhy=(Q,r,P)=>r.kind==='subs'?'Die Teilwellen passen nicht: Hier sind sie '+fmtSub(P.subs[0])+' aufgebaut, beim Muster „'+Q.title+'“ '+Q.subs.map(fmtSub).join(' oder ')+'.':
  r.kind==='struct'?'Die Richtung der Wellen passt nicht zum Muster „'+Q.title+'“.':'Verletzte Regel beim Muster „'+Q.title+'“: '+r.f.map(id=>'„'+mt(Q.rules[id].name)+'“ ('+tag(Q,id)+')').join(', ')+'.';
-function recogHard(D,fb0){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, siehe Abschnitt 6), sonst zufällig
- const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=D?D.P:PAT[keys[Math.floor(Math.random()*keys.length)]],R=D?D.R:makeRound(P,null),
+function recogHard(D,fb0,k0){ // D: Tagesaufgabe (fester Chart, höchstens 3 Versuche, siehe Abschnitt 6), sonst zufällig; k0: festes Muster (Tutorial)
+ const keys=Object.keys(PAT).filter(k=>!PAT[k].noRecog),P=D?D.P:PAT[typeof k0==='string'&&PAT[k0]?k0:keys[Math.floor(Math.random()*keys.length)]],R=D?D.R:makeRound(P,null),
   m={z:D&&D.z!=null?D.z:null,sel:D&&D.sel?D.sel.slice():[],tips:D?D.tips:0,failed:D?D.tries>0:false,done:false};
- const Z=()=>ZW[m.z],pic=()=>draw({...R,P:{labels:Z()?Z().labels:[]}},m.sel,false,null); // nackter Chart, Beschriftung nur an gesetzten Punkten
+ const Z=()=>ZW[m.z],pic=()=>draw({...R,P:{labels:Z()?Z().labels:[]}},m.sel,false,null);tutCtx(D?'daily':'recog-schwer',D?daily:()=>recogHard(),{R,m,P}); // nackter Chart, Beschriftung nur an gesetzten Punkten
  const fail=html=>{m.failed=true;m.sig=JSON.stringify([m.z,m.sel]);if(st.streak)st.streak=0,stats();if(D){D.tries++;D.save()}return html}; // m.sig: Prüfen bleibt gesperrt, bis sich etwas ändert (Doppeltipp kostet keinen Versuch) // Tagesaufgabe: jeder Fehlversuch zählt
  const render=(fb)=>{
   const z=Z(),n=z?z.labels.length:0;
@@ -1229,7 +1249,7 @@ function sub(key){
  Object.keys(R.sp).forEach(k=>{k=+k;const t=R.sp[k],five=t.length===5,nm=P.waves[k-1];
   stages.push({w:k,nm,five,labels:five?['(1)','(2)','(3)','(4)','(5)']:['(a)','(b)','(c)'],lo:R.mp[k-1],hi:R.mp[k],truth:t,
    t:'Zähle jetzt die Subwellen von Welle '+nm+' (grau hinterlegt). Sie besteht aus '+(five?'fünf':'drei')+' Wellen, setze auch '+(five?'(5)':'(c)')+' an das Ende der Welle (die Hauptbeschriftung steht etwas weiter außen).'});});
- const m={s:0,sel:[],tips:0,failed:false,fixed:[],gain:0};
+ const m={s:0,sel:[],tips:0,failed:false,fixed:[],gain:0};tutCtx('sub',()=>sub(P.key),{R,m,stages});
  const fx=()=>m.fixed.map(q=>q.sub?q:{...q,far:m.s>0}); // Hauptbeschriftung rückt in den Subwellen-Schritten nach außen
  const render=fb=>{
   const g=stages[m.s],n=g.labels.length,idxOf=x=>Math.max(0,Math.min(N,Math.round((x-X0)/DXs)));
@@ -1506,6 +1526,7 @@ function progn(arg,lvl){
  PGS={P,R,cut:cut0,m,lvl,X:t=>X(t),Y:p=>Y(p),plot:()=>({W,H:H-BP}),tf:()=>tf,setTf:h=>{const b=document.querySelector('[data-tf="'+h+'"]');if(b)b.click()},truth:truthPlan,FR:()=>FR,mode:()=>FR&&FR.md,fadd:(z,i,t,p,c)=>{const r=frAdd(z,i,t,p,c);frRender();return r},levels:()=>{const o={};frSeries().forEach(S=>o[S.c]=S.lev);return o},fc:()=>fcAgg(fcNodes()),lbx:()=>LBX.slice(),snapAt:(px,py,o)=>snapPt(px,py,o),ring:()=>SNAPR,
   view:()=>({BW,sc,yr:yr.slice(),tf,W,H}),Tof:x=>Tof(x),Pof:y=>Pof(y),zoom:(f,px,py)=>{zoomAt(f,px,py);saveV();redraw($('#svg'),pic())},
   show:(t,p)=>{sc=clampSc((t+.5)*BW/tf-W/2);peek=p===undefined?null:p;fitY();redraw($('#svg'),pic())}}; // show: Stelle (und Preis) ins Bild holen
+ tutCtx(lvl==='schwer'?'progn-schwer':'progn',()=>progn(arg,lvl));
  const segs=()=>{let o=0;return waves().filter(k=>m.ch[k]).map(k=>{const kind=m.ch[k],n=PGK[kind].l.length,g={k,kind,n,pts:m.pts.slice(o,o+n)};o+=n;return g})};
  const cur=()=>{for(const g of segs())if(g.pts.length<g.n)return{k:g.k,kind:g.kind,n:g.n,have:g.pts.length};const k=waves().find(k=>!m.ch[k]);return k?{k,needChar:true}:null};
  const mainP=()=>CNT.p.concat(segs().filter(g=>g.pts.length===g.n).map(g=>g.pts[g.n-1].p)); // Hauptpunkte: gezählt + fertig geplante Wellen
@@ -2105,7 +2126,7 @@ function blitz(opt,lvl,saved){
  const m=saved?{...saved.m,forced:new Set(saved.m.forced)}:{i:0,dur:LV.start,row:0,ok:0,pts:0,times:[],minDur:LV.start,conf:{},forced:new Set()};
  const alive=()=>run===BZ&&$('#bz');
  const head=()=>'<div id="bz"><div class="bzhead"><span class="kick">'+esc(opt.name)+' · '+LV.name+' · Chart '+(m.i+1)+'/'+BZN+' · Anzeige '+String(m.dur).replace('.',',')+' s</span><button id="bzx">Abbrechen</button></div><div class="bar"><i style="width:'+(m.i/BZN*100)+'%"></i></div>';
- const show=()=>{resSave({t:'blitz',opt,lvl,q,m:{...m,forced:[...m.forced]}});const P=PAT[q[m.i]],R=makeRound(P,null);
+ const show=()=>{resSave({t:'blitz',opt,lvl,q,m:{...m,forced:[...m.forced]}});const P=PAT[q[m.i]],R=makeRound(P,null);tutCtx('blitz',()=>{const o=resLoad();o&&o.t==='blitz'?resume():blitz(opt,lvl)},{P});
   // Antworten: die richtige, mindestens ein Verwechslungspartner (falls es einen gibt), Rest aus der Runde, sonst aus allen Mustern
   const all=Object.keys(PAT).filter(k=>!PAT[k].noRecog),opts=[P.key],add=k=>{if(k&&!opts.includes(k))opts.push(k)};
   add(pick(bzPartners(P.key).length?bzPartners(P.key):[null]));
@@ -2381,7 +2402,7 @@ function findSub(key,lvl){
   $('#ffy').onclick=()=>{mark('meinte');st.pts+=5;stats();done(ask+'<p class="ok">Halbe Punkte: +5</p>'+nx)};
   $('#ffn').onclick=()=>{mark('daneben');st.streak=0;stats();done(ask+'<p class="mut">Keine Punkte. Schau dir die Regel oben noch einmal an.</p>'+nx)};
  }
- window.FFS={id,wv,inv,hard,P,R,o,tries}; // Testzugriff (tests/fehler-schwer-ui.js): gesuchte Regel und Welle der laufenden Runde
+ window.FFS={id,wv,inv,hard,P,R,o,tries};tutCtx(hard?'find-schwer':'find',()=>findSub(key,lvl)); // Testzugriff (tests/fehler-schwer-ui.js): gesuchte Regel und Welle der laufenden Runde
  render();
 }
 // ---- 5) Lernbereich: zeigt lernen/regelwerk-lernversion.md (die menschenlesbare Fassung des Regelwerks) 1:1 als Seite.
@@ -2623,7 +2644,7 @@ function quizRound(cat){const o=qLoad(),rep=o.rep||{};o.seen=o.seen||{};if(cat)o
  const qs=shuffle([...due,...shuffle(pool.filter(q=>!due.includes(q)))].slice(0,5));
  quizAsk({cat,qs,i:0,res:[]});}
 const quizKeep=(R,i)=>resSave({t:'quiz',cat:R.cat,ids:R.qs.map(q=>q.id),i,res:R.res.map(x=>({id:x.q.id,ok:x.ok}))});
-function quizAsk(R){quizKeep(R,R.i);const q=R.qs[R.i],ord=q.typ==='mc'?shuffle(q.antworten.map((_,j)=>j)):q.antworten.map((_,j)=>j);let sel=null; // Multiple Choice: Antworten gemischt
+function quizAsk(R){quizKeep(R,R.i);tutCtx('quiz',()=>{const o=resLoad();o&&o.t==='quiz'?resume():quizRound(R.cat)},{q:R.qs[R.i]});const q=R.qs[R.i],ord=q.typ==='mc'?shuffle(q.antworten.map((_,j)=>j)):q.antworten.map((_,j)=>j);let sel=null; // Multiple Choice: Antworten gemischt
  const render=fb=>{const done=fb!==undefined;
   $('#view').innerHTML='<p class="kick">Quiz · '+(R.cat?esc(R.cat):'Gemischt')+' · Frage '+(R.i+1)+' von '+R.qs.length+'</p><div class="card"><p><b>'+esc(q.frage)+'</b></p>'+
    ord.map(j=>'<button class="qa'+(done?(j===q.richtig?' qok':j===sel?' qbad':''):sel===j?' on':'')+'" data-a="'+j+'" '+(done?'disabled':'')+'>'+esc(q.antworten[j])+'</button>').join('')+'</div>'+
@@ -2679,7 +2700,8 @@ function rankCheck(quiet){const o=rLoad();o.rank=o.rank||{};const msgs=[];
  RCATS.forEach(c=>{const lv=Math.max(o.rank[c]||0,rCalc(c));if(lv>(o.rank[c]||0)){o.rank[c]=lv;msgs.push('Neuer Rang: '+RNAME[lv]+' '+RIN[c]+'!')}});
  if(!o.master&&RCATS.every(c=>(o.rank[c]||0)>=3)){o.master=true;msgs.push('Neuer Gesamtrang: Elliott-Meister!')}
  rSave(o);if(msgs.length&&!quiet)toast(msgs.join('<br>'));}
-function toast(html){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t)}
+function toast(html){if(TUT)return; // keine Rang-Meldungen aus der Übungsrunde
+let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t)}
  t.innerHTML=html;t.className='show';clearTimeout(t.tm);t.tm=setTimeout(()=>t.className='',4500);t.onclick=()=>t.className='';}
 // „Rang verdienen“: Quiz der Kategorie und „Chart durchzählen“ mit ihren Mustern; vor Platin zusätzlich „Muster erkennen – Schwer“
 function earnOpts(cat,lv){const keys=Object.keys(RCAT).filter(k=>RCAT[k]===cat);
@@ -2723,6 +2745,197 @@ $('#learn').onclick=()=>learn();
 // „← Zurück zum Regelwerk“: nur sichtbar, wenn man über „Jetzt üben“ in „Chart durchzählen“ gekommen ist
 $('#tolearn').onclick=()=>learn($('#tolearn').dataset.kap);
 {const h1=window.home;window.home=function(){LEARN=PEEK=null;$('#tolearn').hidden=true;return h1.apply(this,arguments)}} // Hauptmenü verlässt Lernseite und „Jetzt üben“ endgültig
+// ---- Kurz-Tutorials „So geht's“ (18.11.2026, Lenny; DESIGN.md „Tutorial“). Texte: tutorials.json, hier nur die Technik.
+// Startet nie von selbst, nur über den Knopf „So geht's“ oben rechts im Spielbildschirm jedes Modus (beim ersten Besuch pulsiert er einmal,
+// gemerkt in waveChecker.tutSeen). Jeder Schritt zeigt auf ein echtes Element der App (TUTDEF). Fehlt es, wird der Schritt übersprungen.
+// Schritte mit Handlung (done/click) zeigen einmal eine Hand und warten, bis der Spieler es selbst gemacht hat.
+// Sandbox: Die Tutorial-Runde nutzt festen Zufall (seeded), am Ende werden Punkte, Serie und der ganze localStorage zurückgesetzt.
+// Danach startet eine normale Runde (bei Quiz und Blitz die unterbrochene, falls vorhanden). Testzugriff: TUTS(), tests/tutorial.js.
+let TUT=null,TUTCTX=null,TUTJ=null;
+const TUTKEY='waveChecker.tutSeen',TUTFB={knopf:"So geht's",weiter:'Weiter',ueberspringen:'Überspringen',los:"Los geht's",jetzt_du:'Jetzt du.',
+ fehler_laden:'Das Tutorial konnte nicht geladen werden. Prüfe die Internetverbindung.',keine_punkte:'keine Punkte (Übungsrunde)'}; // nur falls tutorials.json fehlt
+const tutTxt=k=>(TUTJ&&typeof TUTJ[k]==='string'?TUTJ[k]:TUTFB[k]);
+async function tutLoad(){if(TUTJ)return true;try{const r=await fetch('tutorials.json',{cache:'no-cache'});if(!r.ok)throw new Error(r.status);TUTJ=await r.json();
+ document.querySelectorAll('.tutbtn span').forEach(s=>s.textContent=tutTxt('knopf'));return true}catch(_){return false}}
+// Jeder Spielbildschirm meldet sich hier an: Tutorial-Schlüssel, normale neue Runde, Daten der Runde für die Ziele (R, m …)
+function tutCtx(key,restart,data){TUTCTX={key,restart,data:data||{}}}
+const TD=()=>(TUTCTX&&TUTCTX.data)||{},tutOn=s=>!!$('#view '+s);
+const tutRes=()=>!!$('#view #fb:not([hidden]) .ok, #view #fb:not([hidden]) .bad'); // Ergebnis nach Prüfen/Auswerten steht da
+// Bildschirmpunkt des Kurses an Kerze i (einfache Charts: erste Linie im SVG ist der Kurs)
+function tutSvgPt(i){const s=$('#view #svg'),pl=s&&s.querySelector('polyline');if(!pl||i==null)return null;const q=pl.getAttribute('points').split(' ')[i];if(!q)return null;
+ const [x,y]=q.split(',').map(Number),r=s.getBoundingClientRect(),vb=s.viewBox.baseVal;return{x:r.left+x/vb.width*r.width,y:r.top+y/vb.height*r.height}}
+// „Wie geht es weiter?“: Zeit t (Stunden) und Preis p auf dem Bildschirm, im Chart gehalten
+function tutPgPt(t,p){const s=$('#pgc #svg');if(!s||!PGS)return null;const r=s.getBoundingClientRect();
+ return{x:Math.max(r.left+14,Math.min(r.right-14,r.left+PGS.X(t))),y:Math.max(r.top+14,Math.min(r.bottom-34,r.top+PGS.Y(p)))}}
+function tutZone(){const s=$('#pgc #svg');if(!s||!PGS)return null;const r=s.getBoundingClientRect(),x=Math.max(r.left,Math.min(r.right-40,r.left+PGS.X(PGS.R.mp[PGS.cut]+.5)));
+ return{left:x,top:r.top,right:r.right,bottom:r.bottom,width:r.right-x,height:r.height}}
+const tutCard=s=>()=>{const e=$('#view '+s);return e&&e.closest('.card')};
+const TUTZW=()=>ZW.findIndex(z=>z.pats.includes(TD().P.key));
+// Ziele je Modus. mark: Element, an dem der Spielbildschirm erkannt wird; anchor: wohin der Knopf kommt (sonst oben rechts in #view).
+// Schritt: el (Selektor, Funktion → Element oder Rechteck), hand (wohin die Hand tippt), done (Bedingung) bzw. click (Tipp aufs Ziel),
+// allow (weitere erlaubte Elemente), opt (erscheint nur, wenn es passt), wait (ms, so lange auf das Element warten).
+const TUTEASY={id:'einsteiger',name:'Einsteiger',keys:['imp','zig','fr','fe','fru']};
+const tutRecogPts={el:'#view .chart',hand:()=>{const d=TD();return d.R&&tutSvgPt(d.R.piv[Math.min(d.m.sel.length,d.R.piv.length-1)])},
+ done:()=>{const d=TD(),z=ZW[d.m.z];return !!z&&d.m.sel.length>=z.labels.length}};
+const tutRecogSteps={zaehlweise:{el:tutCard('[data-z]'),hand:()=>'[data-z="'+TUTZW()+'"]',done:()=>tutOn('[data-z].on')},
+ punkte:tutRecogPts,pruefen:{el:'#chk',hand:'#chk',done:tutRes},
+ bonus:{el:()=>$('#view [data-b]')&&$('#view #fb'),opt:1,hand:()=>'[data-b="'+TD().P.key+'"]',done:()=>!tutOn('[data-b]')},
+ ergebnis:{el:'#fb'}};
+const TUTDEF={
+ count:{mark:'#chk',start:()=>count(PAT.imp),steps:{
+  punkt:{el:'#view .chart',hand:()=>tutSvgPt(TD().R.piv[0]),done:()=>TD().m.sel.length>=1},
+  rest:{el:'#view .chart',hand:()=>{const d=TD();return tutSvgPt(d.R.piv[Math.min(d.m.sel.length,d.n-1)])},done:()=>TD().m.sel.length>=TD().n},
+  pruefen:{el:'#chk',hand:'#chk',done:tutRes},
+  tipp:{el:'#tip',opt:1,hand:'#tip',click:1},
+  ergebnis:{el:'#fb'}}},
+ find:{mark:'[data-w]',start:()=>findSub('imp','leicht'),steps:{
+  chart:{el:'#view .chart'},
+  welle:{el:'#view .ffw',hand:()=>'[data-w="'+FFS.wv+'"]',done:()=>tutOn('[data-w].on')},
+  regel:{el:'#view .ffw',hand:()=>'[data-r="'+FFS.id+'"]',done:()=>tutOn('[data-r].on')},
+  auswerten:{el:'#go',hand:'#go',done:tutRes},
+  ergebnis:{el:'#fb'}}},
+ 'find-schwer':{mark:'[data-w]',start:()=>findSub('imp','schwer'),steps:{
+  chart:{el:'#view .chart',wait:6000},
+  welle:{el:'#view .ffw',hand:()=>'[data-w="'+FFS.wv+'"]',done:()=>tutOn('#fft')},
+  text:{el:'#view .ffw',hand:'#fft',allow:'#go',done:tutRes},
+  ergebnis:{el:'#fb'}}},
+ recog:{mark:'[data-k]',start:()=>recogNormal('imp'),steps:{
+  chart:{el:'#view .chart'},
+  muster:{el:tutCard('[data-k]'),hand:()=>'[data-k="'+TD().P.key+'"]',done:()=>tutOn('[data-k].on')},
+  antworten:{el:'#go',hand:'#go',done:()=>tutOn('#nxt')},
+  ergebnis:{el:'#fb'}}},
+ 'recog-schwer':{mark:'[data-z]',start:()=>recogHard(null,undefined,'imp'),steps:tutRecogSteps},
+ daily:{mark:'[data-z]',start:()=>tutDaily(),steps:{aufgabe:{el:'#view > .kick'},...tutRecogSteps}},
+ sub:{mark:'#chk',start:()=>sub('imp'),steps:{
+  haupt:{el:'#view .chart',hand:()=>{const d=TD();return tutSvgPt(d.R.mp[Math.min(d.m.sel.length,d.R.mp.length-1)])},done:()=>{const d=TD();return d.m.s>0||d.m.sel.length>=d.stages[0].labels.length}},
+  pruefen:{el:'#chk',hand:'#chk',done:tutRes},
+  tipp:{el:'#tip',opt:1,hand:'#tip',click:1},
+  weiter:{el:()=>TD().m.s===0&&$('#view #nxt'),opt:1,hand:'#nxt',click:1},
+  ende:{el:'#view .chart'}}},
+ blitz:{mark:'#bz',anchor:'#bz .bzhead',start:()=>blitz(TUTEASY,'leicht'),steps:{
+  chart:{el:'#view .bzc'},
+  antwort:{el:'#view .bzans',hand:()=>'[data-bz="'+TD().P.key+'"]',done:()=>tutOn('[data-bz]:disabled')},
+  ergebnis:{el:'#view .bzc'},
+  runde:{el:'#view .bzhead'}}},
+ progn:{mark:'#pgc',start:()=>progn('imp','leicht'),steps:{
+  aufgabe:{el:'#view > .task'},
+  zaehlweise:{el:'#view .pgk',hand:()=>{const t=PGS.truth()[0];return '[data-ch="'+(t?t.kind:'N')+'"]'},done:()=>Object.keys(PGS.m.ch).length>0},
+  punkt:{el:'#pgc',hand:()=>{const t=PGS.truth()[0],q=t&&t.pts[0];return q&&tutPgPt(q.t,q.p)},done:()=>PGS.m.pts.length>=1},
+  zeit:{el:'#pgc .pgtf'},
+  pruefen:{el:'#view .dock'}}},
+ 'progn-schwer':{mark:'#pgc',start:()=>{try{localStorage.setItem('waveChecker.pgTools','1')}catch(_){}progn('imp','schwer')},steps:{
+  zaehlweise:{el:'#view .pgbar',hand:'[data-fz="N"]',click:'[data-fz]'},
+  punkt:{el:'#pgc',hand:()=>{const R=PGS.R,n=PGS.FR().pts.length,t=R.mp[Math.min(n,R.mp.length-1)];return tutPgPt(t,R.pr[t])},done:()=>PGS.FR().pts.length>=2},
+  werkzeug:{el:'#pgc .pgtool',hand:'[data-md="sel"]',done:()=>PGS.mode()==='sel'},
+  auswahl:{el:'#pgc',hand:()=>{const q=PGS.FR().pts[0];return q&&tutPgPt(q.t,q.p)},done:()=>PGS.FR().sel!=null},
+  zeit:{el:'#pgc .pgtf'},
+  zone:{el:tutZone}}},
+ quiz:{mark:'[data-a]',start:async()=>{if(!await qReady())return;const qs=QZ.filter(q=>q.typ==='mc').slice(0,5);quizAsk({cat:null,qs:qs.length?qs:QZ.slice(0,5),i:0,res:[]})},steps:{
+  antwort:{el:tutCard('[data-a]'),hand:()=>'[data-a="'+TD().q.richtig+'"]',done:()=>tutOn('[data-a].on')},
+  antworten:{el:'#qg',hand:'#qg',done:()=>tutOn('#qn')},
+  erklaerung:{el:tutCard('#qr')},
+  runde:{el:'#view > .kick'}}}};
+// Tagesaufgabe zum Üben: fester Beispielchart statt des echten Tages, nichts wird gespeichert
+function tutDaily(){const P=PAT.imp,J=(TUTJ.modi.daily||{});
+ recogHard({P,R:makeRound(P,null),no:'1',tries:0,tips:0,z:null,sel:null,fb:'',save(){},solvedNow(){},
+  finish(r){$('#view').innerHTML='<p class="kick">'+esc(J.titel||'Tagesaufgabe')+'</p><div class="card" id="fb"><p class="'+(r.solved?'ok':'bad')+'">'+esc(r.solved?J.geloest||'Gelöst!':J.nicht_geloest||'Diesmal nicht gelöst.')+'</p><p class="mut">'+esc(J.abschluss||'')+'</p></div>'}})}
+// Knopf „So geht's“ einsetzen, sobald ein Spielbildschirm steht (nach jedem Neuzeichnen von #view)
+const TUTICO=ico('<circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.8"/><path d="M12 17.3h.01"/>');
+function tutBtn(){const v=$('#view'),c=TUTCTX,d=c&&TUTDEF[c.key],ok=!!(d&&$('#view '+d.mark));
+ v.classList.toggle('tutok',ok&&!d.anchor);if(!ok||TUT)return;
+ const host=d.anchor?$(d.anchor):v;if(!host||[...host.children].some(e=>e.classList.contains('tutbtn')))return;
+ const b=document.createElement('button');b.type='button';b.className='tutbtn';b.title='Kurz-Tutorial zu diesem Modus';
+ b.innerHTML=TUTICO+'<span>'+esc(tutTxt('knopf'))+'</span>';b.onclick=tutStart;
+ if(d.anchor)host.insertBefore(b,host.querySelector('#bzx'));else v.insertBefore(b,v.firstChild);
+ let s={};try{s=JSON.parse(localStorage.getItem(TUTKEY))||{}}catch(_){} // beim ersten Besuch des Modus einmal pulsieren
+ if(!s[c.key]){s[c.key]=1;try{localStorage.setItem(TUTKEY,JSON.stringify(s))}catch(_){}b.classList.add('pulse')}}
+new MutationObserver(tutBtn).observe($('#view'),{childList:true});
+async function tutStart(){if(TUT||!TUTCTX)return;const ctx=TUTCTX,d=TUTDEF[ctx.key];
+ if(!await tutLoad()||!TUTJ.modi||!TUTJ.modi[ctx.key])return toast(esc(tutTxt('fehler_laden')));
+ const J=TUTJ.modi[ctx.key],snap=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);snap.push([k,localStorage.getItem(k)])}}catch(_){}
+ if(DRAG)DRAG();if(GEST)GEST();BZ++;$('#view').classList.remove('fft-typing');
+ const ov=document.createElement('div');ov.className='tut';
+ ov.innerHTML='<div class="tut-spot" hidden></div><div class="tut-rip"></div><div class="tut-hand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 9.5V4a2 2 0 0 0-4 0v10l-1.6-1.6a2 2 0 0 0-2.8 2.8l3.6 3.6C6.7 20.3 8.4 22 12 22h2a8 8 0 0 0 8-8v-3a2 2 0 0 0-4 0v-1a2 2 0 0 0-4 0V9a2 2 0 0 0-4 0z"/><path d="M14 10v1M18 11v1"/></svg></div>'+
+  '<div class="gd-bub tut-bub" role="dialog" aria-live="polite" aria-labelledby="tutTxt" hidden><span class="gd-arr"></span><p class="tut-h"></p><p id="tutTxt"></p><p class="tut-do"></p>'+
+  '<div class="gd-row"><span class="gd-n"></span><button type="button" class="gd-skip">'+esc(tutTxt('ueberspringen'))+'</button><button type="button" class="p gd-next">'+esc(tutTxt('weiter'))+'</button></div></div>';
+ document.body.appendChild(ov);document.body.classList.add('tut-on');
+ TUT={ctx,d,J,L:(Array.isArray(J.schritte)?J.schritte:[]).filter(s=>s&&d.steps[s.id]&&typeof s.text==='string'),i:-1,snap,pts:st.pts,streak:st.streak,rnd:Math.random,shown:0,ov,ids:[]};
+ ov.querySelector('.tut-h').textContent=tutTxt('knopf')+' · '+(J.titel||'');
+ ov.querySelector('.gd-next').onclick=()=>tutGo(TUT.i+1);ov.querySelector('.gd-skip').onclick=()=>tutEnd();
+ ['pointerdown','mousedown','click','dblclick','contextmenu'].forEach(t=>addEventListener(t,tutBlock,true));addEventListener('keydown',tutKey,true);
+ Math.random=seeded('tutorial '+ctx.key); // fester Beispielchart
+ try{await d.start()}catch(e){console.error(e);return tutEnd()}
+ if(!TUT)return;window.scrollTo(0,0);tutGo(0);TUT.iv=setInterval(tutTick,120);}
+function tutGo(i){const T=TUT;if(!T)return;clearTimeout(T.nx);if(i>=T.L.length)return tutEnd();
+ const s=T.L[i],d=T.d.steps[s.id];T.i=i;T.c={s,d,act:!!(d.done||d.click),t0:performance.now(),seen:false,hand:false,done:false,clk:false};
+ T.ov.querySelector('.tut-bub').hidden=true;T.ov.querySelector('.tut-bub').classList.remove('in');T.ov.querySelector('.tut-spot').hidden=true;
+ T.ov.querySelector('.tut-hand').classList.remove('go');T.ov.querySelector('.tut-rip').classList.remove('go');tutTick();}
+function tutEl(e){try{e=typeof e==='function'?e():e;if(typeof e==='string')e=$(e.startsWith('#view')?e:'#view '+e)||$(e);
+ if(!e)return null;if(e.getBoundingClientRect){const r=e.getBoundingClientRect();return r.width||r.height?e:null}return e}catch(_){return null}}
+const tutRect=e=>e.getBoundingClientRect?e.getBoundingClientRect():e;
+function tutPt(h){try{let v=typeof h==='function'?h():h;if(typeof v==='string')v=$('#view '+v)||$(v);if(!v)return null;
+ if(v.getBoundingClientRect){const r=v.getBoundingClientRect();return r.width?{x:r.left+r.width/2,y:r.top+r.height/2}:null}return isFinite(v.x)&&isFinite(v.y)?v:null}catch(_){return null}}
+function tutTick(){const T=TUT;if(!T||!T.c)return;const c=T.c,d=c.d,now=performance.now();tutPts();
+ if(c.act&&c.seen&&!c.done&&(c.clk||(d.done&&(()=>{try{return !!d.done()}catch(_){return false}})()))){c.done=true;
+  T.ov.querySelector('.tut-do').textContent='✓';T.nx=setTimeout(()=>{if(TUT===T&&T.c===c)tutGo(T.i+1)},550);}
+ const el=tutEl(d.el);
+ if(!el){if(!c.seen&&now-c.t0>(d.wait||(d.opt?300:2500)))tutGo(T.i+1);return}
+ const b=T.ov.querySelector('.tut-bub'),nx=b.querySelector('.gd-next');
+ if(!c.seen){c.seen=true;c.ts=now;T.shown++;T.ids.push(c.s.id);
+  if(el.scrollIntoView){const r=el.getBoundingClientRect(),vh=innerHeight,dock=$('.dock');
+   if(!(dock&&dock.contains(el))&&(r.top<60||r.bottom>vh-(dock?dock.offsetHeight:0)-10))el.scrollIntoView({block:r.height>vh*.55?'start':'center'})}
+  b.querySelector('#tutTxt').textContent=c.s.text;
+  const rest=T.L.slice(T.i+1).filter(s=>!T.d.steps[s.id].opt).length;b.querySelector('.gd-n').textContent=T.shown+' / '+(T.shown+rest);
+  b.querySelector('.tut-do').textContent=c.act?tutTxt('jetzt_du'):'';b.querySelector('.tut-do').hidden=!c.act;
+  nx.hidden=c.act;nx.textContent=T.i>=T.L.length-1?tutTxt('los'):tutTxt('weiter');
+  b.hidden=false;T.ov.querySelector('.tut-spot').hidden=false;requestAnimationFrame(()=>b.classList.add('in'));
+  if(!c.act)nx.focus({preventScroll:true});}
+ const r=tutRect(el),hp=c.act&&d.hand?tutPt(d.hand):null;tutPlace(r,hp);
+ if(c.act&&!c.hand&&!c.done&&hp&&now-c.ts>350){c.hand=true;tutHand(hp)}}
+// Die Hand tippt einmal vor (bei reduzierter Bewegung: steht kurz still da)
+function tutHand(p){const h=TUT.ov.querySelector('.tut-hand'),q=TUT.ov.querySelector('.tut-rip');
+ h.style.left=(p.x-14)+'px';h.style.top=(p.y-3)+'px';q.style.left=p.x+'px';q.style.top=p.y+'px';
+ [h,q].forEach(e=>{e.classList.remove('go');void e.offsetWidth;e.classList.add('go')});}
+// Abdunkeln mit Aussparung, Sprechblase daneben (sonst darunter/darüber), immer ganz im Bild; passt sie nirgends, an den Rand weg vom Tipp-Punkt
+function tutPlace(r,pt){const T=TUT,sp=T.ov.querySelector('.tut-spot'),b=T.ov.querySelector('.tut-bub'),a=b.querySelector('.gd-arr'),pad=6,M=12,gap=16,
+  vv=window.visualViewport,vw=document.documentElement.clientWidth,vt=vv?vv.offsetTop:0,vh=vv?vv.height:innerHeight;
+ const sl=Math.max(2,r.left-pad),sr=Math.min(vw-2,r.right+pad);
+ Object.assign(sp.style,{left:sl+'px',top:(r.top-pad)+'px',width:Math.max(0,sr-sl)+'px',height:(r.height+2*pad)+'px'});
+ const bw=Math.min(340,vw-2*M);b.style.width=bw+'px';const bh=b.offsetHeight,top=vt+M,bot=vt+vh-M,tall=r.height>vh*.7;let x,y,side;
+ if(!tall&&r.right+gap+bw<=vw-M){side='l';x=r.right+gap;y=r.top+r.height/2-bh/2}
+ else if(!tall&&r.left-gap-bw>=M){side='r';x=r.left-gap-bw;y=r.top+r.height/2-bh/2}
+ else if(r.bottom+gap+bh<=bot){side='t';y=r.bottom+gap;x=r.left+r.width/2-bw/2}
+ else if(r.top-gap-bh>=top){side='b';y=r.top-gap-bh;x=r.left+r.width/2-bw/2}
+ else{side='';x=(vw-bw)/2;const fy=pt?pt.y:r.top+r.height/2;y=fy>vt+vh/2?top:bot-bh}
+ x=Math.max(M,Math.min(vw-M-bw,x));y=Math.max(top,Math.min(bot-bh,y));b.style.left=x+'px';b.style.top=y+'px';
+ a.className='gd-arr '+side;a.hidden=!side;
+ if(side==='l'||side==='r'){a.style.top=Math.max(16,Math.min(bh-16,r.top+r.height/2-y))+'px';a.style.left=''}
+ else{a.style.left=Math.max(18,Math.min(bw-18,r.left+r.width/2-x))+'px';a.style.top=''}}
+// Nur die Sprechblase und (bei einer Handlung) das Ziel sind bedienbar
+function tutBlock(e){const T=TUT;if(!T)return;const t=e.target;if(t&&t.closest&&t.closest('.tut'))return;const c=T.c;
+ if(c&&c.act&&c.seen&&!c.done&&t&&t.closest){const el=tutEl(c.d.el),al=c.d.allow&&$(c.d.allow);
+  if((el&&el.contains&&el.contains(t))||(al&&al.contains(t))){if(e.type==='click'&&c.d.click&&(c.d.click===1||t.closest(c.d.click)))c.clk=true;return}}
+ e.stopPropagation();if(e.type!=='pointerdown'&&e.type!=='mousedown')e.preventDefault();}
+function tutKey(e){const T=TUT;if(!T)return;const c=T.c;
+ if(e.key==='Escape'){e.preventDefault();e.stopPropagation();return tutEnd()}
+ if(c&&c.act)return; // Handlung: Tasten wie gewohnt (Text tippen, Enter zum Auswerten …)
+ if(e.key==='Enter'&&!e.target.closest('.tut')){e.preventDefault();e.stopPropagation();return tutGo(T.i+1)}
+ if(e.key!=='Tab'&&!e.target.closest('.tut'))e.stopPropagation();}
+// Punkte-Meldungen der Übungsrunde umschreiben (es gibt keine Punkte)
+function tutPts(){const v=$('#view');if(!v)return;const w=document.createTreeWalker(v,NodeFilter.SHOW_TEXT),k=tutTxt('keine_punkte');let n;
+ while((n=w.nextNode())){const t=n.nodeValue;if(t.indexOf('+')<0)continue;
+  const u=t.replace(/\+\d+ Punkte/g,k).replace(/Halbe Punkte: \+\d+/g,k).replace(/Bonusfrage \(\+\d+\)/g,'Bonusfrage').replace(/Bonus \+\d+/g,'Bonus').replace(/^\+\d+/,k);if(u!==t)n.nodeValue=u}}
+// Ende (Los geht's, Überspringen, Esc): alles zurücksetzen, dann eine normale Runde
+function tutEnd(){const T=TUT;if(!T)return;clearInterval(T.iv);window.TUTLAST=T.ids.slice();clearTimeout(T.nx);
+ ['pointerdown','mousedown','click','dblclick','contextmenu'].forEach(t=>removeEventListener(t,tutBlock,true));removeEventListener('keydown',tutKey,true);
+ T.ov.remove();document.body.classList.remove('tut-on');Math.random=T.rnd;if(DRAG)DRAG();if(GEST)GEST();BZ++;
+ try{localStorage.clear();T.snap.forEach(([k,v])=>localStorage.setItem(k,v))}catch(_){}
+ TUT=null;st.pts=T.pts;st.streak=T.streak;stats();$('#view').classList.remove('fft-typing');
+ if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();window.scrollTo(0,0);
+ try{T.ctx.restart()}catch(e){console.error(e);home()}}
+window.TUTS=()=>TUT&&{key:TUT.ctx.key,i:TUT.i,id:TUT.c&&TUT.c.s.id,act:!!(TUT.c&&TUT.c.act),seen:!!(TUT.c&&TUT.c.seen),done:!!(TUT.c&&TUT.c.done),ids:TUT.ids.slice(),
+ hand:TUT.c&&TUT.c.seen&&TUT.c.d.hand?tutPt(TUT.c.d.hand):null,steps:TUT.L.map(s=>s.id)}; // Testzugriff (tests/tutorial.js)
+tutLoad();
 stats();home();rankCheck(); // bisherige Quiz-Daten zählen mit
 if(location.hash==='#fehlertexte')fehlerTexte(); // versteckte Übersicht der nicht erkannten Antworten (Fehler finden Schwer)
 </script>

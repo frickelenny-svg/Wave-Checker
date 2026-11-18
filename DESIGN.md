@@ -28,3 +28,18 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
 - Aktives Werkzeug blau hervorgehoben (wie aktive Zeiteinheit). Tooltip mit Tastenkürzel: „Zeichnen (C)“, „Auswählen (V)“.
 - Nur im Schwer-Modus und nur, solange noch nicht geprüft wurde.
 - Erster Besuch: ein Satz Hinweis über dem Chart mit „OK“-Knopf (`.pgmh`), danach nie wieder.
+
+## Tutorial „So geht's“ (seit 18.11.2026)
+- Knopf „So geht's“ mit „?“-Icon (Strich-Icon, Kreis mit Fragezeichen) oben rechts im Spielbildschirm jedes Modus, auf Höhe der
+  Modus-Zeile (`.kick`), rund (Pille), Rand und Schrift `--accent`, mindestens 40 px hoch (`.tutbtn`). Blitz: in der Kopfzeile links
+  neben „Abbrechen“. Die Modus-Zeile hält rechts immer Platz frei, damit nichts verrutscht.
+- Erster Besuch eines Modus: Der Knopf pulsiert zweimal kurz (Ring in `--accent`), danach nie wieder. Kein Pop-up, kein Abdunkeln,
+  solange man das Tutorial nicht selbst startet. Bei reduzierter Bewegung: kurz blau hinterlegt statt Puls.
+- Während des Tutorials: Rest des Bildschirms leicht abgedunkelt (Navy 32 %, heller als der Wegführer), Ziel-Element mit blauem Rahmen
+  ausgespart. Sprechblase wie beim Wegführer (`.gd-bub`): kleine Überschrift „So geht's · Modus“, Text (höchstens zwei Sätze),
+  bei Handlungen „Jetzt du.“ in `--accent-text`, unten Schritt „2 / 5“, „Überspringen“ (Textknopf) und „Weiter“ bzw. „Los geht's“.
+  Bei Handlungen gibt es kein „Weiter“: Es geht weiter, sobald man es selbst gemacht hat. Die Blase steht neben, unter oder über dem
+  Ziel, immer ganz im Bild; passt sie nirgends, an den Bildschirmrand weg von der Tipp-Stelle.
+- Hand: Strich-Icon mit weißer Füllung (Oberfläche) und Schatten, gleitet einmal zur Tipp-Stelle, tippt (kleiner Ring in `--accent`)
+  und verblasst (2 s). Bei reduzierter Bewegung steht sie kurz still da.
+- Nur die Sprechblase und bei Handlungen das Ziel sind bedienbar. Esc = Überspringen, Enter = Weiter.

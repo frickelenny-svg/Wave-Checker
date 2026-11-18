@@ -1,7 +1,7 @@
 # Wave-Checker
 
 Lern-App für Elliott-Wellen (Deutsch). Alles steckt in einer Datei: `index.html` (HTML, CSS, JS, ohne Build-Schritt).
-Veröffentlicht wird über `main` (GitHub Pages). Gestaltungsregeln: `DESIGN.md`. Lerninhalte: `lernen/` (Regelwerk-Lernversion + Abbildungen), Quiz: `quiz/`.
+Veröffentlicht wird über `main` (GitHub Pages). Gestaltungsregeln: `DESIGN.md`. Lerninhalte: `lernen/` (Regelwerk-Lernversion + Abbildungen), Quiz: `quiz/`, Tutorial-Texte: `tutorials.json`.
 
 ## Arbeitsweise
 - Texte in der App auf Deutsch, Anrede „du“. Kommentare im Code ebenfalls Deutsch, mit Datum und „Lenny“ bei Umbauten.
@@ -15,6 +15,27 @@ Veröffentlicht wird über `main` (GitHub Pages). Gestaltungsregeln: `DESIGN.md`
   Label, Ziehen nur des gewählten Labels) und die Regel „Unterteilung am Ende der Welle darüber muss vollständig sein“.
   Vor jedem Veröffentlichen von Änderungen an Schwer laufen lassen. Hinweis für Tests: Nach einem synthetischen Wisch mit Schwung
   verschluckt der Test-Browser den nächsten Tipp (Finger vor dem Loslassen ruhen lassen); der Click eines Touch-Tipps kommt verzögert.
+- Seit 18.11.2026 braucht das installierte Edge (Version 157) Playwright ab 1.65; ältere Versionen starten es nicht mehr.
+
+## Kurz-Tutorials „So geht's“ (seit 18.11.2026)
+- Je Spielbildschirm ein Knopf „So geht's“ (oben rechts, `.tutbtn`), startet nie von selbst. Beim ersten Besuch eines Modus pulsiert er
+  einmal (`localStorage` `waveChecker.tutSeen`). Elf Tutorials: `count`, `find`, `find-schwer`, `recog`, `recog-schwer`, `daily`, `sub`,
+  `blitz`, `progn`, `progn-schwer`, `quiz` (Schlüssel je nach Schwierigkeit). Gestaltung: DESIGN.md, Abschnitt „Tutorial“.
+- Texte nur in `tutorials.json` (Anleitung oben in der Datei): je Modus `titel` und `schritte` (`id` + `text`, höchstens zwei Sätze, du,
+  keine Regel-IDs). Reihenfolge und Auswahl der Schritte kommen aus der Datei, unbekannte ids werden übersprungen.
+- Technik in `index.html` (Block „Kurz-Tutorials“ direkt vor dem App-Start): Jeder Spielbildschirm meldet sich mit
+  `tutCtx(key, neueRunde, daten)` an (count, findSub, recogNormal, recogHard, sub, blitz/show, progn, quizAsk). `TUTDEF[key]` legt je
+  Schritt das echte Ziel-Element fest (`el`), bei Handlungen `hand` (wohin die Hand zeigt), `done`/`click` (wann es weitergeht), `opt`
+  (nur wenn es passt, z. B. Tipp-Knopf, Bonusfrage). Fehlt ein Element, wird der Schritt übersprungen, nie blockiert.
+- Übungsrunde in einer Sandbox: fester Beispielchart (`Math.random` = `seeded('tutorial '+key)`, Impuls bzw. feste Quizfragen,
+  Tagesaufgabe mit eigenem Beispiel statt des echten Tages). Punkte-Meldungen zeigen „keine Punkte (Übungsrunde)“, Kopfzeile und
+  Rang-Meldungen bleiben still. Am Ende (Los geht's, Überspringen, Esc) werden Punkte, Serie und der ganze `localStorage` zurückgesetzt,
+  dann startet eine normale Runde (Quiz und Blitz: die unterbrochene Runde, falls gespeichert).
+- Neuer Modus: `tutCtx` im Spielbildschirm aufrufen, Eintrag in `TUTDEF` und in `tutorials.json`, Öffner in `tests/tutorial.js` (`OPEN`).
+- Test: `node tests/tutorial.js [Durchläufe]` (Playwright, Handy/iPad/PC): Knopf und Puls, jedes Tutorial bis zum Ende mit echten Tipps
+  an die Stelle der Hand, alle Pflichtschritte erscheinen, Blase im Bild, danach normale Runde und Spielstand unverändert, Überspringen
+  und Neustart, Datei-Prüfung (zwei Sätze, keine Regel-IDs). Testzugriff: `TUTS()` (Schritt, Handlung, Hand-Punkt), `TUTLAST`.
+  Nach Änderungen an Tutorials, an `tutorials.json` oder an Bedienelementen eines Modus laufen lassen.
 
 ## „Fehler finden“ (Funktion `findSub`), Schwer seit 14.11.2026
 - Im Menü (`pick('find')`) Schwierigkeit wählen: Leicht (Regel aus einer Auswahl) oder Schwer (Freitext), gemerkt in
