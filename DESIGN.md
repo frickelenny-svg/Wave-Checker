@@ -29,6 +29,20 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
 - Nur im Schwer-Modus und nur, solange noch nicht geprüft wurde.
 - Erster Besuch: ein Satz Hinweis über dem Chart mit „OK“-Knopf (`.pgmh`), danach nie wieder.
 
+## Eigenen Chart prüfen (seit 20.11.2026)
+- Insel unten neben „Wie geht es weiter?“, Icon Bild (Rahmen, Sonne, Berg als Strich-Icon). Handy: Station in Welle 5.
+- Hochladen: große Ablagefläche (`.ocdrop`, gestrichelter Rand `--line`, beim Darüberziehen `--accent`), darunter klein
+  „Das Bild bleibt auf deinem Gerät“ und der Hinweistext (13 px, `--muted`).
+- Zuschneiden: Bild auf Fläche wie der Chart, außerhalb des Rahmens Navy 55 % abgedunkelt, Rahmen 2 px `--accent`, weiße Eck-Griffe.
+- Zählen: wie Schwer, aber Werkzeuge waagerecht links und Zoom rechts in einem 54 px hohen Streifen über dem Bild (nichts verdeckt
+  das Bild). Bild unverzerrt; darüber Fläche in `--surface` (Regler „Bild blasser“ unter dem Chart, 0–85 %, Start 25 %), hellt im
+  hellen Design auf und dunkelt im dunklen ab. Text-Labels mit Hintergrund (`.pglbg`: `--surface` 92 %, Rand `--line`, Ecken 6 px),
+  große Labels wie immer im Kreis.
+- Ergebnis: Befunde als `.rnote` mit Abzeichen (Regel, Warnsignal, Faustregel). Leiste unten: „Als Bild speichern“ (Hauptknopf),
+  „Teilen“ (nur Handy/iPad), „Zählung ändern“, „Neues Bild“.
+- Bild-Export (PNG, 2- bis 3-fach): Bild mit Labels und Linien, darunter Trennlinie, Fazit fett in `--ok` bzw. `--bad` mit ✓/✗,
+  bis 6 Zeilen Details (14 px), Hinweis 11 px `--muted`, rechts unten „Wave Checker“ (12 px fett, `--accent-text`).
+
 ## Tutorial „So geht's“ (seit 18.11.2026)
 - Knopf „So geht's“ mit „?“-Icon (Strich-Icon, Kreis mit Fragezeichen) oben rechts im Spielbildschirm jedes Modus, auf Höhe der
   Modus-Zeile (`.kick`), rund (Pille), Rand und Schrift `--accent`, mindestens 40 px hoch (`.tutbtn`). Blitz: in der Kopfzeile links

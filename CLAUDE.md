@@ -53,6 +53,37 @@ Gilt für „Chart durchzählen“, „Muster erkennen – Schwer“, Tagesaufga
   und Neustart, Datei-Prüfung (zwei Sätze, keine Regel-IDs). Testzugriff: `TUTS()` (Schritt, Handlung, Hand-Punkt), `TUTLAST`.
   Nach Änderungen an Tutorials, an `tutorials.json` oder an Bedienelementen eines Modus laufen lassen.
 
+## „Eigenen Chart prüfen“ (seit 20.11.2026, Funktionen `ownChart`, `ocCrop`, `progn({img})`)
+Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI und ohne Server, Grundlage nur das Regelwerk.
+- Insel unten im Hauptmenü (neben „Wie geht es weiter?“), Station am Handy-Pfad zwischen Prognose und Rängen (`STN` id `own`),
+  Schritt im Wegführer. Hinweistext `OCNOTE` („prüft deine Zählung nach dem Regelwerk … keine Kursprognose oder Anlageempfehlung“)
+  auf Hochladen, Zählen und Ergebnis.
+- Hochladen: Dateifeld bzw. Ziehen (PNG/JPG), Bild bleibt im Browser (Blob-URL, Canvas). Zuschneiden (`ocCrop`): Rahmen ziehen,
+  Ecken/Kanten anpassen, im Rahmen verschieben, „Ganzes Bild“. Ausschnitt höchstens 2000 px lange Seite (`OCMAX`).
+- Zählen = `progn({img:IMG},'schwer')`: dieselbe Bedienung wie Schwer (Zählweisen, Zeichnen/Auswählen, Unterteilungen, Löschen,
+  Zoom). `IMG` = {cv, data, w, h, url, fade, crop:{x,y,f}}. Zeit = Bildspalte, Preis = Pixelhöhe von unten (`h - Zeile - 0,5`),
+  immer linear (auch bei log-Charts, ohne Hinweis). Keine Zukunftszone, keine Zeiteinheiten, Mausrad zoomt unverzerrt.
+  Werkzeuge und Zoom stehen in einem Streifen über dem Bild (`TP` 54 px), damit keine Bildecke verdeckt ist.
+  Regler „Bild blasser“ (Fläche in `--surface` über dem Bild, `localStorage` `waveChecker.ocFade`), Labels mit Hintergrund (`.pglbg`).
+- Einrasten (`imgSnap`, statt Kerzen): Hintergrund = häufigste Farbe im Fenster um den Fangbereich, abweichend ab Schwelle nach
+  Kontrast (Gitterlinien bleiben darunter), Formen ab 3 Pixeln, senkrechte Lücken bis 2 px geschlossen. Profil je Spalte (oberstes bzw.
+  unterstes Pixel), Wendehoch/-tief in ±K Spalten wie beim Kerzen-Einrasten (Abstand zum Finger, Bonus für markante Spitzen, Richtung
+  aus `wantOf`), Spitze mit schwacher Schwelle verfolgt (blasse Dochte auf Fotos). Schon eingezeichnete Labels (kleines „Wort“ bis
+  110 × 44 px, 4 bis 60 px über einem Hoch bzw. unter einem Tief) zählen nicht: Tipp aufs Label rastet am Docht ein. Kein Treffer: frei.
+  Start ohne Richtung: das nähere von Hoch und Tief (wie in Schwer). Tipps bis Fangradius neben dem Bildrand gelten noch.
+- Prüfen (`imgVerify`, sobald eine große Zählung 3 Punkte hat): `frCheck` ohne Kerzendaten (Lage am Hoch entfällt, Wellengebiet aus den
+  Punkten), merkt das passende Muster (`S.fitQ`). Alle Befunde auf einmal: harte Regeln = Fehler (rot, Grenzlinie), Warnsignale und
+  Faustregeln = Hinweise, Invalidierungslinien des passenden Musters für große Zählungen. Text nur „Deine Zählung ist regelkonform“
+  bzw. „verstößt gegen …“, nie „richtige Zählung“. Danach „Als Bild speichern“ (PNG: Bild, Labels, Linien, Fazit, „Wave Checker“;
+  `ocPng`), „Teilen“ (nur Touch mit Datei-Teilen), „Zählung ändern“, „Neues Bild“. Testzugriff: `PGS.img`, `PGS.res`, `PGS.lastPng`,
+  `IMG.cand` (Kandidaten des letzten Einrastens), `IMG.debug` → `IMG.dbg`.
+- Test: `node tests/eigener-chart.js [Runden]` (Playwright, Handy/iPad/PC, `NUR=Handy` für ein Gerät, `DBG=1` Fehlgriffe, `SHOTS=Ordner`
+  Bildschirmfotos). Testbilder im TradingView-Stil mit bekannten Preisen (hell/dunkel, Kerzen/Linie, linear/log, Handyfoto-Simulation
+  mit Unschärfe/Rauschen/Moiré/JPEG, teils mit eingezeichneten Labels): Hochladen, echtes Zuschneiden, Einrasten ≥ 95 % (Stand 20.11.:
+  Handy, iPad, PC je rund 99–100 %, Labels 100 %), Ziehen, Prüfergebnis gleich den Regeln für die bekannten Preise (log: Pixelhöhe),
+  Regler, Bild-Export, Spielstand unverändert. Der Start wird auf bzw. jenseits des Extrems getippt. Nach Änderungen an Schwer,
+  `snapPt` oder `frCheck` auch diesen Test laufen lassen.
+
 ## „Fehler finden“ (Funktion `findSub`), Schwer seit 14.11.2026
 - Im Menü (`pick('find')`) Schwierigkeit wählen: Leicht (Regel aus einer Auswahl) oder Schwer (Freitext), gemerkt in
   `localStorage` `waveChecker.findLvl`. Welle wählen wie in Leicht, dann Textfeld „Was ist falsch?“ (Enter oder Auswerten).
