@@ -1,7 +1,48 @@
 {
-  "_anleitung": "Feste Testbilder für den erkannten Kursverlauf (tests/verlauf.js). datei: Bild in diesem Ordner. bereich: Spalten [von, bis] mit Kursverlauf. oben/unten: Zeilen, über bzw. unter denen kein Verlauf liegen darf (Legende, Zeitachse). abdeckung: Anteil der 6 Spalten breiten Abschnitte im Bereich mit Verlauf. quelle: Herkunft.",
+  "_anleitung": "Feste Testbilder für den erkannten Kursverlauf (tests/verlauf.js). datei: Bild in diesem Ordner. bereich: Spalten [von, bis] mit Kursverlauf. oben/unten: Zeilen, über bzw. unter denen kein Verlauf liegen darf (Legende, Zeitachse). abdeckung: Anteil der 6 Spalten breiten Abschnitte im Bereich mit Verlauf. quelle: Herkunft. Seit 23.11.2026 optional: kurs = Farben des Kurses ({farben:[[r,g,b]...], tol} oder {hell: Mindesthelligkeit}); dann muss der Verlauf je Spalte in mindestens nah (Anteil) der Spalten bis 3 px am obersten bzw. untersten Kurspixel liegen und darf höchstens 0,5 % der Spalten mehr als 8 px über bzw. unter dem Kurs der Nachbarspalten (±4) liegen (Zeichnungen, Kästchen). verboten: Rechtecke [x0,y0,x1,y1], in denen kein Verlauf liegen darf.",
   "faelle": [
-    { "datei": "legende-oben.png", "bereich": [3, 588], "oben": 22, "unten": 330, "abdeckung": 0.85,
-      "quelle": "Screenshot von Lenny, 23.11.2026: TradingView dunkel, Legende oben, Preisachse mit Preis-Kästchen rechts, Zeitachse unten, eingezeichnete Labels. Vorher senkrechte Balken bis zum oberen Rand. Die blaue Linie der App aus dem Screenshot ist herausgerechnet." }
+    {
+      "datei": "legende-oben.png",
+      "bereich": [3, 588],
+      "oben": 22,
+      "unten": 330,
+      "abdeckung": 0.85,
+      "quelle": "Screenshot von Lenny, 23.11.2026: TradingView dunkel, Legende oben, Preisachse mit Preis-Kästchen rechts, Zeitachse unten, eingezeichnete Labels. Vorher senkrechte Balken bis zum oberen Rand. Die blaue Linie der App aus dem Screenshot ist herausgerechnet."
+    },
+    {
+      "datei": "lumen-trendlinien.png",
+      "bereich": [2, 1558],
+      "oben": 24,
+      "unten": 830,
+      "abdeckung": 0.85,
+      "kurs": {
+        "farben": [
+          [255, 255, 255],
+          [184, 184, 184]
+        ],
+        "tol": 28
+      },
+      "nah": 0.9,
+      "verboten": [
+        [1560, 0, 1607, 863]
+      ],
+      "quelle": "Screenshot von Lenny, 23.11.2026 (Original): TradingView dunkel, OHLC-Balken weiß/grau und dünn, zwei lila Trendlinien (Dreieck), Wellen-Labels, E-Symbol, Preisachse mit Kästchen 6.49. Vorher lag der Verlauf auf der oberen Trendlinie."
+    },
+    {
+      "datei": "paypal-preiskaestchen.png",
+      "bereich": [2, 610],
+      "oben": 4,
+      "unten": 395,
+      "abdeckung": 0.85,
+      "kurs": {
+        "hell": 120
+      },
+      "nah": 0.75,
+      "verboten": [
+        [599, 262, 640, 300],
+        [614, 0, 651, 427]
+      ],
+      "quelle": "Aus Lennys Screenshot vom 23.11.2026 (PayPal, TradingView dunkel, Kerzen): die blaue Linie der App in Kursfarbe (hellgrau) zurückgerechnet, daher an den Rändern unscharf (nah nur 75 %). Gepunktete Preislinie, Kästchen PYPL und 52.84 auf Kurshöhe, Kästchen 44.31, E/D-Symbole, Labels. Vorher lief der Verlauf über das Kästchen PYPL bis zum Rand."
+    }
   ]
 }

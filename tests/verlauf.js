@@ -2,6 +2,8 @@
 // Aufruf im Repo-Ordner: node tests/verlauf.js   (Playwright nötig; PWCH=msedge bzw. PWCH=chrome). Bilder und Erwartungen: tests/faelle/faelle.json.
 // Prüft je Bild nach echtem Hochladen (ganzes Bild): kein Verlauf in der Legende oben bzw. der Zeitachse unten, keine senkrechten Ausschläge
 // (Hoch einer Spalte mehr als 18 % der Bildhöhe über dem Median der Nachbarspalten), genug Verlauf (Anteil der 6 Spalten breiten Abschnitte), keine Fehler in der Konsole.
+// Seit 23.11.2026 mit Kursfarbe (kurs): Der Verlauf folgt dem Kurs (oberstes und unterstes Kurspixel je Spalte, bis 3 px) und liegt nicht auf
+// Zeichnungen oder Kästchen (mehr als 8 px über bzw. unter dem Kurs der Nachbarspalten); verboten: Rechtecke ohne Verlauf (Preisachse, Kästchen).
 const { chromium } = require('playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..'), PORT = 8792, F = JSON.parse(fs.readFileSync(path.join(__dirname, 'faelle', 'faelle.json'), 'utf8')).faelle;
@@ -24,9 +26,20 @@ const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, 
         let cov = 0, top = 0, bot = 0, sp = []; for (let x = a; x <= b; x++) { if (hi[x] < 0) continue; cov++; if (hi[x] < c.oben * f) top++; if (lo[x] > c.unten * f) bot++;
           const nb = hi.slice(Math.max(0, x - 8), x + 9).filter(v => v >= 0).sort((p, q) => p - q), m = nb[nb.length >> 1]; if (m - hi[x] > .18 * h) sp.push(x); }
         let wn = 0, wc = 0; for (let x = a; x + 5 <= b; x += 6) { wn++; if (hi.slice(x, x + 6).some(v => v >= 0)) wc++; } // Abdeckung je 6 Spalten (dünne Kerzen haben Lücken)
-        return { cov: wc / Math.max(1, wn), top, bot, sp }; }, c);
+        // Kurs nach Farbe: je Spalte oberstes und unterstes Pixel in Kursfarbe (Originalbild, ganzes Bild hochgeladen: f = 1 bzw. verkleinert)
+        let nah = null, weg = [], verb = 0; if (c.kurs) { const Dd = I.data, K = c.kurs, isK = j => { const r = Dd[j * 4], g = Dd[j * 4 + 1], b = Dd[j * 4 + 2];
+            return K.hell ? Math.min(r, g, b) >= K.hell : K.farben.some(q => Math.max(Math.abs(r - q[0]), Math.abs(g - q[1]), Math.abs(b - q[2])) <= K.tol); };
+          const rt = new Array(I.w).fill(-1), rb = new Array(I.w).fill(-1); for (let x = a; x <= b; x++) for (let y = Math.ceil(c.oben * f); y < Math.min(h, c.unten * f); y++) if (isK(y * I.w + x)) { if (rt[x] < 0) rt[x] = y; rb[x] = y; }
+          let n1 = 0, n2 = 0; for (let x = a; x <= b; x++) { if (hi[x] < 0) continue; if (rt[x] >= 0) { n1++; if (Math.abs(hi[x] - rt[x]) <= 3 && Math.abs(lo[x] - rb[x]) <= 3) n2++; }
+            const nt = rt.slice(Math.max(0, x - 4), x + 5).filter(v => v >= 0), nb = rb.slice(Math.max(0, x - 4), x + 5).filter(v => v >= 0);
+            if (!nt.length || hi[x] < Math.min(...nt) - 8 || lo[x] > Math.max(...nb) + 8) weg.push(x); }
+          nah = n2 / Math.max(1, n1); }
+        (c.verboten || []).forEach(([x0, y0, x1, y1]) => { for (let x = Math.round(x0 * f); x <= Math.min(I.w - 1, Math.round(x1 * f)); x++) if (hi[x] >= 0 && lo[x] >= y0 * f && hi[x] <= y1 * f) verb++; });
+        return { cov: wc / Math.max(1, wn), top, bot, sp, nah, weg, verb }; }, c);
       console.log(name + ': ' + c.datei + ' Abdeckung ' + (100 * r.cov).toFixed(0) + ' %, in der Legende ' + r.top + ', in der Zeitachse ' + r.bot + ', Ausschläge ' + r.sp.length);
       if (r.cov < c.abdeckung) fail(c.datei + ': zu wenig Verlauf erkannt'); if (r.top || r.bot) fail(c.datei + ': Verlauf in Legende bzw. Zeitachse'); if (r.sp.length) fail(c.datei + ': senkrechte Ausschläge in Spalte ' + r.sp.slice(0, 5));
+      if (r.nah !== null) { console.log('   am Kurs ' + (100 * r.nah).toFixed(1) + ' %, abseits (Zeichnung, Kästchen) ' + r.weg.length + ' Spalten'); if (r.nah < c.nah) fail(c.datei + ': Verlauf folgt dem Kurs zu selten'); if (r.weg.length > (c.bereich[1] - c.bereich[0]) * .005) fail(c.datei + ': Verlauf abseits des Kurses in Spalte ' + r.weg.slice(0, 8)); }
+      if (r.verb) fail(c.datei + ': Verlauf in einem verbotenen Bereich (' + r.verb + ' Spalten)');
     }
     if (errs.length) fail('Konsole: ' + [...new Set(errs)].slice(0, 3).join(' | '));
     await ctx.close();

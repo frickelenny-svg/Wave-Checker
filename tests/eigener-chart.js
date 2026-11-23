@@ -67,12 +67,24 @@ const MK = String.raw`(o)=>{let sd=o.seed;const rnd=()=>(sd=(sd*16807)%214748364
  const tips=[],cdl=[]; // cdl: je Kerze Spalte und Zeilen von Hoch und Tief (Linie: Punkt der Linie, a = b)
  if(o.kind==='line'){g.strokeStyle=C.ln;g.lineWidth=2;g.lineJoin='round';g.beginPath();cand.forEach((k,i)=>{const X=xOf(i),Y=yOf(k.c);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.stroke();cand.forEach((k,i)=>cdl.push({x:xOf(i),a:yOf(k.c),b:yOf(k.c)}));
   piv.forEach((i,k)=>{const up=k?P[k]>P[k-1]:P[0]>P[1];tips.push({x:xOf(i),y:yOf(cand[i].c)+(up?-1:1),hl:up?'h':'l'})})}
- else{cand.forEach((k,i)=>{const X=xOf(i),yh=Math.round(yOf(k.h)),yl=Math.round(yOf(k.l)),yt=Math.round(yOf(Math.max(k.o,k.c))),yb=Math.round(yOf(Math.min(k.o,k.c))),up=k.c>=k.o;
-   g.fillStyle=up?C.up:C.dn;g.fillRect(X,yh,1,yl-yh+1);g.fillRect(X-(bw-1)/2,yt,bw,Math.max(1,yb-yt));cdl.push({x:X,a:yh,b:yl})});
+ else{const tk=Math.max(2,Math.round(sp*.32)),wc=dark?'#d1d4dc':'#131722';cand.forEach((k,i)=>{const X=xOf(i),yh=Math.round(yOf(k.h)),yl=Math.round(yOf(k.l)),yt=Math.round(yOf(Math.max(k.o,k.c))),yb=Math.round(yOf(Math.min(k.o,k.c))),up=k.c>=k.o;
+   if(o.kind==='ohlc'){g.fillStyle=o.ohlcW?(up?wc:'#787b86'):up?C.up:C.dn;g.fillRect(X,yh,1,yl-yh+1);g.fillRect(X-tk,Math.round(yOf(k.o)),tk,1);g.fillRect(X+1,Math.round(yOf(k.c)),tk,1)} // OHLC-Balken: dünner Strich, Eröffnung links, Schluss rechts
+   else{g.fillStyle=up?C.up:C.dn;g.fillRect(X,yh,1,yl-yh+1);g.fillRect(X-(bw-1)/2,yt,bw,Math.max(1,yb-yt))}cdl.push({x:X,a:yh,b:yl})});
   piv.forEach((i,k)=>{const up=k?P[k]>P[k-1]:P[0]>P[1];tips.push({x:xOf(i),y:Math.round(yOf(up?cand[i].h:cand[i].l)),hl:up?'h':'l'})})}
  // schon eingezeichnete Labels (wie das Elliott-Werkzeug von TradingView): blauer Text über dem Hoch bzw. unter dem Tief
  const labs=[];if(o.labels){g.fillStyle=C.ln;g.font='bold 15px sans-serif';g.textAlign='center';const L=o.z==='N'?['1','2','3','4','5']:['A','B','C'];
   tips.slice(1).forEach((q,k)=>{const t='('+L[k]+')',y=q.hl==='h'?q.y-9:q.y+22;g.fillText(t,q.x,y);labs.push({x:q.x,y:y-5})});g.textAlign='left'}
+ // Zeichnungen (23.11.2026): Trendlinie durch zwei Hochs bzw. Tiefs, verlängert; Kanal (Parallele durch ein Wendepunkt der Gegenseite); Fibonacci-Stufen
+ // (waagerecht vom Start bis zum rechten Rand, mit Beschriftung); Symbol-Kästchen links neben dem Preis-Kästchen. Farbe lila, blau, grau oder Kursfarbe.
+ if(o.draw){const cols=['#7e57c2','#2196f3','#787b86',line?C.ln:o.kind==='ohlc'&&o.ohlcW?(dark?'#d1d4dc':'#131722'):C.up],pk=()=>cols[Math.floor(rnd()*cols.length)];
+  const hs=tips.filter(q=>q.hl==='h'),ls=tips.filter(q=>q.hl==='l'),ln=(a,b,c,wd,ext)=>{const sl=(b.y-a.y)/(b.x-a.x),x2=Math.min(PR,b.x+(b.x-a.x)*ext);g.strokeStyle=c;g.lineWidth=wd;g.beginPath();g.moveTo(a.x,a.y-(a.hl==='h'?.5:-.5));g.lineTo(x2,a.y+sl*(x2-a.x)-(a.hl==='h'?.5:-.5));g.stroke();return sl};
+  const two=a=>a.length>=2?[a[0],a[a.length-1]]:null,T1=rnd()<.5?two(hs):two(ls),touch=q=>{q.tt=1};
+  if(T1&&rnd()<.8){T1.forEach(touch);const c=pk(),sl=ln(T1[0],T1[1],c,rnd()<.6?1:2,rr(.1,.6));const op=T1[0].hl==='h'?ls:hs;if(op.length&&rnd()<.5){/* Kanal: Parallele durch den äußersten Wendepunkt der Gegenseite */
+    const q=op.reduce((p,v)=>(T1[0].hl==='h'?v.y-(T1[0].y+sl*(v.x-T1[0].x))>p.y-(T1[0].y+sl*(p.x-T1[0].x)):v.y-(T1[0].y+sl*(v.x-T1[0].x))<p.y-(T1[0].y+sl*(p.x-T1[0].x)))?v:p);
+    touch(q);ln({...q,hl:q.hl},{x:q.x+100,y:q.y+sl*100,hl:q.hl},c,1,2)}}
+  if(rnd()<.5&&tips.length>2){const a=tips[0],b=tips[tips.length-1],c=pk();touch(a);touch(b);g.font='11px sans-serif';[0,.236,.382,.5,.618,.786,1].forEach(v=>{const y=Math.round(a.y+(b.y-a.y)*v)+.5;g.strokeStyle=c;g.lineWidth=1;g.beginPath();g.moveTo(a.x,y);g.lineTo(PR,y);g.stroke();g.fillStyle=c;g.fillText(v+' ('+(100+v*50).toFixed(2)+')',a.x+4,y-3)})}
+  if(o.legend&&rnd()<.7){const lc=cand[cand.length-1],yl=Math.round(yOf(lc.c)),bx0=PR-58,bx1=PR-4;g.fillStyle=C.bg;g.fillRect(bx0,yl-9,bx1-bx0,18);g.strokeStyle=C.tx;g.lineWidth=1;g.strokeRect(bx0+.5,yl-8.5,bx1-bx0-1,17);g.fillStyle=C.tx;g.font='11px sans-serif';g.fillText('BTCUSD',bx0+5,yl+4);
+   cdl.forEach(q=>{if(q.x>=bx0-3&&q.x<=bx1+3&&q.b>=yl-12&&q.a<=yl+12)q.hid=1})}} // vom Kästchen verdeckte Kerzen werden nicht gewertet
  let out=cv,sc=1;
  if(o.photo){sc=o.big?2.1:1.4;const c2=document.createElement('canvas');c2.width=Math.round(W0*sc);c2.height=Math.round(H0*sc);const h2=c2.getContext('2d');h2.filter='blur(0.7px)';h2.imageSmoothingQuality='high';h2.drawImage(cv,0,0,c2.width,c2.height);h2.filter='none';
   const id=h2.getImageData(0,0,c2.width,c2.height),D=id.data,cw=c2.width,ch=c2.height;
@@ -80,7 +92,7 @@ const MK = String.raw`(o)=>{let sd=o.seed;const rnd=()=>(sd=(sd*16807)%214748364
    for(let c=0;c<3;c++)D[i+c]=Math.max(0,Math.min(255,D[i+c]*v+(dark?14:0)+mo+nz))}
   h2.putImageData(id,0,0);out=c2}
  const T=(x,y)=>({x:(x+.5)*sc-.5,y:(y+.5)*sc-.5});
- return{url:out.toDataURL(o.photo?'image/jpeg':'image/png',.75),W:out.width,H:out.height,plot:{x0:PL*sc,y0:PT*sc,x1:PR*sc,y1:PB*sc},tips:tips.map(q=>({...T(q.x,q.y),hl:q.hl})),labs:labs.map(q=>T(q.x,q.y)),cdl:cdl.map(q=>({x:T(q.x,0).x,a:T(0,q.a).y,b:T(0,q.b).y})),
+ return{url:out.toDataURL(o.photo?'image/jpeg':'image/png',.75),W:out.width,H:out.height,plot:{x0:PL*sc,y0:PT*sc,x1:PR*sc,y1:PB*sc},tips:tips.map(q=>({...T(q.x,q.y),hl:q.hl,tt:q.tt})),labs:labs.map(q=>T(q.x,q.y)),cdl:cdl.map(q=>({x:T(q.x,0).x,a:T(0,q.a).y,b:T(0,q.b).y,hid:q.hid})),
   fy:tips.map((q,k)=>H0-q.y),sc}}`;
 
 module.exports = { MK, PATS };
@@ -99,12 +111,12 @@ if (require.main === module) (async () => {
         for (let i = 0; i < 3; i++) { await page.waitForTimeout(50); await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x2, y: y2 }] }); } if (hold) await hold(); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await page.waitForTimeout(450); return; }
       await page.mouse.move(x1, y1); await page.mouse.down(); await page.mouse.move(x2, y2, { steps: 8 }); if (hold) await hold(); await page.mouse.up(); await page.waitForTimeout(80); };
     const pts = () => page.evaluate(() => PGS.FR().pts.map(q => ({ id: q.id, c: q.c, i: q.i, t: q.t, p: q.p })));
-    let pspike = 0, traceDone = false, pok = 0, ptot = 0, pbad = 0, hit = 0, tot = 0, lhit = 0, ltot = 0, rounds = 0, dragDone = false, pngDone = false;
+    let hitD = 0, totD = 0, pspikeD = 0, ptotD = 0, pspike = 0, traceDone = false, pok = 0, ptot = 0, pbad = 0, hit = 0, tot = 0, lhit = 0, ltot = 0, rounds = 0, dragDone = false, pngDone = false;
     const pts0 = await page.evaluate(() => JSON.stringify([localStorage.getItem('waveChecker'), localStorage.getItem('waveChecker.progress')]));
     for (let r = 0; r < N * PATS.length; r++) {
-      const P = PATS[r % PATS.length], o = { seed: 1 + Math.floor(Math.random() * 2e9), pr: P.pr, z: P.z, theme: Math.random() < .5 ? 'dark' : 'light', kind: Math.random() < .3 ? 'line' : 'candle', log: Math.random() < .3, photo: Math.random() < .35, labels: Math.random() < .3 };
+      const P = PATS[r % PATS.length], o = { seed: 1 + Math.floor(Math.random() * 2e9), pr: P.pr, z: P.z, theme: Math.random() < .5 ? 'dark' : 'light', kind: (k => k < .25 ? 'line' : k < .45 ? 'ohlc' : 'candle')(Math.random()), ohlcW: Math.random() < .5, draw: Math.random() < .5, log: Math.random() < .3, photo: Math.random() < .35, labels: Math.random() < .3 };
       o.big = o.photo && Math.random() < .3; o.legend = Math.random() < .6; o.axis = o.legend && Math.random() < .5; // Legende im Chart, Zuschnitt mit Preisachse
-      const desc = P.name + ' [' + [o.theme, o.kind, o.log ? 'log' : 'linear', o.photo ? (o.big ? 'Foto groß' : 'Foto') : 'Screenshot', o.labels ? 'Labels' : '', o.legend ? 'Legende' : '', o.axis ? 'mit Preisachse' : ''].filter(Boolean).join(', ') + ']';
+      const desc = P.name + ' [' + [o.theme, o.kind, o.log ? 'log' : 'linear', o.photo ? (o.big ? 'Foto groß' : 'Foto') : 'Screenshot', o.labels ? 'Labels' : '', o.draw ? 'Zeichnungen' : '', o.kind === 'ohlc' && o.ohlcW ? 'weiß' : '', o.legend ? 'Legende' : '', o.axis ? 'mit Preisachse' : ''].filter(Boolean).join(', ') + ']';
       const img = await page.evaluate(new Function('return ' + MK)(), o).catch(e => { fail('Testbild: ' + e.message); return null; }); if (!img) continue;
       // ---- 1) Hochladen und Zuschneiden ----
       await page.evaluate(() => ownChart()); await page.waitForSelector('#ocfile', { state: 'attached' });
@@ -125,12 +137,12 @@ if (require.main === module) (async () => {
       const tol = (o.kind === "line" ? 3.2 : 1.2) * (o.photo ? 3.3 : 1) * Math.max(1, crop.f), et = Math.max(tol, 1.2 * img.sc * crop.f);
       // ---- 1b) erkannter Verlauf: je Kerze Hoch und Tief in der Spalte des Dochts (Foto: ±1 Spalte), Linie: der Verlauf umfasst den Linienpunkt
       const pv = await page.evaluate(() => ({ hi: Array.from(PGS.img.path.hi), lo: Array.from(PGS.img.path.lo) })), ptol = (o.photo ? 3.5 : 1.5) * Math.max(1, crop.f * img.sc);
-      img.cdl.forEach(q => { const x = Math.round((q.x - crop.x) * crop.f); if (x < 2 || x > crop.w - 3) return; const a = (q.a - crop.y) * crop.f, b = (q.b - crop.y) * crop.f; if (a < 1 || b > crop.h - 2) return;
-        const xs = o.photo ? [x - 1, x, x + 1] : [x], his = xs.map(c => pv.hi[c]).filter(v => v >= 0), los = xs.map(c => pv.lo[c]).filter(v => v >= 0); ptot++;
+      img.cdl.forEach(q => { if (q.hid) return; const x = Math.round((q.x - crop.x) * crop.f); if (x < 2 || x > crop.w - 3) return; const a = (q.a - crop.y) * crop.f, b = (q.b - crop.y) * crop.f; if (a < 1 || b > crop.h - 2) return;
+        const xs = o.photo ? [x - 1, x, x + 1] : [x], his = xs.map(c => pv.hi[c]).filter(v => v >= 0), los = xs.map(c => pv.lo[c]).filter(v => v >= 0); if (o.draw) ptotD++; else ptot++;
         const hi = his.length ? Math.min(...his) : -1, lo = los.length ? Math.max(...los) : -1;
         const ok = hi >= 0 && (o.kind === 'line' ? hi <= a + ptol && lo >= b - ptol : Math.abs(hi - a) <= ptol && Math.abs(lo - b) <= ptol);
         // senkrechte Ausschläge: Verlauf reicht über die Kerzen der Nachbarschaft hinaus (z. B. bis zur Legende)
-        if (hi >= 0) { const nb = img.cdl.map(c => ({ x: (c.x - crop.x) * crop.f, a: (c.a - crop.y) * crop.f, b: (c.b - crop.y) * crop.f })).filter(c => Math.abs(c.x - x) <= Math.max(2, 1.6 * Math.abs(img.cdl[1].x - img.cdl[0].x) * crop.f)); if (nb.length && (hi < Math.min(...nb.map(c => c.a)) - 3 * ptol || lo > Math.max(...nb.map(c => c.b)) + 3 * ptol)) { pspike++; if (process.env.DBG) console.log('   Ausschlag', name, desc, 'Spalte', x, hi, lo, 'o=' + JSON.stringify({ pi: r % PATS.length, seed: o.seed, theme: o.theme, kind: o.kind, log: o.log, photo: o.photo, big: o.big, labels: o.labels, legend: o.legend, axis: o.axis })); } }
+        if (hi >= 0) { const nb = img.cdl.map(c => ({ x: (c.x - crop.x) * crop.f, a: (c.a - crop.y) * crop.f, b: (c.b - crop.y) * crop.f })).filter(c => Math.abs(c.x - x) <= Math.max(2, 1.6 * Math.abs(img.cdl[1].x - img.cdl[0].x) * crop.f)); if (nb.length && (hi < Math.min(...nb.map(c => c.a)) - 3 * ptol || lo > Math.max(...nb.map(c => c.b)) + 3 * ptol)) { if (o.draw) pspikeD++; else pspike++; if (process.env.DBG) console.log('   Ausschlag', name, desc, 'Spalte', x, hi, lo, 'o=' + JSON.stringify({ pi: r % PATS.length, seed: o.seed, theme: o.theme, kind: o.kind, log: o.log, photo: o.photo, big: o.big, labels: o.labels, legend: o.legend, axis: o.axis })); } }
         if (ok) pok++; else if (process.env.DBG && pbad++ < 8) console.log('   Verlauf', name, desc, 'Spalte', x, 'erwartet', a.toFixed(1), b.toFixed(1), 'erkannt', hi, lo); });
       // ---- 2) Zählen mit echten Tipps ----
       await page.evaluate(z => document.querySelector('[data-fz="' + z + '"]').click(), P.z); await page.waitForTimeout(60);
@@ -144,8 +156,9 @@ if (require.main === module) (async () => {
         if (!pos) { if (process.env.DBG) console.log('   verdeckt', name, k); break; }
         await page.waitForTimeout(touch ? 360 : 60); if (process.env.EVLOG) await page.evaluate(() => { window.EVL = []; ['pointerdown','pointerup','pointercancel','click'].forEach(t => addEventListener(t, e => EVL.push(t + ':' + (e.target.id || e.target.tagName) + ':' + Math.round(e.clientX) + ',' + Math.round(e.clientY) + ':' + (typeof GEST === 'function')), { capture: true, once: false })); }); await tap(pos.x, pos.y);
         const Q = await pts(), q = Q[Q.length - 1]; if (Q.length !== placed + 1) { fail('Tipp setzt keinen Punkt (k=' + k + ', ' + desc + ', Meldung: ' + (await page.evaluate(() => (document.querySelector('#toast') || {}).textContent)) + ', Ziel ' + pos.x.toFixed(0) + ',' + pos.y.toFixed(0) + ')' + (process.env.EVLOG ? ' EV ' + (await page.evaluate(() => JSON.stringify(window.EVL))) : '')); break; } placed++;
-        const okk = Math.abs(q.t - exp[k].t) <= et && Math.abs(q.p - exp[k].p) <= tol;
-        if (onLab) { ltot++; if (okk) lhit++; } else { tot++; if (okk) hit++; }
+        const tk = img.tips[k].tt ? Math.max(tol, 3 * Math.max(1, crop.f * img.sc)) : tol; // eine Zeichnung berührt den Docht genau an der Spitze
+        const okk = Math.abs(q.t - exp[k].t) <= Math.max(et, tk) && Math.abs(q.p - exp[k].p) <= tk;
+        if (o.draw) { totD++; if (okk) hitD++; } else if (onLab) { ltot++; if (okk) lhit++; } else { tot++; if (okk) hit++; }
         if (!okk && process.env.DBG) console.log('   daneben', name, desc, 'k=' + k, onLab ? 'auf Label' : '', 'dt=' + (q.t - exp[k].t).toFixed(1), 'dp=' + (q.p - exp[k].p).toFixed(1), 'Versatz', dx.toFixed(0), dy.toFixed(0), 'seed', o.seed, 'Kandidaten', JSON.stringify(await page.evaluate(() => (PGS.img.cand || []).map(c => [c.t, +c.p.toFixed(1), c.hl, +c.s.toFixed(1)]).slice(0, 5))));
         // Punkt nicht am Docht: auf den erwarteten Pixel setzen, damit die Prüfung unten das Muster prüft, nicht den Fehlgriff
         if (!okk) await page.evaluate(([id, t, p]) => { const q = PGS.FR().pts.find(x => x.id === id); q.t = t; q.p = p; }, [q.id, Math.round(exp[k].t), exp[k].p]);
@@ -171,7 +184,7 @@ if (require.main === module) (async () => {
         const back = await page.evaluate(() => { const I = PGS.img; return I.path.man.every(v => !v) && I.path.hi.every((v, i) => v === I.auto.hi[i]); }); if (!back) fail('„Erkannten Verlauf wiederherstellen“ stellt nicht zurück');
         await page.waitForTimeout(450); await page.click('#octr'); await page.waitForTimeout(100); }
       // ---- 4) Ziehen (einmal je Gerät): ins Leere frei, zurück neben den Docht rastet ein ----
-      if (!dragDone && P.z === 'N' && !o.labels) {
+      if (!dragDone && P.z === 'N' && !o.labels && !o.draw) { // ohne Zeichnungen: die leere Stelle soll wirklich leer sein
         await page.evaluate(() => document.querySelector('[data-md="sel"]').click()); await page.waitForTimeout(120);
         const q3 = (await pts())[3], a = await page.evaluate(([t, p]) => { document.querySelector('#pgc').scrollIntoView({ block: 'center', behavior: 'instant' }); const b = document.querySelector('#svg').getBoundingClientRect(); return { x: b.left + PGS.X(t), y: b.top + PGS.Y(p), bt: b.top }; }, [q3.t, q3.p]);
         // freie Stelle suchen (kein Docht im Fangbereich), wohin der Punkt gezogen wird
@@ -216,7 +229,11 @@ if (require.main === module) (async () => {
     if (pts0 !== pts1) fail('Spielstand (Punkte/Serie) hat sich geändert');
     const rate = tot ? hit / tot : 1, lr = ltot ? lhit / ltot : 1;
     console.log(name + ': ' + rounds + ' Runden, Einrasten ' + hit + '/' + tot + ' (' + (100 * rate).toFixed(1) + ' %)' + (ltot ? ', auf vorhandenes Label getippt ' + lhit + '/' + ltot + ' (' + (100 * lr).toFixed(1) + ' %)' : ''));
-    console.log(name + ': erkannter Verlauf ' + pok + '/' + ptot + ' Kerzen (' + (100 * pok / Math.max(1, ptot)).toFixed(1) + ' %)'); if (pok < .95 * ptot) fail('Verlauf an weniger als 95 % der Kerzen richtig erkannt'); if (pspike > .004 * ptot) fail(pspike + ' senkrechte Ausschläge im erkannten Verlauf'); else if (pspike) console.log('   ' + pspike + ' einzelne Ausschlag-Spalten (Toleranz 0,4 % der Kerzen: Schrift der Legende nah an den Kerzen auf Fotos)');
+    console.log(name + ': erkannter Verlauf ' + pok + '/' + (ptot + ptotD) + ' Kerzen (' + (100 * pok / Math.max(1, ptot + ptotD)).toFixed(1) + ' %)'); if (pok < .95 * (ptot + ptotD)) fail('Verlauf an weniger als 95 % der Kerzen richtig erkannt'); if (pspike > .004 * ptot) fail(pspike + ' senkrechte Ausschläge im erkannten Verlauf'); else if (pspike) console.log('   ' + pspike + ' einzelne Ausschlag-Spalten (Toleranz 0,4 % der Kerzen: Schrift der Legende nah an den Kerzen auf Fotos)');
+    // mit Zeichnungen (Trendlinie, Kanal, Fibonacci, Symbol-Kästchen; seit 23.11.2026): Linien berühren Dochte genau an der Spitze, auf Fotos verschmelzen
+    // Beschriftungen mit Kerzen, daher eigene Schwellen: Einrasten ab 88 %, Ausschläge bis 2 % der Kerzen (gemessen 23.11.: rund 89–100 % bzw. 0–1,5 %)
+    const rD = totD ? hitD / totD : 1; console.log(name + ': mit Zeichnungen Einrasten ' + hitD + '/' + totD + ' (' + (100 * rD).toFixed(1) + ' %), Ausschläge ' + pspikeD + ' bei ' + ptotD + ' Kerzen');
+    if (totD >= 10 && rD < .88) fail('Einrasten mit Zeichnungen unter 88 %'); if (pspikeD > .02 * ptotD) fail(pspikeD + ' senkrechte Ausschläge mit Zeichnungen');
     if (rate < .95) fail('Einrasten unter 95 %'); if (ltot >= 5 && lr < .9) fail('Abpausen: Tipp auf Label trifft den Docht zu selten');
     if (!rounds) fail('keine einzige vollständige Runde');
     if (errs.length) fail('Konsole: ' + [...new Set(errs)].slice(0, 3).join(' | '));

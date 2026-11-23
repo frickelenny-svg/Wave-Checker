@@ -2399,6 +2399,58 @@ function ocPath(IMG){const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=c=>(D[c]>>4)<<8|(D
  for(let x=0;x<w;x++){let r=0;for(let y=0;y<h;y++){if(on[y*w+x]){if(++r>=.9*h){lc[x]=1;break}}else r=0}}
  for(let y=0;y<h;){if(!lr[y]){y++;continue}let e=y;while(e+1<h&&lr[e+1])e++;if(e-y<5)for(let x=0;x<w;x++){const up=y>0&&on[(y-1)*w+x],dn=e<h-1&&on[(e+1)*w+x];if(!(up&&dn))for(let yy=y;yy<=e;yy++)on[yy*w+x]=0}y=e+1}
  for(let x=0;x<w;){if(!lc[x]){x++;continue}let e=x;while(e+1<w&&lc[e+1])e++;if(e-x<5)for(let y=0;y<h;y++){const l=x>0&&on[y*w+x-1],r=e<w-1&&on[y*w+e+1];if(!(l&&r))for(let xx=x;xx<=e;xx++)on[y*w+xx]=0}x=e+1}
+ // Gezeichnete gerade Linien (24.11.2026 → 23.11.2026, Lenny: Trendlinien, Kanäle, Fibonacci, gestrichelte Preislinie), waagerecht und schräg
+ // bis 58°, auch in Kursfarbe. Dünne Pixel (senkrechter Lauf bis 5 px, mit Nachbarn links oder rechts) stimmen für Geraden ab (Hough); jede
+ // Kandidatin wird nachgemessen: Treffer je Spalte (±2 px, nur „frei stehende“ Pixel, nicht an Kerzen hängend), Lücken bis 16 Spalten, Länge ab
+ // 12 % der Breite (mindestens 50 px), mindestens 35 % der Spalten getroffen (gepunktet: 20 % bei mindestens 20 % der Breite). Entfernt wird sie nur,
+ // wenn der Kurs in mindestens 60 % ihrer Spalten woanders liegt (sonst ist die Gerade selbst der Kurs, z. B. ein gerades Stück im Linienchart).
+ // Ein echter Kurs ändert ständig die Richtung, eine Zeichnung nicht. Pixel, an denen Kerzen bzw. Balken hängen (längerer Lauf), bleiben.
+ const vrun=()=>{const vr=new Uint8Array(n);for(let x=0;x<w;x++){let y=0;while(y<h){if(!on[y*w+x]){y++;continue}let e=y;while(e+1<h&&on[(e+1)*w+x])e++;const L=Math.min(255,e-y+1);for(let k=y;k<=e;k++)vr[k*w+x]=L;y=e+1}}return vr},
+  hrun=()=>{const hr=new Uint8Array(n);for(let y=0;y<h;y++){let x=0;while(x<w){if(!on[y*w+x]){x++;continue}let e=x;while(e+1<w&&on[y*w+e+1])e++;const L=Math.min(255,e-x+1);for(let k=x;k<=e;k++)hr[y*w+k]=L;x=e+1}}return hr};
+ // dünn = senkrechter Lauf bis 4 px, oder bis 8 px bei mindestens so langem waagerechtem Lauf (dicke, unscharfe Linien auf Fotos)
+ {const vr=vrun(),hr=hrun(),thin=j=>on[j]&&(vr[j]<=4||(vr[j]<=8&&hr[j]>=vr[j])),side=(x,y)=>{for(const dx of[-1,1]){const xx=x+dx;if(xx<0||xx>=w)continue;for(let dy=-2;dy<=2;dy++){const yy=y+dy;if(yy>=0&&yy<h&&on[yy*w+xx])return true}}return false};
+  const NA=291,A0=-58*Math.PI/180,DA=116*Math.PI/180/(NA-1),SN=[],CS=[];for(let a=0;a<NA;a++){SN.push(Math.sin(A0+a*DA));CS.push(Math.cos(A0+a*DA))}
+  const DM=Math.ceil(w*.85)+2,ND=Math.ceil((h+2*DM)/1.5)+2,HV=new Int32Array(NA*ND),pts=[];
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const j=y*w+x;if(thin(j)&&side(x,y))pts.push(x,y)}
+  if(pts.length<4e5)for(let k=0;k<pts.length;k+=2){const x=pts[k],y=pts[k+1];for(let a=0;a<NA;a++)HV[a*ND+Math.round((y*CS[a]-x*SN[a]+DM)/1.5)]++}
+  const LM=Math.max(50,Math.round(w*.12)),cand=[];
+  for(let a=0;a<NA;a++)for(let d=1;d<ND-1;d++){const v=HV[a*ND+d];if(v<LM*.2)continue;let mx=true;for(let da=-1;da<=1&&mx;da++)for(let dd=-1;dd<=1;dd++){const aa=a+da;if((da||dd)&&aa>=0&&aa<NA&&HV[aa*ND+d+dd]>v){mx=false;break}}if(mx)cand.push([v,a,d])}
+  cand.sort((p,q)=>q[0]-p[0]);const alone=(x,y,o)=>{for(const yy of[y-o,y+o])if(yy>=0&&yy<h&&on[yy*w+x]&&!thin(yy*w+x))return false;return true};
+  cand.slice(0,40).forEach(([v,a,d])=>{const sn=SN[a],cs=CS[a],D0=d*1.5-DM,yat=x=>(D0+x*sn)/cs;
+   // nachmessen: Pixel nahe der Geraden, Ausgleichsgerade
+   let sx=0,sy=0,sxx=0,sxy=0,m=0;for(let x=0;x<w;x++){const yc=Math.round(yat(x));for(let y=yc-3;y<=yc+3;y++)if(y>=0&&y<h&&thin(y*w+x)){sx+=x;sy+=y;sxx+=x*x;sxy+=x*y;m++}}
+   if(m<LM*.2)return;const den=m*sxx-sx*sx;if(!den)return;const sl=(m*sxy-sx*sy)/den,b0=(sy-sl*sx)/m;if(Math.abs(sl)>1.7)return;const yf=x=>sl*x+b0;
+   // Dicke der Linie: Median der senkrechten Läufe an der Geraden
+   const tv=[];for(let x=0;x<w;x+=3){const y=Math.round(yf(x));if(y>=0&&y<h&&thin(y*w+x))tv.push(vr[y*w+x])}tv.sort((p,q)=>p-q);const hw=Math.max(2,(tv.length?tv[tv.length>>1]:2)/2+1),ao=Math.ceil(hw)+2;
+   const hit=new Uint8Array(w);for(let x=0;x<w;x++){const yc=yf(x);for(let y=Math.round(yc-hw);y<=Math.round(yc+hw);y++)if(y>=0&&y<h&&thin(y*w+x)&&alone(x,Math.round(yc),ao)){hit[x]=1;break}}
+   let x=0;while(x<w){if(!hit[x]){x++;continue}let e=x,c=1,g=0;for(let k=x+1;k<w;k++){if(hit[k]){e=k;c++;g=0}else if(++g>16)break}
+    const L=e-x+1,cov=c/L;if(L>=LM&&(cov>=.35||(cov>=.2&&L>=w*.2))){let el=0;
+     for(let xx=x;xx<=e;xx++){const yc=yf(xx);let f=false;for(let q=Math.max(0,xx-3);q<=Math.min(w-1,xx+3)&&!f;q++)for(let y=0;y<h;y++)if(on[y*w+q]&&Math.abs(y-yc)>hw+3){f=true;break}if(f)el++}
+     /* entfernt wird, solange die Linie weiterläuft (auch unter Schrift, die sie berührt, Lücken bis 16 Spalten), dazu 8 Spalten Rand am Berührpunkt mit der Kerze */
+     const h2=xx=>{const yc=yf(xx);for(let y=Math.round(yc-hw);y<=Math.round(yc+hw);y++)if(y>=0&&y<h&&thin(y*w+xx))return true;return false};let xa=x,xb=e;for(let g=0,k=x-1;k>=0&&g<=16;k--){if(h2(k)){xa=k;g=0}else g++}for(let g=0,k=e+1;k<w&&g<=16;k++){if(h2(k)){xb=k;g=0}else g++}
+     if(el>=L*.6)for(let xx=Math.max(0,xa-8);xx<=Math.min(w-1,xb+8);xx++){const yc=yf(xx);const y0=Math.round(yc-hw-.5),y1=Math.round(yc+hw+.5),O=(x,y)=>x>=0&&x<w&&y>=0&&y<h&&on[y*w+x],wide=y=>O(xx,y)&&O(xx-1,y)&&O(xx+1,y);
+       // liegt die Linie auf einem Kerzenkörper (direkt darunter bzw. darüber breit, auf der anderen Seite frei), fällt sie auch dort weg; ein 1 px breiter Docht bleibt
+       const body=(wide(y1+1)&&!O(xx,y0-1))||(wide(y0-1)&&!O(xx,y1+1));for(let y=y0;y<=y1;y++){const j=y*w+xx;if(y>=0&&y<h&&(thin(j)||body))on[j]=0}}}
+    x=e+1}})}
+ // Kästchen (23.11.2026): Preis-Kästchen, Symbol-Kästchen und Hinweis-Kästchen sind Rechtecke (Rand oben, unten, links, rechts) mit Schrift
+ // darin; sie fallen ganz weg, auch wenn sie den Kurs berühren. Ohne Schrift (hohle oder gefüllte Kerze) bleibt das Rechteck.
+ {const RP=new Int32Array((w+1)*h);for(let y=0;y<h;y++){let a=0;for(let x=0;x<w;x++){a+=on[y*w+x];RP[y*(w+1)+x+1]=a}}const rc=(y,x0,x1)=>RP[y*(w+1)+x1+1]-RP[y*(w+1)+x0];
+  const cc=(x,y0,y1)=>{let c=0;for(let y=y0;y<=y1;y++)c+=on[y*w+x];return c},del=[];
+  const box=(x0,x1,y)=>{const bw=x1-x0+1;if(bw<12||bw>w*.35||rc(y-1,x0,x1)>bw*.3)return false; // Oberkante: darüber frei
+    for(let y2=y+7;y2<=Math.min(h-2,y+44);y2++){if(rc(y2,x0,x1)<bw*.9||(rc(y2+1,x0,x1)>bw*.6&&!(y2+2<h&&rc(y2+2,x0,x1)<=bw*.3)))continue; /* Unterkante (auf Fotos unscharf: die Zeile darunter halb voll) */const bh=y2-y+1;if(bw<bh*.9)return false;
+     let l=0,r=0;for(const dx of[0,1]){l=Math.max(l,cc(x0+dx,y,y2));r=Math.max(r,cc(x1-dx,y,y2))}if(l<bh*.85||r<bh*.85)return false;
+     // Schrift innen: hohles Kästchen 3–70 % Pixel innen; gefülltes Kästchen: andersfarbige Pixel (Schrift) ab 4 %
+     let inn=0,tot=0,dif=0;const fc=(y+2)*w+x0+2;for(let yy=y+2;yy<=y2-2;yy++)for(let xx=x0+2;xx<=x1-2;xx++){const j=yy*w+xx;tot++;if(on[j])inn++;const c=j*4,f=fc*4;if(Math.max(Math.abs(D[c]-D[f]),Math.abs(D[c+1]-D[f+1]),Math.abs(D[c+2]-D[f+2]))>60)dif++}
+     if(tot&&((inn>tot*.03&&inn<tot*.7)||(inn>=tot*.85&&dif>tot*.04))){del.push([x0,y,x1,y2]);return true}return false}
+    // ohne sichtbare Unterkante (blasser Rand): beide Seiten gleich lang (±1, ab 7 px) und Schrift innen
+    const sd=x=>{let k=0;while(y+k+1<h&&on[(y+k+1)*w+x])k++;return k},ls=Math.max(sd(x0),sd(x0+1)),rs=Math.max(sd(x1),sd(x1-1)),bh=Math.min(ls,rs)+1;
+    if(bh>=7&&bh<=45&&Math.abs(ls-rs)<=1&&bw>=bh*.9){let inn=0,tot=0;for(let yy=y+2;yy<y+bh-1;yy++)for(let xx=x0+2;xx<=x1-2;xx++){tot++;if(on[yy*w+xx])inn++}if(tot&&inn>tot*.03&&inn<tot*.7){del.push([x0,y,x1,y+bh-1]);return true}}return false};
+  // Ränder des Kästchens: Anfang bzw. Ende des Laufs oder eine senkrechte Kante darin (das Kästchen berührt links bzw. rechts den Kurs, 23.11.2026)
+  const ed=(x,y,d)=>{let a=0,b=0;for(let k=1;k<=6;k++){a+=on[(y+k)*w+x];const z=x+d;if(z>=0&&z<w)b+=on[(y+k)*w+z]}return a>=5&&b<=3};
+  for(let y=1;y<h-8;y++){let x=0;while(x<w){if(!on[y*w+x]){x++;continue}let e=x;while(e+1<w&&on[y*w+e+1])e++;const rx0=x,rx1=e;x=e+1;if(rx1-rx0+1<12)continue;
+    const L=[rx0],R=[rx1];if(rx0>0&&ed(rx0-1,y,-1))L.push(rx0-1);if(rx1<w-1&&ed(rx1+1,y,1))R.push(rx1+1); /* Ecke fehlt: Kante eine Spalte daneben */for(let k=rx0+1;k<=rx1-11&&L.length<5;k++)if(ed(k,y,-1))L.push(k);for(let k=rx1-1;k>=rx0+11&&R.length<5;k--)if(ed(k,y,1))R.push(k);
+    let ok=false;for(const a of L){for(const b of R)if(b-a>=11&&box(a,b,y)){ok=true;break}if(ok)break}}}
+  del.forEach(([x0,y0,x1,y1])=>{for(let y=Math.max(0,y0-1);y<=Math.min(h-1,y1+1);y++)for(let x=Math.max(0,x0-1);x<=Math.min(w-1,x1+1);x++)on[y*w+x]=0})}
  // senkrechte Lücken bis 2 px schließen (dünne, unscharfe Dochte auf Fotos zerfallen sonst in Stücke)
  for(let x=0;x<w;x++)for(let y=1;y<h-1;y++){const j=y*w+x;if(!on[j]&&on[j-w]&&(on[j+w]||(y<h-2&&on[j+2*w]))){on[j]=1;if(!on[j+w])on[j+w]=1}}
  // zusammenhängende Formen (8er-Nachbarschaft)
@@ -2422,9 +2474,17 @@ function ocPath(IMG){const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=c=>(D[c]>>4)<<8|(D
  Object.values(Gs).forEach(g=>{const gw=g.x1-g.x0+1,gh=g.y1-g.y0+1;
   g.keep=g===main||!((gw<=110&&gh<=44&&lab(g))||(gh<=3&&gw>=20)||(g.y1>=h-2&&gw>=.15*w&&gh<=.3*h&&g.y0>main.y0))});
  const kept0=j=>on[j]&&C[cid[j]].n>=4&&Gs[root(cid[j])].keep;
- // Kerzenfarben: die häufigsten Farben der Hauptgruppe (je mindestens 8 % ihrer Pixel); Schrift hat meist eine andere Farbe
- const pal=new Set();{const cnt=new Map();let tot=0;for(let y=main?main.y0:0;y<=(main?main.y1:-1);y++)for(let x=main.x0;x<=main.x1;x++){const j=y*w+x;if(kept0(j)&&Gs[root(cid[j])]===main){const k=Q(j*4);cnt.set(k,(cnt.get(k)||0)+1);tot++}}
-  [...cnt.entries()].sort((a,b)=>b[1]-a[1]).slice(0,4).forEach(([k,v])=>{if(v>=tot*.08)pal.add(k)})}
+ // Kursfarbe (seit 23.11.2026 aus der Form): Kerzen, Balken und Linien bestehen aus vielen kurzen senkrechten Strichen über die ganze Breite.
+ // Farben der Pixel in senkrechten Läufen ab 3 px (mindestens 1,5 × so lang wie der waagerechte Lauf, also keine flache dicke Linie), zu Farbgruppen zusammengefasst (Abstand bis 48); Kursfarbe = Gruppe mit mindestens 3 % dieser
+ // Pixel, verteilt über mindestens 10 von 24 Abschnitten der Breite (Labels stehen nur an wenigen Stellen). Ohne solche Striche (Linienchart): häufigste Farben der Hauptgruppe.
+ // Decken die Kursfarben mindestens 60 % der Striche ab, zählen für Hoch/Tief nur Stränge mit Kursfarbe (Toleranz 56), sonst zählen sie doppelt.
+ const pal=[];let palS=false;{const vr=vrun(),hr=hrun(),cnt=new Map();let tot=0;const add=j=>{const k=Q(j*4),c=j*4;let e=cnt.get(k);if(!e)cnt.set(k,e={n:0,r:0,g:0,b:0,sp:0});e.n++;e.r+=D[c];e.g+=D[c+1];e.b+=D[c+2];e.sp|=1<<Math.min(23,Math.floor(j%w/w*24));tot++};
+  const DC=Math.max(T,p98*.55);for(let j=0;j<n;j++)if(vr[j]>=3&&vr[j]>=1.5*hr[j]&&dv[j]>=DC&&kept0(j))add(j); /* nur kräftige Kernpixel: unscharfe Ränder auf Fotos sind Mischfarben */
+  if(tot<200&&main){cnt.clear();tot=0;for(let y=main.y0;y<=main.y1;y++)for(let x=main.x0;x<=main.x1;x++){const j=y*w+x;if(kept0(j)&&Gs[root(cid[j])]===main)add(j)}}
+  const cl=[];[...cnt.values()].sort((a,b)=>b.n-a.n).forEach(e=>{const r=e.r/e.n,g=e.g/e.n,b=e.b/e.n,k=cl.find(c=>Math.max(Math.abs(c.r-r),Math.abs(c.g-g),Math.abs(c.b-b))<=48);
+   if(k){k.n+=e.n;k.sp|=e.sp}else if(cl.length<12)cl.push({r,g,b,n:e.n,sp:e.sp})});
+  const bits=v=>{let c=0;while(v){c+=v&1;v>>>=1}return c};let cov=0;cl.forEach(c=>{if(c.n>=tot*.03&&bits(c.sp)>=10){pal.push(c);cov+=c.n}});palS=pal.length>0&&cov>=tot*.6}
+ const pcol=j=>{const c=j*4;return pal.some(p=>Math.max(Math.abs(D[c]-p.r),Math.abs(D[c+1]-p.g),Math.abs(D[c+2]-p.b))<=56)};
  // Ränder (23.11.2026): Legende oben (Symbol, OHLC-Werte, Indikatoren), Zeitachse unten, Preisachse rechts. Ein Randband reicht vom Bildrand
  // bis zu einer Lücke von mindestens 3 leeren Zeilen bzw. Spalten, höchstens 18 % der Höhe bzw. Breite, und enthält nur kleine Formen
  // (Schrift, Preis-Kästchen, höchstens 44 px hoch); oben die größte solche Grenze (Legende mit mehreren Zeilen), unten und rechts die nächste
@@ -2435,28 +2495,49 @@ function ocPath(IMG){const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=c=>(D[c]>>4)<<8|(D
  const rowE=y=>{let c=0;for(let x=0;x<w;x++)if(kept0(y*w+x)&&++c>RL)return false;return true},colE=x=>{let c=0;for(let y=0;y<h;y++)if(kept0(y*w+x)&&++c>CL)return false;return true}; // bis 2 Rauschpixel gelten als leer (mehr schnitt im Vergleich Kerzen ab, die in die Legende ragen)
  // je Form (nicht je Gruppe: auf Fotos verbindet Rauschen Buchstaben zu Gruppen, die über das Band hinausreichen): Formen ganz im Band; Formen in
  // Kerzenfarbe bleiben, außer sie stehen auf einer Zeile mit anderer Schrift (z. B. blaue Indikatorwerte in der Legende)
- const cut=test=>{const ids=[];C.forEach((c,k)=>{if(c.n>=4&&Gs[root(k)].keep&&test(c))ids.push(k)});if(!ids.length||ids.some(k=>C[k].y1-C[k].y0>44))return false;
-  const ct={},cp={},S=new Set(ids);for(let j=0;j<n;j++)if(on[j]&&S.has(cid[j])){const k=cid[j];ct[k]=(ct[k]||0)+1;if(pal.has(Q(j*4)))cp[k]=(cp[k]||0)+1}
-  const pgC=k=>pal.size&&(cp[k]||0)>ct[k]*.5,txt=ids.filter(k=>!pgC(k)),line=k=>txt.some(t=>Math.abs(C[t].y0-C[k].y0)<=3&&Math.abs(C[t].y1-C[k].y1)<=3&&Math.abs(C[t].x0-C[k].x0)<300);
+ const cut=(test,ax)=>{const ids=[];C.forEach((c,k)=>{if(c.n>=4&&Gs[root(k)].keep&&test(c))ids.push(k)});if(!ids.length||ids.some(k=>C[k].y1-C[k].y0>44&&C[k].x1-C[k].x0>2))return false; /* hohe Formen: abbrechen, außer dünne senkrechte Striche (Stück der Achsenlinie, 23.11.2026) */
+  // Achse (23.11.2026): nur Schrift (Formen bis 16 px bzw. 4 % hoch) in mindestens 4 Zeilen bzw. Spalten über 40 % der Höhe bzw. Breite
+  // verteilt: Preis- bzw. Zeitachse, auch wenn die Zahlen Kursfarbe haben. Dann fällt alles im Band weg.
+  if(ax){const th=Math.max(16,h*.04);if(ids.every(k=>C[k].y1-C[k].y0+1<=th)){const v=ids.map(k=>ax==='y'?(C[k].y0+C[k].y1)/2:(C[k].x0+C[k].x1)/2).sort((p,q)=>p-q),L=ax==='y'?h:w;let rows=1;
+   for(let i=1;i<v.length;i++)if(v[i]-v[i-1]>th)rows++;if(rows>=4&&v[v.length-1]-v[0]>=L*.4){ids.forEach(k=>C[k].band=1);return true}}}
+  const ct={},cp={},S=new Set(ids);for(let j=0;j<n;j++)if(on[j]&&S.has(cid[j])){const k=cid[j];ct[k]=(ct[k]||0)+1;if(pcol(j))cp[k]=(cp[k]||0)+1}
+  const pgC=k=>pal.length&&(cp[k]||0)>ct[k]*.5,txt=ids.filter(k=>!pgC(k)),th=Math.max(16,h*.04),cy=k=>(C[k].y0+C[k].y1)/2,
+   // Textzeile (23.11.2026): mindestens 4 kleine Formen auf einer Höhe (Mitte ±5 px), etwa die Legende ganz in Kursfarbe
+   line=k=>txt.some(t=>Math.abs(C[t].y0-C[k].y0)<=3&&Math.abs(C[t].y1-C[k].y1)<=3&&Math.abs(C[t].x0-C[k].x0)<300)||(C[k].y1-C[k].y0<th&&ids.filter(t=>C[t].y1-C[t].y0<th&&Math.abs(cy(t)-cy(k))<=5).length>=4);
   let any=false;ids.forEach(k=>{if(!pgC(k)||line(k)){C[k].band=1;any=true}});return any};
  bands(Math.round(h*.18),y=>rowE(y)).some(t=>cut(c=>c.y1<t));
- bands(Math.round(h*.18),i=>rowE(h-1-i)).reverse().some(b=>cut(c=>c.y0>h-1-b)); // unten und rechts: die Grenze nächst am Rand (Lücken zwischen Kerzen sind auch leere Spalten)
- bands(Math.round(w*.18),i=>colE(w-1-i)).reverse().some(r=>cut(c=>c.x0>w-1-r));
+ // Textzeilen (23.11.2026): Legende ohne Lücke zum Chart, Beschriftungen von Fibonacci-Stufen und Zeichnungen neben den Kerzen. Mindestens 5
+ // kleine Formen hintereinander (Abstand bis 0,8 × Höhe, mindestens 4 px), Mitte und Ober- oder Unterkante auf gleicher Höhe (±3 px): Schrift.
+ {const th=Math.max(16,h*.04),S=[];const dens=c=>c.n/((c.x1-c.x0+1)*(c.y1-c.y0+1));
+  C.forEach((c,k)=>{if(c.n>=4&&!c.band&&Gs[root(k)].keep&&c.y1-c.y0+1<=th&&(c.y1<h*.25||c.x1-c.x0+1<=1.2*(c.y1-c.y0+1)||dens(c)<=.6||c.y1-c.y0+1>=7))S.push(k)}); /* unten im Bild nur schmale Formen (Ziffern) oder lückenhafte (auf Fotos verschmolzene Wörter), keine vollen flachen Kerzen */S.sort((a,b)=>C[a].x0-C[b].x0);
+  const used=new Set();S.forEach(k=>{if(used.has(k))return;const ch=[k];let cur=k;for(;;){const A=C[cur],ah=A.y1-A.y0+1;let nx=null;
+     for(const q of S){if(used.has(q)||ch.includes(q))continue;const B=C[q],gap=B.x0-A.x1-1;if(gap<-1||gap>Math.max(4,.8*ah))continue;
+      const cy=Math.abs((B.y0+B.y1)-(A.y0+A.y1))/2;if(cy<=3&&(Math.abs(B.y0-A.y0)<=3||Math.abs(B.y1-A.y1)<=3)){nx=q;break}}
+     if(nx===null)break;ch.push(nx);cur=nx}
+   // 5 Formen, oder (Foto: Buchstaben verschmelzen) eine Kette mindestens 4 × so breit wie hoch aus lückenhaften Formen (Dichte bis 0,6), ab 7 px hoch
+   const cw=C[ch[ch.length-1]].x1-C[ch[0]].x0+1,chh=Math.max(...ch.map(q=>C[q].y1-C[q].y0+1));
+   // oder (Foto, Buchstaben unscharf und gefüllt) mindestens 3 Formen, alle gleich hoch mit gleicher Ober- und Unterkante (±2 px, ab 7 px), eng (Abstand bis 0,5 × Höhe), zusammen 4 × so breit wie hoch
+   const tC=ch.length>=3&&chh>=7&&cw>=4*chh&&ch.every((q,i)=>Math.abs(C[q].y0-C[ch[0]].y0)<=2&&Math.abs(C[q].y1-C[ch[0]].y1)<=2&&(!i||C[q].x0-C[ch[i-1]].x1-1<=Math.max(3,.5*chh)));
+   if(ch.length>=5&&ch.every(q=>C[q].y1<h*.25||C[q].x1-C[q].x0+1<=1.2*(C[q].y1-C[q].y0+1))||(chh>=7&&cw>=4*chh&&ch.every(q=>dens(C[q])<=.6))||tC)ch.forEach(q=>{used.add(q);C[q].band=1})})}
+ bands(Math.round(h*.18),i=>rowE(h-1-i)).reverse().some(b=>cut(c=>c.y0>h-1-b,'x')); // unten und rechts: die Grenze nächst am Rand (Lücken zwischen Kerzen sind auch leere Spalten)
+ bands(Math.round(w*.18),i=>colE(w-1-i)).reverse().some(r=>cut(c=>c.x0>w-1-r,'y'));
  // Strangwahl je Spalte (Kontinuität): zusammenhängende senkrechte Stränge (Lücken bis 3 px überbrückt; mehr verband Legende und Kerzen). Gewählt wird der
  // Strang auf dem günstigsten Weg durch alle Spalten (kräftige Stränge, kleine Sprünge; Pixel in
  // Kerzenfarbe zählen doppelt). Weit abseits (über 25 % der Höhe) und nur Schrift o. Ä.: die Spalte bleibt leer statt eines Ausreißers.
  const GAP=3,RU=[];
- for(let x=0;x<w;x++){const L=[];let cur=null;for(let y=0;y<h;y++){const j=y*w+x;if(!kept(j))continue;const pw=pal.has(Q(j*4))?2:1;
-   if(cur&&y-cur.b-1<=GAP){cur.b=y;cur.n+=pw}else{cur={a:y,b:y,n:pw};L.push(cur)}}RU.push(L)}
+ for(let x=0;x<w;x++){let L=[];let cur=null;for(let y=0;y<h;y++){const j=y*w+x;if(!kept(j))continue;const pc=pcol(j),pw=pc?2:1;
+   if(cur&&y-cur.b-1<=GAP){cur.b=y;cur.n+=pw;cur.p+=pc}else{cur={a:y,b:y,n:pw,p:+pc};L.push(cur)}}if(palS)L=L.filter(r=>r.p>0);RU.push(L)} // nur Stränge in Kursfarbe
  const WN=Math.max(10,Math.round(w/60)),med=a=>{const v=a.filter(q=>q!==null).sort((p,q)=>p-q);return v.length?v[v.length>>1]:null};
  // Weg durch alle Spalten (Viterbi, 23.11.2026): je Spalte ein Strang, kräftige Stränge leicht bevorzugt (bis 6 Pixel, Kerzenfarbe doppelt), jeder Sprung zwischen den Strängen benachbarter
  // Spalten kostet das Doppelte seiner Höhe. So bleibt der Verlauf auf einer dünnen, aber durchgehenden Linie statt kurz in Schrift zu springen.
  let pick=RU.map(()=>null);
- {const LAM=2,cst=[],from=[];let px=-1;
- for(let x=0;x<w;x++){const L=RU[x];if(!L.length){cst.push(null);from.push(null);continue}const c=L.map(r=>-Math.min(r.n,6)),f=L.map(()=>-1); // Belohnung je Spalte begrenzt: sonst schlägt ein kräftiges Label den dünnen Docht
-  if(px>=0){const P=RU[px],pc=cst[px];L.forEach((r,i)=>{let bv=1e18,bj=-1;P.forEach((q,j)=>{const v=pc[j]+LAM*Math.max(0,r.a-q.b,q.a-r.b);if(v<bv){bv=v;bj=j}});c[i]+=bv;f[i]=bj})}
-  cst.push(c);from.push(f);px=x}
- if(px>=0){let i=cst[px].indexOf(Math.min(...cst[px]));for(let x=px;x>=0&&i>=0;){pick[x]=RU[x][i];const pj=from[x][i];let y=x-1;while(y>=0&&!RU[y].length)y--;x=y;i=pj}}}
+ // Seit 23.11.2026 (Plausibilität): Eine Spalte darf auch ausgelassen werden (kostet 6, bis 24 Spalten mit Strängen am Stück). So springt der Weg
+ // nicht auf eine Zeichnung, nur weil zwischen dünnen Balken in einigen Spalten nur sie liegt; jede gewählte Spalte hängt mit den Nachbarn zusammen.
+ {const SP=6,KW=24,JC=g=>g<=3?0:.6*(g-3),NX=[];for(let x=0;x<w;x++)if(RU[x].length)NX.push(x);const cst=[],from=[];
+  NX.forEach((x,k)=>{const L=RU[x];cst.push(L.map((r,i)=>{let bv=SP*k,bj=null;for(let q=Math.max(0,k-KW);q<k;q++){const P=RU[NX[q]],pc=cst[q],sk=SP*(k-q-1);
+     P.forEach((o,j)=>{const v=pc[j]+sk+JC(Math.max(0,r.a-o.b,o.a-r.b));if(v<bv){bv=v;bj=[q,j]}})}from[k]=from[k]||[];from[k][i]=bj;return bv-Math.min(r.n,6)}))}); // Belohnung je Spalte begrenzt: sonst schlägt ein kräftiges Label den dünnen Docht
+  let bv=1e18,bk=null;cst.forEach((c,k)=>c.forEach((v,i)=>{const t=v+SP*(NX.length-1-k);if(t<bv){bv=t;bk=[k,i]}}));
+  while(bk){const [k,i]=bk;pick[NX[k]]=RU[NX[k]][i];bk=from[k][i]}}
  // Inseln: kurze Stücke ohne Anschluss nach links und rechts (Abstand über 10 % der Höhe, zusammen unter 5 % der Spalten), z. B. Schrift in
  // den leeren Spalten zwischen zwei Kerzen, fallen weg
  {const X=[];pick.forEach((r,x)=>{if(r)X.push(x)});const gapOf=(p,q)=>Math.max(0,p.a-q.b,q.a-p.b),GJ=Math.max(10,h*.1),U=new Map(X.map(x=>[x,x])),fd=x=>{while(U.get(x)!==x){U.set(x,U.get(U.get(x)));x=U.get(x)}return x};

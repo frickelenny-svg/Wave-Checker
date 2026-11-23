@@ -73,6 +73,17 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   häufigste Farbe), Schwelle nach Kontrast. Schutzstufen (überarbeitet 23.11.2026 nach senkrechten Balken bis zur Legende):
   1. Linien: waagerecht ab 35 % Breite, senkrecht ab 90 % Höhe (Gitter, Fadenkreuz; lange echte Dochte bleiben), bis 5 px dick, Kreuzungen
      mit Kerzen bleiben; gestrichelte Linien (Gruppen bis 3 px hoch), Volumen am unteren Rand neben dem Hauptchart.
+  1a. Gezeichnete Linien (seit 23.11.2026 nach Lennys Lumen-Bild: Trendlinien, Kanäle, Fibonacci, gepunktete Preislinie), waagerecht und schräg
+     bis 58°, auch in Kursfarbe: dünne Pixel (senkrechter Lauf bis 4 px, bzw. bis 8 px bei mindestens so langem waagerechtem Lauf) stimmen für
+     Geraden ab (Hough); jede Kandidatin wird mit einer Ausgleichsgeraden nachgemessen (Dicke = Median der Läufe). Linie = ab 12 % der Breite
+     (mind. 50 px) mit Treffern in mind. 35 % der Spalten (gepunktet 20 % bei 20 % Breite; Lücken bis 16 Spalten; Treffer nur frei stehend, nicht
+     an Kerzen hängend). Entfernt nur, wenn der Kurs in mind. 60 % ihrer Spalten woanders liegt (sonst ist die Gerade selbst der Kurs, gerades Stück
+     im Linienchart). Entfernt wird bis 8 Spalten über die Treffer hinaus und unter berührender Schrift hindurch; über einem Kerzenkörper fällt
+     die Linie auch dort weg, ein 1 px breiter Docht bleibt.
+  1b. Kästchen (seit 23.11.2026 nach Lennys PayPal-Bild): Rechtecke 12 px bis 35 % breit, 7–45 px hoch, Oberkante frei, Unterkante (auf Fotos
+     unscharf) und beide Seiten zu mind. 85 %, mit Schrift innen (hohl: 3–70 % Pixel innen; gefüllt: andersfarbige Pixel ab 4 %); auch ohne sichtbare
+     Unterkante (beide Seiten gleich lang) und wenn Kurs oder Balken links bzw. rechts angrenzen (Kante im Lauf, fehlende Ecke). Sie fallen ganz
+     weg (Preis-, Symbol-, Hinweis-Kästchen). Rechtecke ohne Schrift (hohle oder gefüllte Kerzen) bleiben.
   2. Labels: kleine Gruppe (bis 110 × 44 px), unter bzw. über deren Mitte (4–60 px) der Kurs liegt (Hauptchart oder eine größere Form über
      44 px Höhe, nie eine Textzeile; sonst hielt die Regel Kerzen direkt unter der Legende für Labels).
      Keine pauschale Textregel mehr: Sie verwarf auf kleinen Bildern ganze Kerzenreihen.
@@ -80,14 +91,28 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
      mindestens 3 leere Zeilen bzw. Spalten getrennt (bis 2 Rauschpixel zählen als leer; die größte solche Grenze, unter der nur Formen bis
      44 px Höhe liegen; oben die größte Grenze wegen mehrzeiliger Legende, unten und rechts die nächste am Rand, weil Lücken zwischen Kerzen
      auch leere Spalten sind, `bands`/`cut`). Geschnitten wird je Form (auf Fotos verbindet Rauschen Buchstaben zu Gruppen über das Band hinaus);
-     Formen in Kerzenfarbe bleiben, außer sie schließen oben und unten bündig mit Schrift ab (blaue Indikatorwerte in der Legende).
-  4. Farbe: Kerzenfarben = häufigste Farben der Hauptgruppe (`pal`); sie zählen bei der Strangwahl doppelt und schützen Kerzen in Randbändern.
+     Formen in Kerzenfarbe bleiben, außer sie schließen oben und unten bündig mit Schrift ab (blaue Indikatorwerte in der Legende) oder stehen in
+     einer Textzeile (mind. 4 kleine Formen auf gleicher Höhe, Legende ganz in Kursfarbe). Hohe dünne Striche (Stück der Achsenlinie) brechen ein
+     Band nicht mehr ab. Achsen (seit 23.11.): Band rechts bzw. unten nur aus Schrift bis 16 px (bzw. 4 % der Höhe) in mind. 4 Zeilen bzw. Spalten
+     über 40 % der Höhe bzw. Breite verteilt = Preis- bzw. Zeitachse, fällt ganz weg, auch in Kursfarbe (weiße Zahlen bei weißen Balken).
+     Textzeilen im ganzen Bild (seit 23.11.): Ketten kleiner Formen (Abstand bis 0,8 × Höhe, Mitte und Ober- oder Unterkante ±3 px): ab 5 Formen
+     (unterhalb des oberen Viertels nur schmale Formen wie Ziffern), oder 4 × so breit wie hoch aus lückenhaften Formen (Dichte bis 0,6), oder
+     mind. 3 gleich hohe Formen mit gleicher Ober- und Unterkante (±2 px, Foto-Schrift). So fallen Legende ohne Lücke zum Chart und
+     Fibonacci-Beschriftungen neben den Kerzen weg.
+  4. Kursfarbe (seit 23.11.2026 aus der Form, `pal`/`pcol`): Farben der kräftigen Pixel (Kontrast ab 55 % von p98) in senkrechten Strichen
+     (Lauf ab 3 px und 1,5 × so lang wie waagerecht, also keine flache dicke Linie), zu Farbgruppen zusammengefasst (Abstand bis 48); Kursfarbe =
+     Gruppe ab 3 % dieser Pixel über mind. 10 von 24 Abschnitten der Breite (Labels stehen nur an wenigen Stellen). Ohne Striche (Linienchart): Farben
+     der Hauptgruppe. Decken die Kursfarben mind. 60 % der Striche ab (`palS`), zählen nur Stränge mit mind. einem Pixel in Kursfarbe (Toleranz 56),
+     sonst zählen sie doppelt. Unterstützt Kerzen, OHLC-Balken, Linie, hell/dunkel.
   5. Strangwahl (Kontinuität): je Spalte zusammenhängende senkrechte Stränge (Lücken bis 3 px). Gewählt wird je Spalte ein Strang auf dem
-     günstigsten Weg durch alle Spalten (Viterbi: Belohnung je Strang bis 6 Pixel, Kerzenfarbe doppelt; jeder Sprung kostet das Doppelte seiner
-     Höhe), so bleibt der Verlauf auf der durchgehenden Linie bzw. den Kerzen statt in Schrift oder Labels zu springen. Danach fallen Inseln
+     günstigsten Weg durch alle Spalten (Viterbi: Belohnung je Strang bis 6 Pixel, Kerzenfarbe doppelt; ein Sprung kostet 0,6 × (Höhe − 3 px); seit
+     23.11.2026 darf eine Spalte auch ausgelassen werden (kostet 6, bis 24 Spalten mit Strängen am Stück), sonst blieb der Weg zwischen dünnen
+     OHLC-Balken lieber auf einer durchgehenden Trendlinie), so bleibt der Verlauf auf den Kerzen statt in Schrift, Labels oder Zeichnungen. Danach fallen Inseln
      weg: Stücke ohne Verbindung (innerhalb von 40 Spalten näher als 10 % der Höhe) mit zusammen unter 5 % der Spalten. Fester Vergleich am
      23.11. (48 feste Bilder mit Legende, Labels, Fotos): Verlauf je Kerze 95,0 % → 99,4 %, senkrechte Ausschläge 279 → 4; auf 144 Bildern: 99,0 %, 17 Ausschlag-Spalten (Kerzen-Fotos
-     mit Legende nah an den Kerzen), Einrasten 93,5 % mit harten Versätzen. `tests/eigener-chart.js` toleriert bis 0,4 % Ausschlag-Spalten. Liegt nur etwas über 25 % der Höhe daneben, bleibt die Spalte leer (kein Ausreißer). Echte lange Dochte
+     mit Legende nah an den Kerzen), Einrasten 93,5 % mit harten Versätzen. Seit den Zeichnungen (23.11., 144 Bilder, die Hälfte mit Zeichnungen,
+     20 % OHLC): vorher 73,5 % / 2412 Ausschlag-Spalten / Einrasten 68 %, jetzt 96,9 % / 65 / 91 % (ohne Zeichnungen 93 %, wie vorher).
+     `tests/eigener-chart.js` toleriert bis 0,4 % Ausschlag-Spalten (mit Zeichnungen 2 %, Einrasten ab 88 %). Liegt nur etwas über 25 % der Höhe daneben, bleibt die Spalte leer (kein Ausreißer). Echte lange Dochte
      hängen am Kerzenkörper und bleiben. Blasse Dochtspitzen werden bis 6 px verlängert.
   Was dann noch nicht passt, überzeichnet man mit „Verlauf nachzeichnen“.
 - Der Verlauf liegt als dünne blaue Linie über dem Bild (`.ocpath`, oben und unten je Bildschirmspalte; Kästchen „Erkannten Verlauf zeigen“,
@@ -134,9 +159,15 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Antippen blinkt, Export. Nach Änderungen an `ocSub`, `imgVerify` oder den Texten laufen lassen.
 - Verlauf auf festen Bildern: `node tests/verlauf.js` (Playwright, Handy/iPad/PC). Bilder und Erwartungen in `tests/faelle/faelle.json`
   (Bereich, kein Verlauf über `oben`/unter `unten`, keine senkrechten Ausschläge, Abdeckung je 6 Spalten). `legende-oben.png` = Lennys
-  Screenshot vom 23.11.2026 (TradingView dunkel, Legende, Preisachse, Labels; blaue App-Linie herausgerechnet). Neue Problembilder dort
-  aufnehmen. `tests/eigener-chart.js` zeichnet seit 23.11. auch TradingView-Legende im Chart, gepunktete Linie des letzten Kurses,
-  Preis-Kästchen auf der mitgeschnittenen Preisachse und lange Dochte und prüft „keine senkrechten Ausschläge“.
+  Screenshot vom 23.11.2026 (TradingView dunkel, Legende, Preisachse, Labels; blaue App-Linie herausgerechnet). `lumen-trendlinien.png` =
+  Lennys Original (dünne weiße OHLC-Balken, lila Trendlinien, Kästchen 6.49), `paypal-preiskaestchen.png` = aus Lennys Screenshot zurückgerechnet
+  (Kästchen PYPL/52.84/44.31, gepunktete Preislinie, E/D-Symbole). Optional je Fall `kurs` (Kursfarbe bzw. Helligkeit): Verlauf bis 3 px am
+  obersten/untersten Kurspixel (Anteil `nah`), höchstens 0,5 % der Spalten mehr als 8 px abseits; `verboten` = Rechtecke ohne Verlauf. Neue
+  Problembilder dort aufnehmen (Original-Screenshots sind besser als zurückgerechnete). `tests/eigener-chart.js` zeichnet seit 23.11. auch TradingView-Legende im Chart, gepunktete Linie des letzten Kurses,
+  Preis-Kästchen auf der mitgeschnittenen Preisachse und lange Dochte und prüft „keine senkrechten Ausschläge“. Seit 23.11. außerdem OHLC-Balken
+  (farbig bzw. weiß/grau, `kind:'ohlc'`) und Zeichnungen (`draw`: Trendlinie durch zwei Hochs/Tiefs, Kanal, Fibonacci mit Beschriftung,
+  Symbol-Kästchen auf Kurshöhe; Farbe lila, blau, grau oder Kursfarbe); verdeckte Kerzen zählen nicht (`hid`), an berührten Spitzen (`tt`) 3 px
+  Toleranz.
 - Strukturtest: `node tests/struktur.js [Charts je Gerät]` (Playwright, Handy/iPad/PC, `NUR`, `DBG=1`, `OCF=Faktor`): Charts aus `pgData`
   (alle Muster, bekannte Unterteilung) als Bild im TradingView-Stil (hell/dunkel, Kerzen/Linie, teils Foto), große Welle an den bekannten
   Wendepunkten gezählt: Fehlalarme ≤ 5 % der beurteilten Wellen, ≥ 70 % beurteilt; manipulierte Impulse mit dreiteiliger Welle 3 (Zigzag)
