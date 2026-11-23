@@ -84,6 +84,19 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Regler, Bild-Export, Spielstand unverändert. Der Start wird auf bzw. jenseits des Extrems getippt. Nach Änderungen an Schwer,
   `snapPt` oder `frCheck` auch diesen Test laufen lassen.
 
+## Neue Ränge: Abzeichen und Aufstiegs-Ansicht (seit 23.11.2026)
+- `rankCheck` merkt jeden Rangaufstieg (neu oder verbessert, auch Elliott-Meister als `c:'m'`) in `localStorage`
+  `waveChecker.rankNew` = `{l:[{c,f,t}], pop}` (`rnPush`). Steigt eine Kategorie erneut, bevor man hinschaut, wird ihr Eintrag
+  erweitert (Bronze → Gold statt zwei Karten). Reihenfolge der Karten = Reihenfolge der Aufstiege.
+- Abzeichen (`rnBadge`, rot, Zahl, ab 10 „9+“) an der Insel „Meine Ränge“ (`rnIsl`) und an der Station am Handy-Pfad, Zahl auch im
+  `aria-label`. Ploppt einmal auf, sobald es ins Bild kommt (`rnPop`, IntersectionObserver; `pop` = schon aufgeploppte Anzahl).
+- Insel, Station und „Meine Ränge“ im Lernbereich rufen `ranksOpen()`: mit neuen Aufstiegen erst `rankUp(i)` (eine Karte je Aufstieg,
+  Wischen bzw. Weiter/Zurück), sonst direkt `ranks()`. Sobald die letzte Karte zu sehen ist, gelten alle als gesehen (Liste leer);
+  „Alle Ränge ansehen“ → `ranks(fromLearn, hl)` mit kurz hervorgehobenen Karten (`.rkhl`).
+- Test: `node tests/rangaufstieg.js [Runden]` (Playwright, Handy/iPad/PC): Aufstieg echt über `exSolved`, Abzeichen sichtbar oben
+  rechts, Kontrast, Aufploppen nur einmal, Neuladen, Aufstiegs-Ansicht mit Text und Rängen, mehrere Aufstiege mit Wischen (CDP-Touch
+  bzw. Maus) und Weiter, Hervorhebung, „9+“, reduzierte Bewegung. Nach Änderungen an Rängen oder Startseite laufen lassen.
+
 ## „Fehler finden“ (Funktion `findSub`), Schwer seit 14.11.2026
 - Im Menü (`pick('find')`) Schwierigkeit wählen: Leicht (Regel aus einer Auswahl) oder Schwer (Freitext), gemerkt in
   `localStorage` `waveChecker.findLvl`. Welle wählen wie in Leicht, dann Textfeld „Was ist falsch?“ (Enter oder Auswerten).

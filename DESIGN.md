@@ -8,6 +8,21 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
 - Knöpfe mindestens 40 px hoch (Touch), aktiver Zustand: Hintergrund `--accent`, Schrift weiß, `aria-pressed="true"`.
 - Icons: Strich-Icons (SVG, `stroke="currentColor"`, Strichstärke 2, runde Enden), keine Füllflächen, keine Emojis in Bedienelementen.
 
+## Benachrichtigungs-Abzeichen (seit 23.11.2026)
+- Kleiner roter Kreis mit weißer Zahl (`.nbdg`), klebt oben rechts an der Insel bzw. Station (9 px bzw. 6 px über den Rand),
+  mindestens 24 × 24 px, Schrift 12 px fett, Ring 2 px in `--surface` gegen den Hintergrund. Ab 10: „9+“.
+- Rot gibt es nur hier: `--notify` = #D93036 (gewünscht war #E5484D, das mit Weiß nur 3,9:1 erreicht; #D93036 hat 4,74:1).
+- Beim Erscheinen bzw. wenn die Zahl steigt einmal kurz aufploppen (0,5 s, leicht überschießend), sobald es im Bild ist; danach ruhig.
+- Derzeit nur für neue Rangaufstiege an „Meine Ränge“.
+
+## Aufstiegs-Ansicht (seit 23.11.2026)
+- Eine Karte je neuem Rang, mittig, höchstens 520 px breit: oben klein „Rangaufstieg 1 von 3“ (Großbuchstaben, `--accent-text`),
+  Kategorie als Überschrift, großes Medaillen-Icon im Kreis (84 px), das von der alten zur neuen Rangfarbe wechselt und kurz größer
+  wird, darunter alter Rang → neuer Rang als Rang-Abzeichen, Balken füllt sich, Satz fett („Gold im Impuls! Nächstes Ziel: Platin“).
+- Mehrere Karten: Punkte als Fortschritt, Wischen nach links/rechts oder „Weiter“/„Zurück“; letzte Karte „Alle Ränge ansehen“.
+- Danach auf „Meine Ränge“ die neuen Karten kurz hervorgehoben (Rand `--accent`, Ring `--accent-soft`, verblasst in 2,6 s).
+- Bewegung reduzieren: keine Animationen, Endzustand sofort; Hervorhebung bleibt als ruhiger Ring.
+
 ## 11. Chart in „Wie geht es weiter?“
 - Groß, länger als der Bildschirm, seitlich verschiebbar, zoombar (zwei Finger, Strg+Mausrad, −/+).
 - Zeitachse wie bei TradingView: Mausrad streckt/staucht nur die Zeit, Ziehen an der Zeitachse ebenso (Mauszeiger `ew-resize`),

@@ -135,6 +135,31 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .badge.r2{background:var(--surface);border-color:var(--r2);color:var(--r2t)}.badge.r2 svg{stroke:var(--r2)}
 .badge.r3{background:var(--surface);border-color:var(--r3);color:var(--r3t)}.badge.r3 svg{stroke:var(--r3)}
 .badge.r4{background:var(--surface);border-color:var(--r4);color:var(--r4t)}.badge.r4 svg{stroke:var(--r4)}
+/* Benachrichtigungs-Abzeichen (23.11.2026, Lenny): neue Rangaufstiege an der Ränge-Insel bzw. Station. Rot NUR hier.
+   Gewünscht war #E5484D, mit weißer Zahl nur 3,9:1; #D93036 ist der nächste Ton mit mind. 4,5:1 (4,74:1). */
+:root{--notify:#D93036}
+.nbdg{position:absolute;top:-9px;right:-9px;z-index:4;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:var(--notify);color:#fff;
+ font:700 12px/24px "DM Sans",system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px var(--surface);pointer-events:none;letter-spacing:0}
+.stn .nbdg{top:-6px;right:-6px}
+.nbdg.pop{animation:nbpop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes nbpop{0%{transform:scale(0)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+/* Aufstiegs-Ansicht: eine Karte je neuem Rang, Abzeichen wechselt die Farbe, Balken füllt sich */
+.rku{max-width:520px;margin:0 auto;touch-action:pan-y}
+.rku .card{text-align:center;padding:22px 18px}
+.rku h2{margin:4px 0 14px}.rku .kat{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-text);margin:0}
+.rkm{width:84px;height:84px;margin:0 auto 14px;border-radius:50%;border:4px solid var(--b);color:var(--b);background:var(--surface);display:flex;align-items:center;justify-content:center;
+ animation:rkm 1.1s ease-out .15s backwards}
+.rkm svg{width:44px;height:44px}
+@keyframes rkm{0%{border-color:var(--a);color:var(--a);transform:scale(.85)}45%{border-color:var(--a);color:var(--a);transform:scale(.85)}75%{transform:scale(1.15)}100%{border-color:var(--b);color:var(--b);transform:scale(1)}}
+.rkft{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 14px}.rkft svg.ar{width:18px;height:18px;stroke:var(--muted)}
+.rku .bar{max-width:280px;margin:0 auto 14px}.rku .bar i{width:100%;animation:rkbar 1s ease-out .2s backwards}
+@keyframes rkbar{from{width:0}}
+.rku .rkt{font-weight:700;font-size:1.05rem;margin:0 0 4px}
+.rkdots{display:flex;justify-content:center;gap:6px;margin:12px 0 0}.rkdots i{width:8px;height:8px;border-radius:50%;background:var(--line)}.rkdots i.on{background:var(--accent)}
+.rknav{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:14px}.rknav button{margin:0}
+.card.rkhl{border-color:var(--accent);animation:rkhl 2.6s ease-out 1 both}
+@keyframes rkhl{0%,40%{box-shadow:0 0 0 4px var(--accent-soft),var(--shadow);background:var(--surface-hover)}100%{box-shadow:var(--shadow)}}
+@media(prefers-reduced-motion:reduce){.nbdg.pop,.rkm,.rku .bar i,.card.rkhl{animation:none}.card.rkhl{box-shadow:0 0 0 4px var(--accent-soft)}}
 #toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;pointer-events:none;z-index:60;background:var(--text);color:var(--bg);padding:12px 18px;border-radius:16px;font-weight:700;max-width:calc(100% - 32px);text-align:center;transition:.3s;box-shadow:var(--shadow)}#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .qlink{color:var(--accent-text);font-weight:700;text-underline-offset:3px}
 .qa{display:block;width:100%;text-align:left;margin:8px 0}.qa:disabled{opacity:1;cursor:default}.qok{border:2px solid var(--ok);color:var(--ok);font-weight:700}.qbad{border:2px solid var(--bad);color:var(--bad)} /* Quiz-Antworten */
@@ -806,7 +831,7 @@ const STN=[ // w: Welle, f: Lage innerhalb der Welle (0 bis 1)
  {w:4,f:.5,wn:'Tempo',id:'blitz',t:'Blitz-Erkennen',d:'Muster in Sekunden',ic:'bolt',act:'pathBlitz()'},
  {w:5,f:.2,wn:'Meistern',id:'progn',t:'Wie geht es weiter?',d:'Fehlende Wellen planen',ic:'trend',act:'progn()'},
  {w:5,f:.56,id:'own',t:'Eigenen Chart prüfen',d:'Deine Zählung nach dem Regelwerk',ic:'image',act:'ownChart()'}, // 20.11.2026
- {w:5,f:.9,id:'ranks',t:'Meine Ränge',d:'',ic:'medal',act:'ranks()',gold:true}];
+ {w:5,f:.9,id:'ranks',t:'Meine Ränge',d:'',ic:'medal',act:'ranksOpen()',gold:true}]; // 23.11.2026: erst neue Rangaufstiege, dann Ränge
 // Der Pfad-Chart: Hauptpunkte eines regelkonformen Impulses (Welle 2 bleibt über dem Start, Welle 3 ist die längste,
 // Welle 4 bleibt über dem Ende von Welle 1, Welle 3 ≥ 123,6 % von Welle 1, Welle 5 ≥ 38,2 %) und Kerzen je Welle.
 const WPV=[0,1,.45,2.6,1.9,3.3],WPN=[12,8,26,10,16],WPS=13;
@@ -843,11 +868,11 @@ function wpDraw(cur,done){const box=$('#wp');if(!box)return;
   s+='<g class="wl'+(i>lim?' late':'')+'" style="--d:'+Math.round(i*dt)+'ms"><circle cx="'+x+'" cy="'+Y(i)+'" r="12"/><text x="'+x+'" y="'+Y(i)+'">'+w+'</text></g>'}
  s+='</svg>';
  STN.forEach((st,j)=>{const i=sIdx[j],x=X(c[i].c),y=Y(i),isCur=j===cur,lft=x>Wd/2,gap=isCur?46:36,d=Math.round(i*dt);
-  const sub=st.gold?wpRank():st.d;
-  s+='<button class="stn'+(done[st.id]?' done':'')+(isCur?' cur':'')+(st.gold?' gold':'')+'" data-t="'+st.t+'" aria-label="'+st.t+(done[st.id]?' (erledigt)':'')+'" style="left:'+x+'px;top:'+y+'px;--d:'+d+'ms" onclick="'+st.act+'">'+ICON[st.ic]+'</button>'+
+  const sub=st.gold?wpRank():st.d,nb=st.id==='ranks'?rnBadge():'';
+  s+='<button class="stn'+(done[st.id]?' done':'')+(isCur?' cur':'')+(st.gold?' gold':'')+'" data-t="'+st.t+'" aria-label="'+st.t+(done[st.id]?' (erledigt)':'')+(nb?', '+rnLabel():'')+'" style="left:'+x+'px;top:'+y+'px;--d:'+d+'ms" onclick="'+st.act+'">'+ICON[st.ic]+nb+'</button>'+
    '<div class="stl'+(lft?' lft':'')+(st.gold?' gold':'')+'" style="'+(lft?'right:'+(Wd-x+gap):'left:'+(x+gap))+'px;top:'+y+'px;max-width:'+Math.max(120,Math.round(lft?x-gap-6:Wd-x-gap-6))+'px;--d:'+d+'ms" onclick="'+st.act+'">'+
    (st.wn?'<small>Welle '+st.w+' · '+st.wn+'</small>':'')+'<b>'+st.t+'</b>'+(sub?'<span>'+sub+'</span>':'')+(isCur?'<span class="here">Hier weitermachen</span>':'')+'</div>'});
- box.style.height=H+'px';box.innerHTML=s;}
+ box.style.height=H+'px';box.innerHTML=s;rnPop();}
 // Station mit Auswahl: Blitz (welche Muster)
 function pathBlitz(){$('#view').innerHTML='<div class="card"><h2>Blitz-Erkennen</h2><p class="mut">Muster in Sekunden erkennen. Welche Muster?</p><p><button class="p" onclick="blitz(\'easy\')">Einsteiger</button><button class="p" onclick="blitz(\'all\')">Alle Muster</button></p></div>';window.scrollTo(0,0)}
 const isPath=()=>innerWidth<700;let HOMEW=isPath();
@@ -859,7 +884,7 @@ function home(){if(isPath())return pathHome();
    '<p class="mut rec">Du kannst alles frei wählen. Empfehlung für dein Level: <b>'+STUFENNAME[recStage()]+'</b>.</p><p class="hreset"><button class="lnk" onclick="guideStart()">Einführung erneut ansehen</button></p><p id="rs" class="hreset">'+RSBTN+'</p></div>'+
   '<div class="hl">'+isl('book','Elliott-Wellen lernen','Das Regelwerk mit Beispielcharts','learn()')+
    isl('quiz','Quiz','Kapitel abfragen in kurzen Runden','quizMenu()')+
-   isl('medal','Meine Ränge','Bronze bis Platin je Kapitel','ranks()')+blitzIsl('mob')+'</div>'+
+   rnIsl()+blitzIsl('mob')+'</div>'+
   '<div class="hrr">'+isl('count','Chart durchzählen','Wellenpunkte setzen und prüfen','pick(\'count\')')+
    isl('search','Fehler finden','Ein Regelverstoß steckt in der Zählung','pick(\'find\')')+
    isl('eye','Muster erkennen','Normal per Auswahl oder schwer selbst zählen','recognize()')+
@@ -867,7 +892,7 @@ function home(){if(isPath())return pathHome();
   '<div class="hb">'+isl('trend','Wie geht es weiter?','Plane die fehlenden Wellen nach den Regeln',null,
     '<span class="sb"><button class="p" onclick="progn()">Starten</button></span>')+isl('image','Eigenen Chart prüfen','Screenshot hochladen, selbst zählen, nach dem Regelwerk prüfen','ownChart()')+blitzIsl('desk')+'</div>'+
   '</section>';
- intro();
+ intro();rnPop();
 }
 // ---- Wegführer (Guide) beim allerersten Besuch: dunkelt die Seite ab, hebt ein Modul hervor, Sprechblase daneben.
 // Kommt ein neues Modul dazu, bekommt es hier ebenfalls einen Schritt (t = Titel der Insel, s = CSS-Selektor).
@@ -968,7 +993,7 @@ function pick(mode){
 }
 function go(mode,key){mode==='count'?count(PAT[key]):mode==='sub'?sub(key):SUBOK.includes(key)?findSub(key,FLV()):find(PAT[key])}
 // Hauptmenü-Button: erscheint, sobald ein Modus gestartet wird (pick, recognize, pickSub), und verschwindet im Hauptmenü
-['pick','recognize','pickSub','daily','ranks','dailyCal','progn','blitz','blitzKap','pathBlitz','ownChart'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;window.scrollTo(0,0);return f.apply(this,arguments)}});
+['pick','recognize','pickSub','daily','ranks','ranksOpen','dailyCal','progn','blitz','blitzKap','pathBlitz','ownChart'].forEach(n=>{const f=window[n];window[n]=function(){$('#menu').hidden=false;window.scrollTo(0,0);return f.apply(this,arguments)}});
 {const h0=home;window.home=function(){TUTCTX=null;$('#menu').hidden=true;window.scrollTo(0,0);return h0()}}
 $('#menu').onclick=()=>home();
 $('#home').onclick=()=>home();$('#home').onkeydown=e=>{if(e.key==='Enter')home()};
@@ -2703,7 +2728,7 @@ async function showLearn(kap){pathMark('learn');const v=$('#view');
  catch(_){if(LEARN)v.innerHTML='<div class="card"><p class="bad">Die Lernseite konnte nicht geladen werden.</p><button class="p" onclick="learnBack()">← Zurück</button></div>';return}
  if(!LEARN)return; // inzwischen woandershin gewechselt
  const {html,toc,title}=mdToHtml(md),back='<button onclick="learnBack()">'+(PEEK?'← Zurück zum Quiz':'← Zurück')+'</button>';
- v.innerHTML='<div class="learn">'+back+(PEEK?'':'<button class="p" onclick="quizMenu()">Quiz</button><button onclick="ranks(true)">Meine Ränge</button>')+title+'<nav class="toc" aria-label="Kapitel">'+
+ v.innerHTML='<div class="learn">'+back+(PEEK?'':'<button class="p" onclick="quizMenu()">Quiz</button><button onclick="ranksOpen(true)">Meine Ränge</button>')+title+'<nav class="toc" aria-label="Kapitel">'+
   toc.map((t,j)=>{const k=t.replace(/\s*\(.*?\)/g,'').replace(/:.*$/,''); /* Handy: Kurzname ohne Klammern (Lenny, 26.10.2026) */return '<a href="#lk-'+(j+1)+'" data-j="'+(j+1)+'">'+(k===t?inl(t):'<span class="tl">'+inl(t)+'</span><span class="ts">'+inl(k)+'</span>')+'</a>'}).join('')+'</nav>'+html+'<p>'+back+'</p></div>';
  tocWatch(v); // aktiver Reiter folgt dem Kapitel, das man gerade liest
  v.querySelectorAll('[data-j]').forEach(a=>a.onclick=e=>{e.preventDefault();$('#lk-'+a.dataset.j).scrollIntoView({behavior:'smooth'})});
@@ -2914,9 +2939,53 @@ const rMet=x=>x.or?x.list.some(r=>r.have>=r.need):x.list.every(r=>r.have>=r.need
 function rCalc(cat){let lv=0;while(lv<4&&rMet(rNeeds(cat,lv+1)))lv++;return lv}
 // Neue Ränge speichern und einblenden; quiet: ohne Einblendung
 function rankCheck(quiet){const o=rLoad();o.rank=o.rank||{};const msgs=[];
- RCATS.forEach(c=>{const lv=Math.max(o.rank[c]||0,rCalc(c));if(lv>(o.rank[c]||0)){o.rank[c]=lv;msgs.push('Neuer Rang: '+RNAME[lv]+' '+RIN[c]+'!')}});
- if(!o.master&&RCATS.every(c=>(o.rank[c]||0)>=3)){o.master=true;msgs.push('Neuer Gesamtrang: Elliott-Meister!')}
+ RCATS.forEach(c=>{const old=o.rank[c]||0,lv=Math.max(old,rCalc(c));if(lv>old){o.rank[c]=lv;rnPush(c,old,lv);msgs.push('Neuer Rang: '+RNAME[lv]+' '+RIN[c]+'!')}});
+ if(!o.master&&RCATS.every(c=>(o.rank[c]||0)>=3)){o.master=true;rnPush('m',0,4);msgs.push('Neuer Gesamtrang: Elliott-Meister!')}
  rSave(o);if(msgs.length&&!quiet)toast(msgs.join('<br>'));}
+// ---- Neue Rangaufstiege (23.11.2026, Lenny): Abzeichen an der Ränge-Insel bzw. Station, Aufstiegs-Ansicht vor der Ränge-Seite.
+// localStorage waveChecker.rankNew = {l:[{c:Kategorie oder 'm' (Elliott-Meister), f:alter Rang, t:neuer Rang}], pop:Anzahl, die schon aufgeploppt ist}.
+// Steigt eine Kategorie erneut, bevor man hingeschaut hat, wird ihr Eintrag erweitert (Bronze → Gold statt zwei Karten).
+const RNKEY='waveChecker.rankNew';
+const rnLoad=()=>{try{const o=JSON.parse(localStorage.getItem(RNKEY));if(o&&Array.isArray(o.l))return o}catch(_){}return{l:[],pop:0}};
+const rnSave=o=>{try{localStorage.setItem(RNKEY,JSON.stringify(o))}catch(_){}};
+function rnPush(c,f,t){const o=rnLoad(),e=o.l.find(x=>x.c===c);if(e)e.t=Math.max(e.t,t);else o.l.push({c,f,t});rnSave(o)}
+const rnCount=()=>rnLoad().l.length;
+const rnLabel=()=>{const n=rnCount();return n===1?'1 neuer Rangaufstieg':n+' neue Rangaufstiege'};
+const rnBadge=()=>{const n=rnCount();return n?'<span class="nbdg" aria-hidden="true">'+(n>9?'9+':n)+'</span>':''};
+// Insel „Meine Ränge“ im Hauptmenü (PC/iPad), mit Abzeichen
+function rnIsl(){const nb=rnBadge(),s=isl('medal','Meine Ränge','Bronze bis Platin je Kapitel','ranksOpen()',nb);
+ return nb?s.replace('aria-label="Meine Ränge: ','aria-label="Meine Ränge, '+rnLabel()+': '):s}
+// Abzeichen ploppt einmal auf, wenn es erscheint (bzw. die Zahl steigt) und ins Bild kommt; danach ruhig
+function rnPop(){const o=rnLoad(),n=o.l.length;if(n<=(o.pop||0)){if(o.pop>n){o.pop=n;rnSave(o)}return}
+ const b=document.querySelector('.isl .nbdg,.stn .nbdg');if(!b)return;
+ const go=()=>{b.classList.add('pop');const p=rnLoad();p.pop=p.l.length;rnSave(p)};
+ if(!window.IntersectionObserver)return go();
+ const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();setTimeout(go,calm()?0:200)}});io.observe(b);}
+// Insel bzw. Station: mit neuen Aufstiegen erst die Aufstiegs-Ansicht, sonst direkt die Ränge-Seite
+function ranksOpen(fromLearn){rankCheck(true);return rnCount()?rankUp(0,fromLearn):ranks(fromLearn)}
+const RIM={'Grundbegriffe & Fibonacci':'bei Grundbegriffen & Fibonacci','Impuls':'im Impuls','Zigzag':'im Zigzag','Flats':'bei Flats','Dreiecke':'bei Dreiecken','Diagonalen':'bei Diagonalen','Komplexe Korrekturen':'bei komplexen Korrekturen'};
+function rankUp(i,fromLearn){const L=rnLoad().l;if(!L.length)return ranks(fromLearn);i=Math.max(0,Math.min(L.length-1,i||0));
+ if(fromLearn){PEEK=null;if(!LEARN)enterLearn();$('#tolearn').hidden=true;$('#menu').hidden=false}
+ const e=L[i],m=e.c==='m',col=lv=>lv?'var(--r'+lv+')':'var(--muted)',bd=(lv,t)=>'<span class="badge r'+lv+'">'+(lv?ICON.medal:'')+(t||RNAME[lv])+'</span>';
+ const last=i===L.length-1;
+ const txt=m?'Elliott-Meister! Alle Kategorien mindestens Gold.':RNAME[e.t]+' '+RIM[e.c]+'! '+(e.t<4?'Nächstes Ziel: '+RNAME[e.t+1]:'Höchster Rang erreicht.');
+ $('#view').innerHTML='<section class="rku" id="rku"><div class="card" role="group" aria-roledescription="Karte" aria-label="Rangaufstieg '+(i+1)+' von '+L.length+'">'+
+  '<p class="kat">'+(L.length>1?'Rangaufstieg '+(i+1)+' von '+L.length:'Rangaufstieg')+'</p><h2>'+(m?'Gesamtrang':esc(e.c))+'</h2>'+
+  '<div class="rkm" style="--a:'+col(e.f)+';--b:'+col(e.t)+'">'+ICON.medal+'</div>'+
+  '<p class="rkft">'+(m?'':bd(e.f)+ico('<path d="M5 12h14M13 6l6 6-6 6"/>').replace('<svg','<svg class="ar"'))+bd(e.t,m?'Elliott-Meister':'')+'</p>'+
+  '<div class="bar"><i></i></div><p class="rkt" aria-live="polite">'+txt+'</p>'+
+  (L.length>1?'<div class="rkdots" aria-hidden="true">'+L.map((_,j)=>'<i'+(j===i?' class="on"':'')+'></i>').join('')+'</div>':'')+
+  '<div class="rknav">'+(i?'<button id="rkb">Zurück</button>':'')+(last?'<button class="p" id="rkall">Alle Ränge ansehen</button>':'<button class="p" id="rkn">Weiter</button>')+'</div></div></section>';
+ if(last){const hl=L.map(x=>x.c);rnSave({l:[],pop:0});$('#rkall').onclick=()=>ranks(fromLearn,hl)} // alle Karten gesehen: Abzeichen weg
+ else $('#rkn').onclick=()=>rankUp(i+1,fromLearn);
+ if(i)$('#rkb').onclick=()=>rankUp(i-1,fromLearn);
+ // Wischen: nach links = weiter, nach rechts = zurück
+ const box=$('#rku');let sx=null,sy=0;
+ box.onpointerdown=ev=>{sx=ev.clientX;sy=ev.clientY};
+ box.onpointerup=ev=>{if(sx===null)return;const dx=ev.clientX-sx,dy=ev.clientY-sy;sx=null;if(Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*1.5)return;
+  if(dx<0&&!last)rankUp(i+1,fromLearn);else if(dx>0&&i)rankUp(i-1,fromLearn)};
+ box.onpointercancel=()=>{sx=null};
+ window.scrollTo(0,0);}
 function toast(html){if(TUT)return; // keine Rang-Meldungen aus der Übungsrunde
 let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t)}
  t.innerHTML=html;t.className='show';clearTimeout(t.tm);t.tm=setTimeout(()=>t.className='',4500);t.onclick=()=>t.className='';}
@@ -2928,16 +2997,17 @@ function earnOpts(cat,lv){const keys=Object.keys(RCAT).filter(k=>RCAT[k]===cat);
   (keys.length?'<p class="mut">Auch Fehler finden, Muster erkennen, Subwellen zählen und die Tagesaufgabe zählen, wenn der Chart '+(keys.length>1?'eines dieser Muster':'dieses Muster')+' zeigt.'+
    (lv===3?' Für Platin zählen bei „schwer“ nur Muster erkennen – Schwer und die Tagesaufgabe.':'')+'</p>':'');}
 // Seite „Meine Ränge“; fromLearn: aus dem Lernbereich geöffnet (Zurück führt zum Regelwerk)
-function ranks(fromLearn){pathMark('ranks');rankCheck();const o=rLoad(),ex=o.ex||{},qc=qLoad().cats||{};
+function ranks(fromLearn,hl){hl=hl||[]; // hl: Kategorien, die gerade aufgestiegen sind (kurz hervorgehoben)
+pathMark('ranks');rankCheck();const o=rLoad(),ex=o.ex||{},qc=qLoad().cats||{};
  if(fromLearn){PEEK=null;if(!LEARN)enterLearn();$('#tolearn').hidden=true;$('#menu').hidden=false}
  const badge=lv=>'<span class="badge r'+lv+'">'+(lv?ICON.medal:'')+RNAME[lv]+'</span>';
  $('#view').innerHTML='<h2>Meine Ränge</h2><p class="mut">Ränge gibt es pro Kategorie für Quiz und gelöste Übungen. Ein erreichter Rang bleibt. Übungen werden erst ab dem '+RSTART+' gezählt, Quiz-Antworten von vorher zählen mit.</p>'+
-  '<div class="card'+(o.master?' daily':'')+'"><b>Gesamtrang Elliott-Meister</b> '+(o.master?badge(4).replace('Platin','Elliott-Meister'):'<span class="mut">alle Kategorien mindestens Gold ('+RCATS.filter(c=>((o.rank||{})[c]||0)>=3).length+' von '+RCATS.length+')</span>')+
+  '<div class="card'+(o.master?' daily':'')+(hl.includes('m')?' rkhl':'')+'"><b>Gesamtrang Elliott-Meister</b> '+(o.master?badge(4).replace('Platin','Elliott-Meister'):'<span class="mut">alle Kategorien mindestens Gold ('+RCATS.filter(c=>((o.rank||{})[c]||0)>=3).length+' von '+RCATS.length+')</span>')+
   (o.master?'<p><button data-share="m">Rang teilen</button></p>':'')+'</div>'+
   RCATS.map((c,i)=>{const lv=(o.rank||{})[c]||0,e=ex[c]||{solved:0,noTip:0,hard:0},q=qc[c]||{},l=q.last||[],nx=lv<4?rNeeds(c,lv+1):null;
    const prog=nx?(nx.or?Math.max(...nx.list.map(r=>Math.min(1,r.have/r.need))):nx.list.reduce((s,r)=>s+Math.min(1,r.have/r.need),0)/nx.list.length):1;
    const open=nx?nx.list.filter(r=>r.have<r.need).map(r=>r.txt):[];
-   return '<div class="card"><h2>'+esc(c)+' '+badge(lv)+'</h2><p class="mut">Quiz: '+(q.correct||0)+' richtig'+(l.length?', '+Math.round(l.reduce((a,b)=>a+b,0)/l.length*100)+' % der letzten '+l.length:'')+
+   return '<div class="card'+(hl.includes(c)?' rkhl':'')+'"><h2>'+esc(c)+' '+badge(lv)+'</h2><p class="mut">Quiz: '+(q.correct||0)+' richtig'+(l.length?', '+Math.round(l.reduce((a,b)=>a+b,0)/l.length*100)+' % der letzten '+l.length:'')+
     (c==='Grundbegriffe & Fibonacci'?'':' · Übungen: '+e.solved+' gelöst, '+e.noTip+' ohne Tipp, '+e.hard+' schwer/Tagesaufgabe')+'</p>'+
     (nx?'<div class="bar"><i style="width:'+Math.round(prog*100)+'%"></i></div><p>Bis '+RNAME[lv+1]+': '+open.join(nx.or?' oder ':' und ')+'.</p>':'<p class="ok">Höchster Rang erreicht.</p>')+
     '<p>'+(lv<4?'<button class="p" data-earn="'+i+'">Rang verdienen</button>':'')+(lv?'<button data-share="'+i+'">Rang teilen</button>':'')+'</p>'+
@@ -2950,7 +3020,8 @@ function ranks(fromLearn){pathMark('ranks');rankCheck();const o=rLoad(),ex=o.ex|
   b.dataset.ec==='hard'?recogHard():count(PAT[b.dataset.ec])});
  document.querySelectorAll('[data-share]').forEach(b=>b.onclick=()=>{const s=b.dataset.share,c=RCATS[+s],lv=(o.rank||{})[c];
   shareOut(s==='m'?'Ich bin Elliott-Meister im Wave Checker 🏆 '+location.origin+'/':'Ich bin '+RNAME[lv]+' '+RIN[c]+' im Wave Checker '+REMO[lv]+' '+location.origin+'/',$('#shareMsg'))});
- window.scrollTo(0,0);}
+ window.scrollTo(0,0);
+ const h=$('.card.rkhl');if(h)setTimeout(()=>h.scrollIntoView({block:'center',behavior:calm()?'auto':'smooth'}),60);} // erste neue Rangkarte ins Bild
 // Hell/Dunkel umschalten (Knopf oben in der Kopfzeile). Ohne Wahl gilt die Systemeinstellung; die Wahl bleibt im Browser gespeichert.
 const isDark=()=>document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
 function themeBtn(){const d=isDark(),b=$('#theme');
