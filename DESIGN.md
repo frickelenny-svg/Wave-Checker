@@ -58,6 +58,12 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
   beenden“), nach dem Nachzeichnen „Erkannten Verlauf wiederherstellen“. Der laufende Strich ist grün (`--ok`, 2,4 px, runde Enden).
 - Warnsignal zur Unterteilung: gefundene Wendepunkte als gestrichelte Linie in `--warn-text` (1,8 px, Strich 5/4) mit kleinen Kreisen
   (Füllung `--surface`), nur im Ergebnis.
+  Die betroffene Welle ist im Chart orange hinterlegt (`--warn-text`, 10 % Deckkraft, `.pgwb`). Der Hinweis ist antippbar (Rand beim Darüberfahren
+  `--warn-text`); Antippen scrollt zum Chart, holt die Welle ins Bild und lässt die Fläche viermal kurz aufleuchten (bis 40 %; bei reduzierter
+  Bewegung einmal 32 % ohne Blinken).
+- Ergebnis-Überschrift: Regelverstoß rot (`.bad`, ✗), Warnsignal zur Unterteilung orange (`.ocwarn`: `--warn-text`, fett, Warn-Icon Dreieck mit
+  Ausrufezeichen als Strich-Icon 22 px) „Prüfe die Subwellen“ mit einem Satz darunter, sonst grün (`.ok`, ✓). Im Export-Bild ebenso (orange mit „!“).
+- Reihenfolge der Hinweise: Regel → Warnsignal Unterteilung → andere Warnsignale → Faustregeln.
 - Ergebnis: Befunde als `.rnote` mit Abzeichen (Regel, Warnsignal, Faustregel). Leiste unten: „Als Bild speichern“ (Hauptknopf),
   „Teilen“ (nur Handy/iPad), „Zählung ändern“, „Neues Bild“.
 - Bild-Export (PNG, 2- bis 3-fach): Bild mit Labels und Linien, darunter Trennlinie, Fazit fett in `--ok` bzw. `--bad` mit ✓/✗,

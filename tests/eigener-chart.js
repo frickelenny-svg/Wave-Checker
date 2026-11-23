@@ -188,7 +188,7 @@ if (require.main === module) (async () => {
       if (process.env.SHOTS && r < 6) await page.screenshot({ path: path.join(process.env.SHOTS, name + '-' + r + '.png'), fullPage: true });
       if (got.ok !== want.ok) fail('Prüfung weicht ab: App ' + (got.ok ? 'regelkonform' : 'verstößt (' + got.errs + ')') + ', erwartet ' + (want.ok ? 'regelkonform' : 'Verstoß ' + want.f0) + ' (' + desc + ')');
       else if (!want.ok && !want.f0.some(id => got.errs.includes(id))) fail('Prüfung nennt eine andere Regel: ' + got.errs + ' statt ' + want.f0 + ' (' + desc + ')');
-      if (want.ok && !/Deine Zählung ist regelkonform/.test(got.html)) fail('Text „Deine Zählung ist regelkonform“ fehlt');
+      if (want.ok && !(got.state === 'ok' ? /Deine Zählung ist regelkonform/.test(got.html) : got.state === 'warn' && /Prüfe die Subwellen/.test(got.html) && /Die Hauptwellen sind regelkonform/.test(got.html))) fail('Überschrift passt nicht (' + got.state + ')'); // seit 23.11.: Warnsignale zur Unterteilung ergeben „Prüfe die Subwellen“
       if (!want.ok && !/verstößt/.test(got.html)) fail('Text „verstößt gegen …“ fehlt');
       if (/richtige Zählung|Punkte\b.*\+|\+\d+ Punkte/.test(got.html)) fail('Formulierung oder Punkte im Ergebnis: ' + got.html.slice(0, 120));
       if (!/keine Kursprognose oder Anlageempfehlung/.test(got.html)) fail('Hinweistext fehlt im Ergebnis');

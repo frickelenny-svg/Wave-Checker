@@ -89,10 +89,19 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   die Welle laut `PGSUB` haben darf (Vereinigung über alle Muster der Zählweise, deren harte Regeln die Zählung erfüllt) und die die harten
   Regeln des Teilmusters erfüllt: abwechselnd Hoch/Tief, jede Teilwelle ≥ 8 % der Welle, jeder Wendepunkt Extrem seiner Teilwellen (bis 3 %),
   eine Größenordnung (jede nicht gewählte Gegenbewegung innerhalb einer Teilwelle höchstens `OCF` = 1,5 × die kleinste gewählte Korrektur).
-  Keine gefunden: Warnsignal „In Welle … finde ich keine regelkonforme Fünfer-Unterteilung, sie wirkt eher dreiteilig. Prüf das mal genauer.“,
-  dazu die ZigZag-Wendepunkte (Schwellen 5–35 %, `OCZZ`) gestrichelt (`.pgzz`, `m.zz`). Zeigt die Welle weniger Schwünge, als ihre Unterteilung
-  braucht, wird sie nicht beurteilt. Selbst gezählte Unterteilungen prüft wie bisher `frCheck`. Abwägung (Strukturtest, 23.11.): mit `OCF` 1,5
-  rund 3–4 % Fehlalarme, eine in Wahrheit dreiteilige Welle 3 wird in rund 20–35 % erkannt; „genau eine Schwelle“ statt Suche ergab 26 %
+  Ergibt außerdem der ZigZag bei einer der Schwellen 5–35 % (`OCZZ`) genau eine regelkonforme Unterteilung, gilt die Welle ebenfalls als passend.
+  Sonst Warnsignal, Text je Befund (seit 23.11.2026, Feld `kind`): `regel` = Teilwellen in der passenden Zahl gefunden, aber Regel verletzt
+  („Die gefundenen 5 Teilwellen verletzen eine Regel (Welle 4 überschneidet Welle 1)“, Regel des am besten passenden Teilmusters), `drei`/`fuenf`
+  = die andere Zahl gefunden („sie wirkt eher dreiteilig“ bzw. bei Korrekturwellen „eher fünfteilig“), `unruhig` = sonst („wirkt unruhiger, mit
+  mehr Teilwellen“). Dazu die Wendepunkte dieses Befunds gestrichelt (`.pgzz`, `m.zz`) und die Welle orange hinterlegt (`.pgwb`, `m.zzw`).
+  Antippen eines solchen Warnsignals (`.ocsubn`, `data-zz`) holt Chart und Welle ins Bild und lässt sie kurz blinken. Nicht beurteilt wird
+  nur eine Welle ohne Gegenbewegung (ZigZag 4 % mit weniger als 3 Teilwellen).
+- Ergebnis-Überschrift (seit 23.11.2026, `PGS.res.state`): harter Regelverstoß rot (Vorrang), sonst bei Warnsignalen zur Unterteilung orange
+  mit Warn-Icon „Prüfe die Subwellen“ und „Die Hauptwellen sind regelkonform, aber in Welle 1 und 3 passt die innere Struktur nicht sicher.“,
+  nur ohne sie grün „Deine Zählung ist regelkonform“ (Export-Bild ebenso). Hinweise immer sortiert: harte Fehler → Warnsignale zur
+  Unterteilung → andere Warnsignale → Faustregeln. Selbst gezählte Unterteilungen prüft wie bisher `frCheck`. Abwägung (Strukturtest, 23.11.): mit `OCF` 1,5
+  rund 2–4 % Fehlalarme, eine in Wahrheit dreiteilige Welle 3 wird in rund 20–35 % erkannt (seit dem Zulassen einer
+  einzelnen Schwelle 23.11. rund 34 %); „genau eine Schwelle“ statt Suche ergab 26 %
   Fehlalarme bei 79 % Erkennung, kleineres `OCF` (1,0) 13 % Fehlalarme.
 - Test: `node tests/eigener-chart.js [Runden]` (Playwright, Handy/iPad/PC, `NUR=Handy` für ein Gerät, `DBG=1` Fehlgriffe, `SHOTS=Ordner`
   Bildschirmfotos). Seit 23.11. auch: erkannter Verlauf an jeder Kerze (≥ 95 %, Stand rund 99,8–100 %), Nachzeichnen mit echtem Strich,
@@ -101,6 +110,9 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Handy, iPad, PC je rund 99–100 %, Labels 100 %), Ziehen, Prüfergebnis gleich den Regeln für die bekannten Preise (log: Pixelhöhe),
   Regler, Bild-Export, Spielstand unverändert. Der Start wird auf bzw. jenseits des Extrems getippt. Nach Änderungen an Schwer,
   `snapPt` oder `frCheck` auch diesen Test laufen lassen.
+- Fall-Test: `node tests/subwellen.js [Durchläufe]` (Playwright, Handy/iPad/PC): gebaute Linien-Charts, Welle 3 je Fall dreiteilig, fünfteilig
+  mit Regelbruch (IMP-3), unruhig, sauber, dazu ein harter Verstoß: Text je Befund, Überschrift (orange/grün/rot), Reihenfolge, Hervorhebung,
+  Antippen blinkt, Export. Nach Änderungen an `ocSub`, `imgVerify` oder den Texten laufen lassen.
 - Strukturtest: `node tests/struktur.js [Charts je Gerät]` (Playwright, Handy/iPad/PC, `NUR`, `DBG=1`, `OCF=Faktor`): Charts aus `pgData`
   (alle Muster, bekannte Unterteilung) als Bild im TradingView-Stil (hell/dunkel, Kerzen/Linie, teils Foto), große Welle an den bekannten
   Wendepunkten gezählt: Fehlalarme ≤ 5 % der beurteilten Wellen, ≥ 70 % beurteilt; manipulierte Impulse mit dreiteiliger Welle 3 (Zigzag)

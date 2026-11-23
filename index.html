@@ -306,6 +306,9 @@ body.tut-on .tutbtn{visibility:hidden}
 .ocimg .pgtool{top:8px;flex-direction:row}.pglbg{fill:var(--surface);fill-opacity:.92;stroke:var(--line);stroke-width:1}.ocimg .pgc1{stroke-width:1.6}
 .ocpath{fill:none;stroke:var(--accent);stroke-width:1.3;opacity:.85}.octrs{fill:none;stroke:var(--ok);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .pgzz{fill:none;stroke:var(--warn-text);stroke-width:1.8;stroke-dasharray:5 4}.pgzzp{fill:var(--surface);stroke:var(--warn-text);stroke-width:1.6}.ocpt{flex-wrap:wrap}.ocpt button{margin:0;min-height:40px}.ocpt label{display:inline-flex;align-items:center;gap:6px}
+.ocwarn{display:flex;align-items:center;gap:8px;margin:0 0 6px;color:var(--warn-text);font-weight:700;font-size:1.05rem}.ocwarn svg{width:22px;height:22px;flex:none}
+.ocsubn{cursor:pointer}.ocsubn:hover,.ocsubn:focus-visible{border-color:var(--warn-text)}.pgwb{fill:var(--warn-text);opacity:.1}.pgwb.blink{animation:ocblink .42s ease-in-out 4 alternate}
+@keyframes ocblink{to{opacity:.4}}@media(prefers-reduced-motion:reduce){.pgwb.blink{animation:none;opacity:.32}}
 .ocfd{display:flex;align-items:center;gap:10px;margin:8px 2px 0;font-size:14px}.ocfd input{flex:1;max-width:260px;min-height:32px;accent-color:var(--accent)}.ocnote{font-size:13px;margin:8px 2px}
 .pglg{font-size:13px;color:var(--muted);margin:6px 2px 0}.pglg .c1{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1.4px solid var(--text);border-radius:50%;font-weight:800;font-size:11px;color:var(--text)}
 </style>
@@ -786,6 +789,7 @@ const ICON={
  trend:ico('<polyline points="3,17 9,11 13,15 21,7"/><path d="M15 7h6v6"/>'),
  cal:ico('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/>'),
  image:ico('<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15l-5-5L5 20"/>'),
+ warn:ico('<path d="M12 3.5L22 20.5H2z"/><path d="M12 10v5M12 17.8h.01"/>'),
  bulb:ico('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>')};
 const tipLine=t=>t.startsWith('Tipp')?'<p class="tip">'+ICON.bulb+'<span>'+t+'</span></p>':'<p>'+t+'</p>'; // Tipps mit Glühbirne
 const stufe=s=>'<span class="stufe s-'+s+'">'+{regel:'Regel',warn:'Warnsignal',faust:'Faustregel'}[s]+'</span>';
@@ -1675,15 +1679,26 @@ function progn(arg,lvl){
    if(all.some(C=>C.par===S&&C.pk===k&&C.ps))continue; // selbst unterteilt: das prüft frCheck
    const allow=[...new Set(fams.flatMap(Q=>PGSUB[Q.key].flatMap(V=>V[k-1]||[])))];if(!allow.length)continue;
    const a=ps[k-1],b=ps[k],ta=Math.round(a.t),tb=Math.round(b.t),d=Math.sign(b.p-a.p);if(tb-ta<8||!d)continue;
-   const L=Math.abs(b.p-a.p),zf=ocZig(ta,tb,a.p,b.p,.04*L);if(zf.length-1<Math.min(...allow.map(key=>PAT[key].labels.length-1)))continue; /* zu grob aufgelöst */IMG.subJ++;
+   const L=Math.abs(b.p-a.p),zf=ocZig(ta,tb,a.p,b.p,.04*L);if(zf.length-1<3)continue; /* ohne Gegenbewegung: nicht beurteilen */IMG.subJ++;
    if(ocFit(zf,allow,d,.08*L))continue;
-   const res=OCZZ.map(f=>ocZig(ta,tb,a.p,b.p,f*L)),ns=res.map(z=>z.length-1);
+   // Befund je Schwelle (23.11.2026, Lenny): Zahl der Teilwellen; ist sie für die Welle erlaubt, das am besten passende Teilmuster
+   // und seine verletzte Regel. Passt bei einer Schwelle genau eine regelkonforme Unterteilung, gibt es kein Warnsignal.
+   const res=OCZZ.map(f=>ocZig(ta,tb,a.p,b.p,f*L)),ev=res.map((z,i)=>{const n=z.length-1,q=z.map(x=>x.p);if(n<1||Math.sign(q[1]-q[0])!==d)return{z,n,i,bad:true};let best=null;
+    for(const key of allow){const D=PAT[key];if(D.labels.length!==n+1)continue;const u=norm(D,q),f=D.struct&&!D.struct(u)?['struct']:hardFails(D,u);if(!f.length)return{z,n,i,ok:true};if(!best||f.length<best.f.length)best={D,f,q}}
+    return{z,n,i,best}});
+   if(ev.some(e=>e.ok))continue;
    const five=allow.every(key=>PAT[key].labels.length===6),three=allow.every(key=>PAT[key].labels.length===4),need=five?5:three?3:0;
-   const cnt={};ns.filter(n=>n>=3).forEach(n=>cnt[n]=(cnt[n]||0)+1);const typ=+Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x]||x-y)[0];
-   const best=res.slice().sort((x,y)=>Math.abs(x.length-1-(need||typ))-Math.abs(y.length-1-(need||typ)))[0];
-   out.push({k,need,n:typ,pts:best.map(q=>({t:q.t,p:q.p})),
-    txt:'In Welle '+frHtml(S.lev,S.z,k)+' finde ich '+(five?'keine regelkonforme Fünfer-Unterteilung':three?'keine regelkonforme dreiteilige Unterteilung':'keine regelkonforme Unterteilung')+
-     (typ===3?', sie wirkt eher dreiteilig':typ===5?', sie wirkt eher fünfteilig':typ>5?', sie wirkt unruhiger, mit mehr Teilwellen':'')+'. Prüf das mal genauer.'})}
+   // Text je Befund (statt „keine Fünfer-Unterteilung, wirkt eher fünfteilig“): 1) Teilwellen in der passenden Zahl gefunden, aber eine Regel
+   // verletzt; 2) die andere Zahl gefunden (3 statt 5 bzw. 5 statt 3): wirkt eher drei- bzw. fünfteilig; 3) sonst: unruhiger, mehr Teilwellen
+   const rb=ev.filter(e=>e.best&&(!need||e.n===need)).sort((x,y)=>x.best.f.length-y.best.f.length||y.i-x.i)[0],
+    other=need?ev.filter(e=>!e.bad&&e.n===(need===5?3:5)).sort((x,y)=>y.i-x.i)[0]:null;
+   let kind,txt2,rule=null,z;
+   if(rb){kind='regel';z=rb.z;rule=rb.best.f[0];const fl=FLIP;FLIP=rb.best.D.sign(rb.best.q)<0;
+    txt2=': Die gefundenen '+rb.n+' Teilwellen verletzen eine Regel ('+(rule==='struct'?'die Richtungen der Teilwellen passen nicht':mt(rb.best.D.rules[rule].name))+')';FLIP=fl}
+   else if(other){kind=other.n===3?'drei':'fuenf';z=other.z;txt2=', sie wirkt eher '+(other.n===3?'dreiteilig':'fünfteilig')}
+   else{kind='unruhig';z=ev.filter(e=>!e.bad&&e.n>1).sort((x,y)=>Math.abs(x.n-(need||5))-Math.abs(y.n-(need||5)))[0];z=z?z.z:zf;txt2=', sie wirkt unruhiger, mit mehr Teilwellen'}
+   out.push({k,need,n:z.length-1,kind,rule,t0:a.t,t1:b.t,pts:z.map(q=>({t:q.t,p:q.p})),
+    txt:'In Welle '+frHtml(S.lev,S.z,k)+' finde ich '+(five?'keine regelkonforme Fünfer-Unterteilung':three?'keine regelkonforme dreiteilige Unterteilung':'keine regelkonforme Unterteilung')+txt2+'. Prüf das mal genauer.'})}
   return out};
  const snapPt=(px,py,o)=>{o=o||{};const rad=o.touch?40:15,t=Tof(px),yc=Math.max(6,Math.min(H-BP-2,py));
   if(o.alt)return{t:Math.max(0,Math.min(ZE,t)),p:Pof(yc),kind:'free'};
@@ -1724,6 +1739,7 @@ function progn(arg,lvl){
   let s='<svg id="svg" class="pgsvg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Kerzenchart mit Zukunftszone, seitlich verschiebbar und zoombar"><defs><clipPath id="pgclip"><rect x="0" y="0" width="'+W+'" height="'+(H-BP)+'"/></clipPath></defs>';
   // Bild (Eigenen Chart prüfen): unverzerrt an Zeit und Preis gebunden, darüber eine Fläche in Oberflächenfarbe („Bild blasser“). Beim Export (EXP) ohne Bild, das kommt direkt auf die Leinwand.
   if(IMG&&!EXP){const x0=X(-.5),y0=Y(IMG.h),iw=IMG.w*BW,ih=Y(0)-y0;s+='<g clip-path="url(#pgclip)"><image href="'+IMG.url+'" x="'+x0.toFixed(2)+'" y="'+y0.toFixed(2)+'" width="'+iw.toFixed(2)+'" height="'+ih.toFixed(2)+'" preserveAspectRatio="none" style="image-rendering:'+(BW>2.5?'pixelated':'auto')+'"/><rect id="ocfade" x="'+x0.toFixed(2)+'" y="'+y0.toFixed(2)+'" width="'+iw.toFixed(2)+'" height="'+ih.toFixed(2)+'" fill="var(--surface)" opacity="'+IMG.fade+'"/></g>'}
+  if(IMG&&FR&&FR.done&&m.zzw)m.zzw.forEach((w,i)=>{const a=X(w.t0),b=X(w.t1);s+='<rect class="pgwb" data-i="'+i+'" x="'+Math.min(a,b).toFixed(1)+'" y="0" width="'+Math.abs(b-a).toFixed(1)+'" height="'+(H-BP)+'"/>'}); // Welle mit Warnsignal zur Unterteilung
   const zx=Math.max(0,X(c0+.5)),zw=Math.min(W,X(ZE+.5))-zx;if(zw>0)s+='<rect x="'+zx+'" y="0" width="'+zw+'" height="'+(H-BP)+'" fill="var(--line)" opacity=".35"/>';
   const hl=EXP?null:focus();if(hl){const a=Math.max(0,X(hl[0])),b=Math.min(W,X(hl[1]));if(b>a)s+='<rect class="pgfoc" x="'+a+'" y="0" width="'+(b-a)+'" height="'+(H-BP)+'"/>'} // Welle, die gerade dran ist
   const cx=IMG?-1e9:X(c0+.5);if(cx>-2&&cx<W+2)s+='<line class="pgcut" x1="'+cx+'" x2="'+cx+'" y1="0" y2="'+(H-BP)+'"/>';
@@ -2120,19 +2136,24 @@ function progn(arg,lvl){
     eT.push(plainName(e.S)+': verstößt gegen „'+mt(r.name)+'“');FLIP=fl}
    else{eH.push('<p class="rnote">'+stufe('regel')+e.msg+'</p>');eT.push(e.msg.replace(/<[^>]*>/g,'').replace(/\s+/g,' '))}});
   const okS=all.filter(S=>S.fitQ&&S.ps&&!errs.some(e=>e.S===S||(e.pids||[e.pid]).some(id=>S.pts.some(q=>q.id===id))));
-  const notes=[],oT=[],sub=[];m.zz=[];IMG.trace=false;IMG.subJ=0;
+  // Hinweise sortiert (23.11.2026): Unterteilung zuerst, dann andere Warnsignale, dann Faustregeln (harte Fehler stehen davor, eH)
+  const subN=[],warnN=[],faustN=[],oT=[],sub=[],subW=[];m.zz=[];m.zzw=[];IMG.trace=false;IMG.subJ=0;
   okS.forEach(S=>{const Q=S.fitQ,pr=S.ps.map(q=>q.p),last=pr.length-1,v=norm(Q,pr),fl=FLIP;FLIP=Q.sign(pr)<0;
    oT.push(plainName(S)+': keine harte Regel verletzt ('+Q.title+')');
    Object.keys(Q.rules).forEach(id=>{const r=Q.rules[id];if(r.hard||pgRuleMax(r)>last)return;let bad=false;try{bad=!r.ok(v)}catch(_){}
-    if(bad){const f=r.lvl==='o';notes.push('<p class="rnote '+(f?'f':'w')+'">'+stufe(f?'faust':'warn')+'<b>'+frName(S)+'</b>: '+mt(r.ex)+' <span class="mut">('+tag(Q,id)+')</span></p>')}});
-   imgFaust(Q,v,last).forEach(t=>notes.push('<p class="rnote f">'+stufe('faust')+'<b>'+frName(S)+'</b>: '+t+'</p>'));
+    if(bad){const f=r.lvl==='o';(f?faustN:warnN).push('<p class="rnote '+(f?'f':'w')+'">'+stufe(f?'faust':'warn')+'<b>'+frName(S)+'</b>: '+mt(r.ex)+' <span class="mut">('+tag(Q,id)+')</span></p>')}});
+   imgFaust(Q,v,last).forEach(t=>faustN.push('<p class="rnote f">'+stufe('faust')+'<b>'+frName(S)+'</b>: '+t+'</p>'));
    FLIP=fl;if(S.lev===1)m.lines.push(...imgLines(S,Q));
-   ocSub(S,all).forEach(x=>{notes.push('<p class="rnote w">'+stufe('warn')+x.txt+' <span class="mut">(Gestrichelt: die gefundenen Wendepunkte.)</span></p>');sub.push({c:S.c,k:x.k,need:x.need,n:x.n});m.zz.push(x.pts)})});
-  const ok=!errs.length;
-  IMG.res={ok,head:ok?'Deine Zählung ist regelkonform.':'Deine Zählung verstößt gegen das Regelwerk.',lines:(ok?oT:eT).concat(notes.length?['Hinweise: '+notes.length+' (Warnsignale und Faustregeln)']:[])};
-  PGS.res={ok,errs:errs.map(e=>e.id||'msg'),notes:notes.length,lines:m.lines.length,sub,subJ:IMG.subJ};
+   ocSub(S,all).forEach(x=>{const i=m.zz.length;subN.push('<p class="rnote w ocsubn" data-zz="'+i+'" role="button" tabindex="0" title="Welle im Chart zeigen">'+stufe('warn')+x.txt+' <span class="mut">(Gestrichelt: die gefundenen Wendepunkte. Antippen zeigt die Welle im Chart.)</span></p>');
+    sub.push({c:S.c,k:x.k,need:x.need,n:x.n,kind:x.kind,rule:x.rule,txt:x.txt.replace(/<[^>]*>/g,'')});subW.push({h:frHtml(S.lev,S.z,x.k),p:frTxt(S.lev,S.z,x.k)});m.zz.push(x.pts);m.zzw.push({t0:x.t0,t1:x.t1})})});
+  const notes=subN.concat(warnN,faustN),wl=a=>a.length>1?a.slice(0,-1).join(', ')+' und '+a[a.length-1]:a[0];
+  // Überschrift: harter Verstoß rot (Vorrang), sonst bei Warnsignalen zur Unterteilung orange „Prüfe die Subwellen“, nur ohne sie grün
+  const ok=!errs.length,state=!ok?'bad':sub.length?'warn':'ok',subS='Die Hauptwellen sind regelkonform, aber in Welle ';
+  IMG.res={ok,state,head:state==='bad'?'Deine Zählung verstößt gegen das Regelwerk.':state==='warn'?'Prüfe die Subwellen.':'Deine Zählung ist regelkonform.',
+   lines:(state==='warn'?[subS+wl([...new Set(subW.map(x=>x.p))])+' passt die innere Struktur nicht sicher.']:[]).concat(ok?oT:eT,notes.length?['Hinweise: '+notes.length+' (Warnsignale und Faustregeln)']:[])};
+  PGS.res={ok,state,errs:errs.map(e=>e.id||'msg'),notes:notes.length,lines:m.lines.length,sub,subJ:IMG.subJ};
   FR.done=true;FR.sel=null;FR.pw=null;pathMark('own');
-  frRender((ok?'<p class="ok">Deine Zählung ist regelkonform.</p>'+okS.map(S=>'<p><b>'+frName(S)+'</b> ('+PGK[S.z].t+', '+SIZE[S.lev]+') verletzt keine harte Regel des Musters „'+S.fitQ.title+'“'+(fam(S)>1?' (oder eines anderen Musters mit dieser Beschriftung)':'')+'.</p>').join('')
+  frRender((ok?(state==='warn'?'<p class="ocwarn">'+ICON.warn+'<span>Prüfe die Subwellen</span></p><p>'+subS+wl([...new Set(subW.map(x=>x.h))])+' passt die innere Struktur nicht sicher.</p>':'<p class="ok">Deine Zählung ist regelkonform.</p>')+okS.map(S=>'<p><b>'+frName(S)+'</b> ('+PGK[S.z].t+', '+SIZE[S.lev]+') verletzt keine harte Regel des Musters „'+S.fitQ.title+'“'+(fam(S)>1?' (oder eines anderen Musters mit dieser Beschriftung)':'')+'.</p>').join('')
     :'<p class="bad">Deine Zählung verstößt gegen das Regelwerk.</p>'+eH.join('')+(okS.length?'<p class="mut">Regelkonform: '+okS.map(S=>frName(S)+' ('+S.fitQ.title+')').join(', ')+'.</p>':''))+
    (notes.length?'<p><b>Hinweise</b> <span class="mut">(kein Fehler)</span></p>'+notes.join(''):ok?'<p class="mut">Keine Warnsignale, und die geprüften Wellen liegen in den Faustregel-Bereichen.</p>':'')+
    (m.lines.length?'<p class="mut">Gestrichelte Linien: Grenzen aus den harten Regeln. Läuft der Kurs darüber hinaus, gilt die Zählung nicht mehr.</p>':'')+OCNOTE)};
@@ -2149,12 +2170,12 @@ function progn(arg,lvl){
   const cv=document.createElement('canvas'),g=cv.getContext('2d'),F='"DM Sans",system-ui,sans-serif';
   // Fazit umbrechen (Breite W − 32)
   const wrap=(t,f)=>{g.font=f;const out=[];let ln='';t.split(' ').forEach(wd=>{const s=ln?ln+' '+wd:wd;if(g.measureText(s).width>W-32&&ln){out.push(ln);ln=wd}else ln=s});if(ln)out.push(ln);return out};
-  const r=IMG.res||{ok:true,head:'',lines:[]},head=wrap((r.ok?'✓ ':'✗ ')+r.head,'700 16px '+F),body=[].concat(...r.lines.slice(0,4).map(t=>wrap(t,'14px '+F))).slice(0,6),
+  const r=IMG.res||{ok:true,head:'',lines:[]},rst=r.state||(r.ok?'ok':'bad'),head=wrap((rst==='ok'?'✓ ':rst==='warn'?'! ':'✗ ')+r.head,'700 16px '+F),body=[].concat(...r.lines.slice(0,4).map(t=>wrap(t,'14px '+F))).slice(0,6),
    disc=wrap('Prüfung nach dem Regelwerk, keine Kursprognose oder Anlageempfehlung.','11px '+F),FH=18+head.length*21+6+body.length*19+14+disc.length*15+24;
   cv.width=Math.round(W*k);cv.height=Math.round((PH+FH)*k);g.scale(k,k);g.fillStyle=col('--surface');g.fillRect(0,0,W,PH+FH);
   g.save();g.beginPath();g.rect(0,0,W,PH);g.clip();g.translate(0,-T0);g.drawImage(IMG.cv,x0,y0,iw,ih);g.globalAlpha=IMG.fade;g.fillStyle=col('--surface');g.fillRect(x0,y0,iw,ih);g.restore();
   const im=new Image();im.onload=()=>{g.save();g.beginPath();g.rect(0,0,W,PH);g.clip();g.translate(0,-T0);g.drawImage(im,0,0,W,H);g.restore();g.fillStyle=col('--line');g.fillRect(0,PH,W,1);
-   let y=PH+18;g.textBaseline='alphabetic';g.font='700 16px '+F;g.fillStyle=r.ok?col('--ok'):col('--bad');head.forEach(t=>{y+=21;g.fillText(t,16,y)});y+=6;
+   let y=PH+18;g.textBaseline='alphabetic';g.font='700 16px '+F;g.fillStyle=rst==='ok'?col('--ok'):rst==='warn'?col('--warn-text'):col('--bad');head.forEach(t=>{y+=21;g.fillText(t,16,y)});y+=6;
    g.font='14px '+F;g.fillStyle=col('--text');body.forEach(t=>{y+=19;g.fillText(t,16,y)});y+=14;
    g.font='11px '+F;g.fillStyle=col('--muted');disc.forEach(t=>{y+=15;g.fillText(t,16,y)});
    g.font='700 12px '+F;g.fillStyle=col('--accent-text');g.textAlign='right';g.fillText('Wave Checker',W-16,PH+FH-9);
@@ -2259,6 +2280,11 @@ function progn(arg,lvl){
   const otr=$('#octr');if(otr)otr.onclick=()=>{IMG.trace=!IMG.trace;frRender(fbLast)};
   const ors=$('#ocrs');if(ors)ors.onclick=()=>{IMG.path.hi.set(IMG.auto.hi);IMG.path.lo.set(IMG.auto.lo);IMG.path.man.fill(0);frRender(fbLast)};
   const ofr=$('#ocfr');if(ofr)ofr.oninput=()=>{IMG.fade=+ofr.value/100;const r=$('#ocfade');if(r)r.setAttribute('opacity',IMG.fade);try{localStorage.setItem('waveChecker.ocFade',ofr.value)}catch(_){}};
+  if(FR.done&&IMG)document.querySelectorAll('#fb [data-zz]').forEach(el=>{const go=()=>{const i=+el.dataset.zz,w=m.zzw[i];if(!w)return;
+    if(X(w.t0)<0||X(w.t1)>W){sc=clampSc(((w.t0+w.t1)/2+.5)*BW/tf-W/2);redraw($('#svg'),pic())}
+    $('#pgc').scrollIntoView({block:'center',behavior:calm()?'auto':'smooth'});const r=document.querySelector('#svg .pgwb[data-i="'+i+'"]');
+    if(r){r.classList.remove('blink');void r.getBoundingClientRect();r.classList.add('blink');setTimeout(()=>r.classList.remove('blink'),1700)}};
+   el.onclick=go;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}});
   if(FR.done&&IMG){$('#ocsave').onclick=ocSave;const sh=$('#ocshare');if(sh)sh.onclick=ocShare;$('#ocedit').onclick=()=>{FR.done=false;FR.err={};m.lines=[];FR.md='sel';frRender()};$('#ocnew').onclick=()=>ownChart();return}
   if(FR.done){$('#real').onclick=()=>{m.shown=true;frRender(fb+'<p class="mut">Darübergelegt: der tatsächliche Verlauf mit der erzeugten Zählung der großen Welle. Gestrichelt darunter: deine Prognose. Nur zum Vergleich: Punkte gibt es für regelkonformes Zählen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(arg,lvl);return}
   document.querySelectorAll('[data-fz]').forEach(b=>b.onclick=()=>{if(FR.pw)frStartSub(b.dataset.fz);else{FR.z=b.dataset.fz;FR.ac=null;FR.i=0;FR.sel=null}FR.md='draw';frRender(fbLast)}); // Zählweise wählen: immer Zeichnen // Unterteilung der ausgewählten Welle bzw. neue Zählung
