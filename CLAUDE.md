@@ -64,7 +64,10 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Zoom). `IMG` = {cv, data, w, h, url, fade, crop:{x,y,f}}. Zeit = Bildspalte, Preis = Pixelhöhe von unten (`h - Zeile - 0,5`),
   immer linear (auch bei log-Charts, ohne Hinweis). Keine Zukunftszone, keine Zeiteinheiten, Mausrad zoomt unverzerrt.
   Werkzeuge und Zoom stehen in einem Streifen über dem Bild (`TP` 54 px), damit keine Bildecke verdeckt ist.
-  Regler „Bild blasser“ (Fläche in `--surface` über dem Bild, `localStorage` `waveChecker.ocFade`), Labels mit Hintergrund (`.pglbg`).
+  Regler „Bild blasser“ 0–100 % (seit 23.11.2026; weiße Fläche über dem Bild, stufenlos, Anzeige `#ocfv`, `localStorage` `waveChecker.ocFade`).
+  Bei 100 % ist die ganze Chartfläche weiß, auch im dunklen Design (Klasse `.ocw` am `#pgc` setzt die Farben des hellen Designs, Kontrast ≥ 4,5:1),
+  der Verlauf ist immer zu sehen (Kästchen wird eingeschaltet, auch im Ergebnis und im Export-Bild). Labels mit Hintergrund (`.pglbg`).
+  Test: `node tests/bild-blasser.js` (Playwright, Handy/PC, hell/dunkel, 0/50/100 %: Deckkraft, weiße Fläche, Kontrast, Verlauf, Export, Neuladen).
 - Kursverlauf (seit 23.11.2026, `ocPath`, direkt nach dem Zuschneiden): je Bildspalte höchstes und tiefstes Pixel von Kerzen bzw.
   Linie → `IMG.path` = {hi, lo (Zeile, -1 = nichts), man (nachgezeichnet)}, `IMG.auto` = erkannte Werte. Hintergrund je Kachel (48 px,
   häufigste Farbe), Schwelle nach Kontrast. Schutzstufen (überarbeitet 23.11.2026 nach senkrechten Balken bis zur Legende):
