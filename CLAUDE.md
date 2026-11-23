@@ -67,10 +67,26 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Regler „Bild blasser“ (Fläche in `--surface` über dem Bild, `localStorage` `waveChecker.ocFade`), Labels mit Hintergrund (`.pglbg`).
 - Kursverlauf (seit 23.11.2026, `ocPath`, direkt nach dem Zuschneiden): je Bildspalte höchstes und tiefstes Pixel von Kerzen bzw.
   Linie → `IMG.path` = {hi, lo (Zeile, -1 = nichts), man (nachgezeichnet)}, `IMG.auto` = erkannte Werte. Hintergrund je Kachel (48 px,
-  häufigste Farbe), Schwelle nach Kontrast. Herausgefiltert: dünne lange Linien (waagerecht ab 35 % Breite, senkrecht ab 60 % Höhe, Kreuzungen
-  mit Kerzen bleiben), Störpixel, kleine freistehende „Wörter“ (Text und schon eingezeichnete Labels bis 110 × 44 px, Textzeilen bis 20 px hoch,
-  gestrichelte Linien), breite Formen am unteren Rand neben dem Hauptchart (Volumen). Kleine Gruppen, neben denen in gleicher Höhe der Chart
-  weiterläuft, bleiben (Kerzen nach einer Lücke). Blasse Dochtspitzen werden bis 6 px verlängert.
+  häufigste Farbe), Schwelle nach Kontrast. Schutzstufen (überarbeitet 23.11.2026 nach senkrechten Balken bis zur Legende):
+  1. Linien: waagerecht ab 35 % Breite, senkrecht ab 90 % Höhe (Gitter, Fadenkreuz; lange echte Dochte bleiben), bis 5 px dick, Kreuzungen
+     mit Kerzen bleiben; gestrichelte Linien (Gruppen bis 3 px hoch), Volumen am unteren Rand neben dem Hauptchart.
+  2. Labels: kleine Gruppe (bis 110 × 44 px), unter bzw. über deren Mitte (4–60 px) der Kurs liegt (Hauptchart oder eine größere Form über
+     44 px Höhe, nie eine Textzeile; sonst hielt die Regel Kerzen direkt unter der Legende für Labels).
+     Keine pauschale Textregel mehr: Sie verwarf auf kleinen Bildern ganze Kerzenreihen.
+  3. Ränder: Bänder oben (Legende: Symbol, OHLC, Indikatoren), unten (Zeitachse) und rechts (Preisachse, Preis-Kästchen) bis 18 % groß, durch
+     mindestens 3 leere Zeilen bzw. Spalten getrennt (bis 2 Rauschpixel zählen als leer; die größte solche Grenze, unter der nur Formen bis
+     44 px Höhe liegen; oben die größte Grenze wegen mehrzeiliger Legende, unten und rechts die nächste am Rand, weil Lücken zwischen Kerzen
+     auch leere Spalten sind, `bands`/`cut`). Geschnitten wird je Form (auf Fotos verbindet Rauschen Buchstaben zu Gruppen über das Band hinaus);
+     Formen in Kerzenfarbe bleiben, außer sie schließen oben und unten bündig mit Schrift ab (blaue Indikatorwerte in der Legende).
+  4. Farbe: Kerzenfarben = häufigste Farben der Hauptgruppe (`pal`); sie zählen bei der Strangwahl doppelt und schützen Kerzen in Randbändern.
+  5. Strangwahl (Kontinuität): je Spalte zusammenhängende senkrechte Stränge (Lücken bis 3 px). Gewählt wird je Spalte ein Strang auf dem
+     günstigsten Weg durch alle Spalten (Viterbi: Belohnung je Strang bis 6 Pixel, Kerzenfarbe doppelt; jeder Sprung kostet das Doppelte seiner
+     Höhe), so bleibt der Verlauf auf der durchgehenden Linie bzw. den Kerzen statt in Schrift oder Labels zu springen. Danach fallen Inseln
+     weg: Stücke ohne Verbindung (innerhalb von 40 Spalten näher als 10 % der Höhe) mit zusammen unter 5 % der Spalten. Fester Vergleich am
+     23.11. (48 feste Bilder mit Legende, Labels, Fotos): Verlauf je Kerze 95,0 % → 99,4 %, senkrechte Ausschläge 279 → 4; auf 144 Bildern: 99,0 %, 17 Ausschlag-Spalten (Kerzen-Fotos
+     mit Legende nah an den Kerzen), Einrasten 93,5 % mit harten Versätzen. `tests/eigener-chart.js` toleriert bis 0,4 % Ausschlag-Spalten. Liegt nur etwas über 25 % der Höhe daneben, bleibt die Spalte leer (kein Ausreißer). Echte lange Dochte
+     hängen am Kerzenkörper und bleiben. Blasse Dochtspitzen werden bis 6 px verlängert.
+  Was dann noch nicht passt, überzeichnet man mit „Verlauf nachzeichnen“.
 - Der Verlauf liegt als dünne blaue Linie über dem Bild (`.ocpath`, oben und unten je Bildschirmspalte; Kästchen „Erkannten Verlauf zeigen“,
   `IMG.show`). „Verlauf nachzeichnen“ (`IMG.trace`): ein Finger bzw. die Maus zeichnet (`TRS`, `ocApply`: gleitendes Mittel über 3
   Messpunkte, Spalte für Spalte in den Verlauf, `man` = 1), ein zweiter Finger zoomt, erneutes Zeichnen bessert nach, „Erkannten Verlauf
@@ -113,6 +129,11 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
 - Fall-Test: `node tests/subwellen.js [Durchläufe]` (Playwright, Handy/iPad/PC): gebaute Linien-Charts, Welle 3 je Fall dreiteilig, fünfteilig
   mit Regelbruch (IMP-3), unruhig, sauber, dazu ein harter Verstoß: Text je Befund, Überschrift (orange/grün/rot), Reihenfolge, Hervorhebung,
   Antippen blinkt, Export. Nach Änderungen an `ocSub`, `imgVerify` oder den Texten laufen lassen.
+- Verlauf auf festen Bildern: `node tests/verlauf.js` (Playwright, Handy/iPad/PC). Bilder und Erwartungen in `tests/faelle/faelle.json`
+  (Bereich, kein Verlauf über `oben`/unter `unten`, keine senkrechten Ausschläge, Abdeckung je 6 Spalten). `legende-oben.png` = Lennys
+  Screenshot vom 23.11.2026 (TradingView dunkel, Legende, Preisachse, Labels; blaue App-Linie herausgerechnet). Neue Problembilder dort
+  aufnehmen. `tests/eigener-chart.js` zeichnet seit 23.11. auch TradingView-Legende im Chart, gepunktete Linie des letzten Kurses,
+  Preis-Kästchen auf der mitgeschnittenen Preisachse und lange Dochte und prüft „keine senkrechten Ausschläge“.
 - Strukturtest: `node tests/struktur.js [Charts je Gerät]` (Playwright, Handy/iPad/PC, `NUR`, `DBG=1`, `OCF=Faktor`): Charts aus `pgData`
   (alle Muster, bekannte Unterteilung) als Bild im TradingView-Stil (hell/dunkel, Kerzen/Linie, teils Foto), große Welle an den bekannten
   Wendepunkten gezählt: Fehlalarme ≤ 5 % der beurteilten Wellen, ≥ 70 % beurteilt; manipulierte Impulse mit dreiteiliger Welle 3 (Zigzag)

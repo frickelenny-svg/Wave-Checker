@@ -10,6 +10,8 @@
 //  3) Prüfung: Ergebnis („regelkonform“ bzw. „verstößt gegen …“ samt Regel) stimmt mit den Regeln für die bekannten Preise überein
 //     (linear: echte Preise; logarithmisch: Pixelhöhe, wie vorgegeben). Keine Punkte, keine Serie, kein „richtige Zählung“.
 //  4) Ziehen (Auswählen): ins Leere bleibt der Punkt frei stehen, zurück neben den Docht rastet er wieder ein.
+//  1b) Erkannter Verlauf an jeder Kerze; keine senkrechten Ausschläge, auch mit TradingView-Legende im Chart (Symbol, OHLC, Indikatoren),
+//      gepunkteter Linie des letzten Kurses, Preis-Kästchen auf der mitgeschnittenen Preisachse; echte lange Dochte bleiben.
 //  6) Verlauf nachzeichnen (echter Strich), Einrasten auf dem Strich, Wiederherstellen.
 //  5) „Bild blasser“, Labels mit Hintergrund, Ergebnis als Bild (PNG-Download mit Fazit und „Wave Checker“), keine Fehler in der Konsole.
 const { chromium } = require('playwright');
@@ -35,7 +37,7 @@ const MK = String.raw`(o)=>{let sd=o.seed;const rnd=()=>(sd=(sd*16807)%214748364
  const C=dark?{bg:'#131722',grid:'#1f2330',up:'#089981',dn:'#f23645',tx:'#b2b5be',bar:'#1e222d',ln:'#2962FF'}:{bg:'#ffffff',grid:'#f0f3fa',up:'#089981',dn:'#f23645',tx:'#131722',bar:'#f8f9fd',ln:'#2962FF'};
  const P=o.pr,n=P.length-1,cand=[],piv=[],line=o.kind==='line';let last;
  // Kerze in einem Band [lo, hi]: Eröffnung = letzter Schluss, Schluss c, kleine Dochte, alles im Band
- const band=(c,lo,hi,wk)=>{const op=last===undefined?c:Math.max(lo,Math.min(hi,last));const h=Math.min(hi,Math.max(op,c)+rnd()*wk),l=Math.max(lo,Math.min(op,c)-rnd()*wk);cand.push({o:op,c,h,l});last=c};
+ const band=(c,lo,hi,wk)=>{const op=last===undefined?c:Math.max(lo,Math.min(hi,last));let h=Math.min(hi,Math.max(op,c)+rnd()*wk),l=Math.max(lo,Math.min(op,c)-rnd()*wk);const lw=rnd();if(o.legend&&lw<.04)h=h+(hi-h)*.45;else if(o.legend&&lw<.08)l=l-(l-lo)*.45; /* lange Dochte (bis 45 % des Abstands zum Rand der Spanne, sonst gäbe es ein fast gleich hohes Hoch neben dem Wendepunkt) */cand.push({o:op,c,h,l});last=c};
  // Wendekerze: ihr Extrem (Hoch bei up, sonst Tief) liegt genau auf dem Wendepunkt b, der Rest in der Spanne der Welle
  const pivot=(b,up,lo,hi,rg)=>{const op=last===undefined?b:last,c=line?b:up?b-rg*rr(0,.1):b+rg*rr(0,.1);cand.push(up?{o:op,c,h:b,l:Math.max(lo,Math.min(op,c)-rg*.03)}:{o:op,c,l:b,h:Math.min(hi,Math.max(op,c)+rg*.03)});last=c};
  const d1=Math.sign(P[1]-P[0]),A=Math.abs(P[1]-P[0]),s0=[P[0]+d1*A*.06,P[0]+d1*A*.34];
@@ -55,6 +57,13 @@ const MK = String.raw`(o)=>{let sd=o.seed;const rnd=()=>(sd=(sd*16807)%214748364
  for(let xx=PL+60;xx<PR;xx+=110)g.fillText(['Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov'][Math.floor(xx/110)%9],xx-10,PB+22);
  g.strokeStyle=C.tx;g.globalAlpha=.4;g.strokeRect(PR+.5,PT-10,0,PB-PT+10);g.globalAlpha=1;
  g.fillStyle=C.tx;g.font='13px sans-serif';g.fillText('Bitcoin / US-Dollar · 1D · BITSTAMP',PL+8,PT-14);
+ // TradingView-Legende oben im Chart (Symbol, OHLC-Werte farbig, Indikatorzeilen), gepunktete Linie des letzten Kurses, Preis-Kästchen auf der Achse
+ if(o.legend){const lc=cand[cand.length-1],up=lc.c>=lc.o,vc=up?C.up:C.dn,f2=v=>v.toFixed(2);let x=PL+8;const tx=(s,c)=>{g.fillStyle=c;g.fillText(s,x,0);x+=g.measureText(s).width+6};
+  g.save();g.font='13px sans-serif';g.translate(0,PT+16);tx('BTCUSD · 1D · BITSTAMP',C.tx);['O','H','L','C'].forEach((k,i)=>{tx(k,C.tx);tx(f2([lc.o,lc.h,lc.l,lc.c][i]),vc)});tx('+1,24 (+0,87 %)',vc);
+  g.translate(0,18);x=PL+8;tx('Vol · BTC',C.tx);tx('12,34 K',vc);g.translate(0,18);x=PL+8;tx('RSI 14 close',C.tx);tx('54,21',C.ln);tx('MA 50',C.tx);tx(f2(lc.c*.97),'#ff9800');g.restore();
+  const yl=Math.round(yOf(lc.c))+.5;g.strokeStyle=vc;g.setLineDash([1,3]);g.beginPath();g.moveTo(PL,yl);g.lineTo(PR,yl);g.stroke();g.setLineDash([]);
+  g.fillStyle=vc;g.fillRect(PR+2,yl-9.5,72,19);g.fillStyle='#fff';g.font='12px sans-serif';g.fillText(f2(lc.c),PR+8,yl+4);
+  g.fillStyle=C.ln;g.fillRect(PR+2,yl-30.5,72,17);g.fillStyle='#fff';g.fillText('03:12:44',PR+12,yl-17)}
  const tips=[],cdl=[]; // cdl: je Kerze Spalte und Zeilen von Hoch und Tief (Linie: Punkt der Linie, a = b)
  if(o.kind==='line'){g.strokeStyle=C.ln;g.lineWidth=2;g.lineJoin='round';g.beginPath();cand.forEach((k,i)=>{const X=xOf(i),Y=yOf(k.c);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.stroke();cand.forEach((k,i)=>cdl.push({x:xOf(i),a:yOf(k.c),b:yOf(k.c)}));
   piv.forEach((i,k)=>{const up=k?P[k]>P[k-1]:P[0]>P[1];tips.push({x:xOf(i),y:yOf(cand[i].c)+(up?-1:1),hl:up?'h':'l'})})}
@@ -90,12 +99,12 @@ if (require.main === module) (async () => {
         for (let i = 0; i < 3; i++) { await page.waitForTimeout(50); await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x2, y: y2 }] }); } if (hold) await hold(); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await page.waitForTimeout(450); return; }
       await page.mouse.move(x1, y1); await page.mouse.down(); await page.mouse.move(x2, y2, { steps: 8 }); if (hold) await hold(); await page.mouse.up(); await page.waitForTimeout(80); };
     const pts = () => page.evaluate(() => PGS.FR().pts.map(q => ({ id: q.id, c: q.c, i: q.i, t: q.t, p: q.p })));
-    let traceDone = false, pok = 0, ptot = 0, pbad = 0, hit = 0, tot = 0, lhit = 0, ltot = 0, rounds = 0, dragDone = false, pngDone = false;
+    let pspike = 0, traceDone = false, pok = 0, ptot = 0, pbad = 0, hit = 0, tot = 0, lhit = 0, ltot = 0, rounds = 0, dragDone = false, pngDone = false;
     const pts0 = await page.evaluate(() => JSON.stringify([localStorage.getItem('waveChecker'), localStorage.getItem('waveChecker.progress')]));
     for (let r = 0; r < N * PATS.length; r++) {
       const P = PATS[r % PATS.length], o = { seed: 1 + Math.floor(Math.random() * 2e9), pr: P.pr, z: P.z, theme: Math.random() < .5 ? 'dark' : 'light', kind: Math.random() < .3 ? 'line' : 'candle', log: Math.random() < .3, photo: Math.random() < .35, labels: Math.random() < .3 };
-      o.big = o.photo && Math.random() < .3;
-      const desc = P.name + ' [' + [o.theme, o.kind, o.log ? 'log' : 'linear', o.photo ? (o.big ? 'Foto groß' : 'Foto') : 'Screenshot', o.labels ? 'Labels' : ''].filter(Boolean).join(', ') + ']';
+      o.big = o.photo && Math.random() < .3; o.legend = Math.random() < .6; o.axis = o.legend && Math.random() < .5; // Legende im Chart, Zuschnitt mit Preisachse
+      const desc = P.name + ' [' + [o.theme, o.kind, o.log ? 'log' : 'linear', o.photo ? (o.big ? 'Foto groß' : 'Foto') : 'Screenshot', o.labels ? 'Labels' : '', o.legend ? 'Legende' : '', o.axis ? 'mit Preisachse' : ''].filter(Boolean).join(', ') + ']';
       const img = await page.evaluate(new Function('return ' + MK)(), o).catch(e => { fail('Testbild: ' + e.message); return null; }); if (!img) continue;
       // ---- 1) Hochladen und Zuschneiden ----
       await page.evaluate(() => ownChart()); await page.waitForSelector('#ocfile', { state: 'attached' });
@@ -106,7 +115,7 @@ if (require.main === module) (async () => {
       await page.waitForSelector('#occv'); await page.waitForTimeout(150);
       const cb = await page.evaluate(() => { const c = document.querySelector('#occv'); c.scrollIntoView({ block: 'center', behavior: 'instant' }); const b = c.getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height }; });
       const S = cb.w / img.W, m = 3 / S; // 3 Bildpixel innerhalb des Plotbereichs
-      await drag(cb.x + (img.plot.x0 + m) * S, cb.y + (img.plot.y0 + m) * S, cb.x + (img.plot.x1 - m) * S, cb.y + (img.plot.y1 - m) * S);
+      await drag(cb.x + (img.plot.x0 + m) * S, cb.y + (img.plot.y0 + m) * S, cb.x + (img.plot.x1 + (o.axis ? 85 * img.sc : 0) - m) * S, cb.y + (img.plot.y1 - m) * S);
       await page.click('#ocok'); await page.waitForSelector('#svg.pgsvg'); await page.waitForTimeout(200);
       const crop = await page.evaluate(() => ({ ...PGS.img.crop, w: PGS.img.w, h: PGS.img.h }));
       if (Math.abs(crop.x - img.plot.x0) > 4 / S + 3 || Math.abs(crop.y - img.plot.y0) > 4 / S + 3) fail('Zuschneiden: Rahmen nicht am gezogenen Ort (' + desc + ')');
@@ -120,6 +129,8 @@ if (require.main === module) (async () => {
         const xs = o.photo ? [x - 1, x, x + 1] : [x], his = xs.map(c => pv.hi[c]).filter(v => v >= 0), los = xs.map(c => pv.lo[c]).filter(v => v >= 0); ptot++;
         const hi = his.length ? Math.min(...his) : -1, lo = los.length ? Math.max(...los) : -1;
         const ok = hi >= 0 && (o.kind === 'line' ? hi <= a + ptol && lo >= b - ptol : Math.abs(hi - a) <= ptol && Math.abs(lo - b) <= ptol);
+        // senkrechte Ausschläge: Verlauf reicht über die Kerzen der Nachbarschaft hinaus (z. B. bis zur Legende)
+        if (hi >= 0) { const nb = img.cdl.map(c => ({ x: (c.x - crop.x) * crop.f, a: (c.a - crop.y) * crop.f, b: (c.b - crop.y) * crop.f })).filter(c => Math.abs(c.x - x) <= Math.max(2, 1.6 * Math.abs(img.cdl[1].x - img.cdl[0].x) * crop.f)); if (nb.length && (hi < Math.min(...nb.map(c => c.a)) - 3 * ptol || lo > Math.max(...nb.map(c => c.b)) + 3 * ptol)) { pspike++; if (process.env.DBG) console.log('   Ausschlag', name, desc, 'Spalte', x, hi, lo, 'o=' + JSON.stringify({ pi: r % PATS.length, seed: o.seed, theme: o.theme, kind: o.kind, log: o.log, photo: o.photo, big: o.big, labels: o.labels, legend: o.legend, axis: o.axis })); } }
         if (ok) pok++; else if (process.env.DBG && pbad++ < 8) console.log('   Verlauf', name, desc, 'Spalte', x, 'erwartet', a.toFixed(1), b.toFixed(1), 'erkannt', hi, lo); });
       // ---- 2) Zählen mit echten Tipps ----
       await page.evaluate(z => document.querySelector('[data-fz="' + z + '"]').click(), P.z); await page.waitForTimeout(60);
@@ -205,7 +216,7 @@ if (require.main === module) (async () => {
     if (pts0 !== pts1) fail('Spielstand (Punkte/Serie) hat sich geändert');
     const rate = tot ? hit / tot : 1, lr = ltot ? lhit / ltot : 1;
     console.log(name + ': ' + rounds + ' Runden, Einrasten ' + hit + '/' + tot + ' (' + (100 * rate).toFixed(1) + ' %)' + (ltot ? ', auf vorhandenes Label getippt ' + lhit + '/' + ltot + ' (' + (100 * lr).toFixed(1) + ' %)' : ''));
-    console.log(name + ': erkannter Verlauf ' + pok + '/' + ptot + ' Kerzen (' + (100 * pok / Math.max(1, ptot)).toFixed(1) + ' %)'); if (pok < .95 * ptot) fail('Verlauf an weniger als 95 % der Kerzen richtig erkannt');
+    console.log(name + ': erkannter Verlauf ' + pok + '/' + ptot + ' Kerzen (' + (100 * pok / Math.max(1, ptot)).toFixed(1) + ' %)'); if (pok < .95 * ptot) fail('Verlauf an weniger als 95 % der Kerzen richtig erkannt'); if (pspike > .004 * ptot) fail(pspike + ' senkrechte Ausschläge im erkannten Verlauf'); else if (pspike) console.log('   ' + pspike + ' einzelne Ausschlag-Spalten (Toleranz 0,4 % der Kerzen: Schrift der Legende nah an den Kerzen auf Fotos)');
     if (rate < .95) fail('Einrasten unter 95 %'); if (ltot >= 5 && lr < .9) fail('Abpausen: Tipp auf Label trifft den Docht zu selten');
     if (!rounds) fail('keine einzige vollständige Runde');
     if (errs.length) fail('Konsole: ' + [...new Set(errs)].slice(0, 3).join(' | '));

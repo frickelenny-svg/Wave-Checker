@@ -1,0 +1,7 @@
+{
+  "_anleitung": "Feste Testbilder für den erkannten Kursverlauf (tests/verlauf.js). datei: Bild in diesem Ordner. bereich: Spalten [von, bis] mit Kursverlauf. oben/unten: Zeilen, über bzw. unter denen kein Verlauf liegen darf (Legende, Zeitachse). abdeckung: Anteil der 6 Spalten breiten Abschnitte im Bereich mit Verlauf. quelle: Herkunft.",
+  "faelle": [
+    { "datei": "legende-oben.png", "bereich": [3, 588], "oben": 22, "unten": 330, "abdeckung": 0.85,
+      "quelle": "Screenshot von Lenny, 23.11.2026: TradingView dunkel, Legende oben, Preisachse mit Preis-Kästchen rechts, Zeitachse unten, eingezeichnete Labels. Vorher senkrechte Balken bis zum oberen Rand. Die blaue Linie der App aus dem Screenshot ist herausgerechnet." }
+  ]
+}
