@@ -2498,8 +2498,9 @@ function ocPath(IMG){const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=c=>(D[c]>>4)<<8|(D
  const cut=(test,ax)=>{const ids=[];C.forEach((c,k)=>{if(c.n>=4&&Gs[root(k)].keep&&test(c))ids.push(k)});if(!ids.length||ids.some(k=>C[k].y1-C[k].y0>44&&C[k].x1-C[k].x0>2))return false; /* hohe Formen: abbrechen, außer dünne senkrechte Striche (Stück der Achsenlinie, 23.11.2026) */
   // Achse (23.11.2026): nur Schrift (Formen bis 16 px bzw. 4 % hoch) in mindestens 4 Zeilen bzw. Spalten über 40 % der Höhe bzw. Breite
   // verteilt: Preis- bzw. Zeitachse, auch wenn die Zahlen Kursfarbe haben. Dann fällt alles im Band weg.
-  if(ax){const th=Math.max(16,h*.04);if(ids.every(k=>C[k].y1-C[k].y0+1<=th)){const v=ids.map(k=>ax==='y'?(C[k].y0+C[k].y1)/2:(C[k].x0+C[k].x1)/2).sort((p,q)=>p-q),L=ax==='y'?h:w;let rows=1;
-   for(let i=1;i<v.length;i++)if(v[i]-v[i-1]>th)rows++;if(rows>=4&&v[v.length-1]-v[0]>=L*.4){ids.forEach(k=>C[k].band=1);return true}}}
+  if(ax){const th=Math.max(16,h*.04),tk=k=>ax==='y'?C[k].x1-C[k].x0<=2&&C[k].y1-C[k].y0>=h*.25:C[k].y1-C[k].y0<=2&&C[k].x1-C[k].x0>=w*.25; /* lange dünne Striche (Achsenrand) zählen nicht */
+   if(ids.every(k=>tk(k)||C[k].y1-C[k].y0+1<=th)&&ids.some(k=>!tk(k))){const v=ids.filter(k=>!tk(k)).map(k=>ax==='y'?(C[k].y0+C[k].y1)/2:(C[k].x0+C[k].x1)/2).sort((p,q)=>p-q),L=ax==='y'?h:w;let rows=1;
+   for(let i=1;i<v.length;i++)if(v[i]-v[i-1]>th)rows++;if(rows>=4&&v[v.length-1]-v[0]>=L*.4){ids.forEach(k=>C[k].band=1);return'ax'}}}
   const ct={},cp={},S=new Set(ids);for(let j=0;j<n;j++)if(on[j]&&S.has(cid[j])){const k=cid[j];ct[k]=(ct[k]||0)+1;if(pcol(j))cp[k]=(cp[k]||0)+1}
   const pgC=k=>pal.length&&(cp[k]||0)>ct[k]*.5,txt=ids.filter(k=>!pgC(k)),th=Math.max(16,h*.04),cy=k=>(C[k].y0+C[k].y1)/2,
    // Textzeile (23.11.2026): mindestens 4 kleine Formen auf einer Höhe (Mitte ±5 px), etwa die Legende ganz in Kursfarbe
@@ -2519,8 +2520,10 @@ function ocPath(IMG){const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=c=>(D[c]>>4)<<8|(D
    // oder (Foto, Buchstaben unscharf und gefüllt) mindestens 3 Formen, alle gleich hoch mit gleicher Ober- und Unterkante (±2 px, ab 7 px), eng (Abstand bis 0,5 × Höhe), zusammen 4 × so breit wie hoch
    const tC=ch.length>=3&&chh>=7&&cw>=4*chh&&ch.every((q,i)=>Math.abs(C[q].y0-C[ch[0]].y0)<=2&&Math.abs(C[q].y1-C[ch[0]].y1)<=2&&(!i||C[q].x0-C[ch[i-1]].x1-1<=Math.max(3,.5*chh)));
    if(ch.length>=5&&ch.every(q=>C[q].y1<h*.25||C[q].x1-C[q].x0+1<=1.2*(C[q].y1-C[q].y0+1))||(chh>=7&&cw>=4*chh&&ch.every(q=>dens(C[q])<=.6))||tC)ch.forEach(q=>{used.add(q);C[q].band=1})})}
- bands(Math.round(h*.18),i=>rowE(h-1-i)).reverse().some(b=>cut(c=>c.y0>h-1-b,'x')); // unten und rechts: die Grenze nächst am Rand (Lücken zwischen Kerzen sind auch leere Spalten)
- bands(Math.round(w*.18),i=>colE(w-1-i)).reverse().some(r=>cut(c=>c.x0>w-1-r,'y'));
+ // unten und rechts: die Grenze nächst am Rand (Lücken zwischen Kerzen sind auch leere Spalten); rechts seit 23.11.2026 weiter nach innen, solange es die
+ // Achse ist (ein schmaler Streifen am Rand stoppte sonst vor der Preisachse); vor dem ersten Treffer wie bisher die nächste Grenze probieren
+ bands(Math.round(h*.18),i=>rowE(h-1-i)).reverse().some(b=>cut(c=>c.y0>h-1-b,'x'));
+ {let hit=false,stop=false;bands(Math.round(w*.18),i=>colE(w-1-i)).reverse().forEach(b=>{if(stop)return;const r=cut(c=>c.x0>w-1-b,'y');if(r==='ax'){hit=true;return}if(r){if(hit)stop=true;hit=true}else if(hit)stop=true})}
  // Strangwahl je Spalte (Kontinuität): zusammenhängende senkrechte Stränge (Lücken bis 3 px überbrückt; mehr verband Legende und Kerzen). Gewählt wird der
  // Strang auf dem günstigsten Weg durch alle Spalten (kräftige Stränge, kleine Sprünge; Pixel in
  // Kerzenfarbe zählen doppelt). Weit abseits (über 25 % der Höhe) und nur Schrift o. Ä.: die Spalte bleibt leer statt eines Ausreißers.

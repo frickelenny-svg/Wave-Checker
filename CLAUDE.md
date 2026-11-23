@@ -94,7 +94,9 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
      Formen in Kerzenfarbe bleiben, außer sie schließen oben und unten bündig mit Schrift ab (blaue Indikatorwerte in der Legende) oder stehen in
      einer Textzeile (mind. 4 kleine Formen auf gleicher Höhe, Legende ganz in Kursfarbe). Hohe dünne Striche (Stück der Achsenlinie) brechen ein
      Band nicht mehr ab. Achsen (seit 23.11.): Band rechts bzw. unten nur aus Schrift bis 16 px (bzw. 4 % der Höhe) in mind. 4 Zeilen bzw. Spalten
-     über 40 % der Höhe bzw. Breite verteilt = Preis- bzw. Zeitachse, fällt ganz weg, auch in Kursfarbe (weiße Zahlen bei weißen Balken).
+     über 40 % der Höhe bzw. Breite verteilt = Preis- bzw. Zeitachse, fällt ganz weg, auch in Kursfarbe (weiße Zahlen bei weißen Balken);
+     lange dünne Striche (Achsenrand, ab 25 % der Höhe) zählen dabei nicht. Rechts geht es nach dem ersten Band weiter nach innen, solange das
+     Band eine Achse ist (ein schmaler Streifen am Bildrand stoppte sonst vor der Preisachse); unten nicht (dort hielt das kleine Kerzen für die Zeitachse).
      Textzeilen im ganzen Bild (seit 23.11.): Ketten kleiner Formen (Abstand bis 0,8 × Höhe, Mitte und Ober- oder Unterkante ±3 px): ab 5 Formen
      (unterhalb des oberen Viertels nur schmale Formen wie Ziffern), oder 4 × so breit wie hoch aus lückenhaften Formen (Dichte bis 0,6), oder
      mind. 3 gleich hohe Formen mit gleicher Ober- und Unterkante (±2 px, Foto-Schrift). So fallen Legende ohne Lücke zum Chart und
@@ -160,9 +162,9 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
 - Verlauf auf festen Bildern: `node tests/verlauf.js` (Playwright, Handy/iPad/PC). Bilder und Erwartungen in `tests/faelle/faelle.json`
   (Bereich, kein Verlauf über `oben`/unter `unten`, keine senkrechten Ausschläge, Abdeckung je 6 Spalten). `legende-oben.png` = Lennys
   Screenshot vom 23.11.2026 (TradingView dunkel, Legende, Preisachse, Labels; blaue App-Linie herausgerechnet). `lumen-trendlinien.png` =
-  Lennys Original (dünne weiße OHLC-Balken, lila Trendlinien, Kästchen 6.49), `paypal-preiskaestchen.png` = aus Lennys Screenshot zurückgerechnet
-  (Kästchen PYPL/52.84/44.31, gepunktete Preislinie, E/D-Symbole). Optional je Fall `kurs` (Kursfarbe bzw. Helligkeit): Verlauf bis 3 px am
-  obersten/untersten Kurspixel (Anteil `nah`), höchstens 0,5 % der Spalten mehr als 8 px abseits; `verboten` = Rechtecke ohne Verlauf. Neue
+  Lennys Original (dünne weiße OHLC-Balken, lila Trendlinien, Kästchen 6.49), `paypal-preiskaestchen.png` = Lennys Original (dünne weiße
+  Kerzen, Kästchen PYPL/52.84/44.31, gepunktete Preislinie, Preisachse mit Rand, E/D-Symbole). Optional je Fall `kurs` (Kursfarbe bzw. Helligkeit; nur Pixel mit Nachbar in Kursfarbe
+  darüber oder darunter, also keine Punkte einer gepunkteten Linie): Verlauf bis 3 px am obersten/untersten Kurspixel (Anteil `nah`), höchstens 0,5 % der Spalten mehr als 8 px abseits; `verboten` = Rechtecke ohne Verlauf. Neue
   Problembilder dort aufnehmen (Original-Screenshots sind besser als zurückgerechnete). `tests/eigener-chart.js` zeichnet seit 23.11. auch TradingView-Legende im Chart, gepunktete Linie des letzten Kurses,
   Preis-Kästchen auf der mitgeschnittenen Preisachse und lange Dochte und prüft „keine senkrechten Ausschläge“. Seit 23.11. außerdem OHLC-Balken
   (farbig bzw. weiß/grau, `kind:'ohlc'`) und Zeichnungen (`draw`: Trendlinie durch zwei Hochs/Tiefs, Kanal, Fibonacci mit Beschriftung,
