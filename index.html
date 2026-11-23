@@ -304,6 +304,8 @@ body.tut-on .tutbtn{visibility:hidden}
 .ocdrop.on,.ocdrop:hover,.ocdrop:focus-within{border-color:var(--accent);background:var(--surface-hover)}.ocdrop input{position:absolute;width:1px;height:1px;opacity:0}.ocdrop .ico svg{width:32px;height:32px;stroke:var(--accent-text)}.ocdrop b{font-size:1.05rem;color:var(--accent-text)}
 .occ{display:flex;justify-content:center;background:var(--surface);border:1px solid var(--line-soft);border-radius:16px;padding:8px;overflow:hidden}.occ canvas{display:block;max-width:100%;touch-action:none;cursor:crosshair}
 .ocimg .pgtool{top:8px;flex-direction:row}.pglbg{fill:var(--surface);fill-opacity:.92;stroke:var(--line);stroke-width:1}.ocimg .pgc1{stroke-width:1.6}
+.ocpath{fill:none;stroke:var(--accent);stroke-width:1.3;opacity:.85}.octrs{fill:none;stroke:var(--ok);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.pgzz{fill:none;stroke:var(--warn-text);stroke-width:1.8;stroke-dasharray:5 4}.pgzzp{fill:var(--surface);stroke:var(--warn-text);stroke-width:1.6}.ocpt{flex-wrap:wrap}.ocpt button{margin:0;min-height:40px}.ocpt label{display:inline-flex;align-items:center;gap:6px}
 .ocfd{display:flex;align-items:center;gap:10px;margin:8px 2px 0;font-size:14px}.ocfd input{flex:1;max-width:260px;min-height:32px;accent-color:var(--accent)}.ocnote{font-size:13px;margin:8px 2px}
 .pglg{font-size:13px;color:var(--muted);margin:6px 2px 0}.pglg .c1{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1.4px solid var(--text);border-radius:50%;font-weight:800;font-size:11px;color:var(--text)}
 </style>
@@ -1504,7 +1506,7 @@ function progn(arg,lvl){
   document.querySelectorAll('[data-pl]').forEach(b=>{b.onclick=()=>progn(arg,b.dataset.pl);lockTap(b)});window.scrollTo(0,0);return}
  // „Eigenen Chart prüfen“ (20.11.2026, Lenny): arg = {img} → statt erzeugter Kerzen das zugeschnittene Bild. Zeit = Bildspalte (t = 0 … w-1),
  // Preis = Pixelhöhe von unten (p = h - Zeile - 0,5, immer linear). Keine Zukunftszone, keine Zeiteinheiten, keine Punkte oder Ränge.
- const IMG=arg&&typeof arg==='object'&&arg.img?arg.img:null;
+ const IMG=arg&&typeof arg==='object'&&arg.img?arg.img:null;if(IMG&&!IMG.path)ocPath(IMG);
  const pool=IMG?['imp']:arg?String(arg).split(','):Object.keys(PAT),key=pool[Math.floor(Math.random()*pool.length)],P=PAT[key],R=IMG?{o:[],h:[],l:[],c:[],pr:[0,IMG.h],N:IMG.w-1,mp:[0,IMG.w-1],piv:[],tree:{kids:null},T0:0}:pgData(P);
  const cuts=P.waves.length===5?[2,3,4]:[2],cut0=cuts[Math.floor(Math.random()*cuts.length)],c0=IMG?IMG.w-1:R.mp[cut0],N=R.N;
  // Zählung des sichtbaren Teils: lab = Beschriftung der Ebene 1, t/p = Hauptpunkte, vk = Unterteilung je Welle, wp[w] = Punkte der Welle w
@@ -1579,7 +1581,7 @@ function progn(arg,lvl){
  const fitY=()=>{if(peek!==null){grow(peek);peek=null}};
  const truthPlan=()=>{const o=[];for(let k=cut0+1;k<P.labels.length;k++){const kid=R.tree.kids&&R.tree.kids[k-1];
   o.push({k,kind:kid?PGKOF[kid.key]:'ABC',pts:R.piv.filter(q=>q.lev===2&&q.w1===k).sort((a,b)=>a.t-b.t).map(q=>({t:q.t,p:q.p}))})}return o};
- PGS={P,R,cut:cut0,m,lvl,img:IMG,X:t=>X(t),Y:p=>Y(p),plot:()=>({W,H:H-BP}),tf:()=>tf,setTf:h=>{const b=document.querySelector('[data-tf="'+h+'"]');if(b)b.click()},truth:truthPlan,FR:()=>FR,mode:()=>FR&&FR.md,fadd:(z,i,t,p,c)=>{const r=frAdd(z,i,t,p,c);frRender();return r},levels:()=>{const o={};frSeries().forEach(S=>o[S.c]=S.lev);return o},fc:()=>fcAgg(fcNodes()),lbx:()=>LBX.slice(),snapAt:(px,py,o)=>snapPt(px,py,o),ring:()=>SNAPR,
+ PGS={P,R,cut:cut0,m,lvl,img:IMG,setOCF:v=>{OCF=v},X:t=>X(t),Y:p=>Y(p),plot:()=>({W,H:H-BP}),tf:()=>tf,setTf:h=>{const b=document.querySelector('[data-tf="'+h+'"]');if(b)b.click()},truth:truthPlan,FR:()=>FR,mode:()=>FR&&FR.md,fadd:(z,i,t,p,c)=>{const r=frAdd(z,i,t,p,c);frRender();return r},levels:()=>{const o={};frSeries().forEach(S=>o[S.c]=S.lev);return o},fc:()=>fcAgg(fcNodes()),lbx:()=>LBX.slice(),snapAt:(px,py,o)=>snapPt(px,py,o),ring:()=>SNAPR,
   view:()=>({BW,sc,yr:yr.slice(),tf,W,H}),Tof:x=>Tof(x),Pof:y=>Pof(y),zoom:(f,px,py)=>{zoomAt(f,px,py);saveV();redraw($('#svg'),pic())},
   show:(t,p)=>{sc=clampSc((t+.5)*BW/tf-W/2);peek=p===undefined?null:p;fitY();redraw($('#svg'),pic())}}; // show: Stelle (und Preis) ins Bild holen
  if(!IMG)tutCtx(lvl==='schwer'?'progn-schwer':'progn',()=>progn(arg,lvl));
@@ -1601,63 +1603,88 @@ function progn(arg,lvl){
  // Finger. alt (PC, Alt gedrückt): frei platzieren. tmin: nur rechts davon. self: der Punkt, der gezogen wird (rastet nicht auf sich
  // selbst oder seine eigene Zählung ein). Ergebnis {t, p, kind: 'pt' | 'piv' | 'cdl' | 'free'}; t ist die Stunde des Extrems in der Kerze.
  const hourOf=(g,hi,tn)=>{let b=-1;const a=g*tf,e=Math.min(c0,a+tf-1);for(let i=a;i<=e;i++){if(b<0){b=i;continue}const v=hi?R.h[i]:-R.l[i],w=hi?R.h[b]:-R.l[b],ci=R.c[i]===(hi?R.h[i]:R.l[i]),cb=R.c[b]===(hi?R.h[b]:R.l[b]);if(v>w||(v===w&&(ci!==cb?ci:Math.abs(i-tn)<Math.abs(b-tn))))b=i}return b}; // gleich hoch: zuerst die Kerze, die am Extrem schließt (die Wendekerze), dann die nächste am Finger
- // Einrasten im Bild (Eigenen Chart prüfen, 20.11.2026, Lenny), ohne KI: Im Fangbereich um den Finger (Handy/iPad 40 px, PC 15 px) die
- // Hintergrundfarbe bestimmen (häufigste Farbe der Umgebung) und die äußersten davon abweichenden Pixel suchen: je nach erwarteter Richtung
- // (wantOf) das oberste (Docht-Hoch) bzw. unterste (Docht-Tief), sonst das, was näher am Finger liegt. Ragt die Form über den Fangbereich hinaus,
- // wird ihr bis zur Spitze gefolgt. Gitterlinien sind zu blass (Schwelle nach dem Kontrast der Umgebung), Störpixel zu klein (unter 3 zusammen).
- // Kleine freistehende Formen direkt über einem Hoch bzw. unter einem Tief (schon eingezeichnete Labels) zählen nicht. Kein Treffer: frei.
- const imgSnap=(px,py,o)=>{const D=IMG.data,w=IMG.w,h=IMG.h,rad=o.touch?40:15,R=Math.max(3,Math.min(160,Math.round(rad/BW))),
-   cx=Math.round(Tof(px)),cy=Math.round(h-Pof(py)-.5),free={t:Math.max(0,Math.min(c0,Tof(px))),p:Pof(Math.max(4,Math.min(H-BP-2,py))),kind:'free'};
+ // Einrasten im Bild (Eigenen Chart prüfen; seit 23.11.2026 auf dem erkannten Kursverlauf IMG.path, Lenny), ohne KI: Profil je Bildspalte
+ // (höchstes bzw. tiefstes Pixel von Kerzen oder Linie, siehe ocPath, nachgezeichnete Stellen eingeschlossen). Ein Docht-Hoch ist eine
+ // Spalte, die in ±K Spalten (am Handy ca. 18 px, am PC 8 px) am höchsten reicht; gleich hohe Nachbarspalten zählen als eine (Mitte).
+ // Wie beim Einrasten auf Kerzen: im Fangbereich (Handy/iPad 40 px, PC 15 px) das nächste Wendehoch bzw. -tief am Finger, markante
+ // (über eine breite Strecke das Extrem) mit Bonus bis 27 px, Richtung aus wantOf. Kein Treffer: der Punkt bleibt, wo getippt.
+ const imgSnap=(px,py,o)=>{const PA=IMG.path,w=IMG.w,h=IMG.h,rad=o.touch?40:15,R=Math.max(2,Math.round(rad/BW)),cx=Math.round(Tof(px)),
+   free={t:Math.max(0,Math.min(c0,Tof(px))),p:Pof(Math.max(4,Math.min(H-BP-2,py))),kind:'free'};
   if(o.tmin!==undefined&&!(free.t>o.tmin))free.t=o.tmin+.02;if(o.tmax!==undefined&&!(free.t<o.tmax))free.t=o.tmax-.02;
   let x0=cx-R,x1=cx+R;if(o.tmin!==undefined)x0=Math.max(x0,Math.floor(o.tmin)+1);if(o.tmax!==undefined)x1=Math.min(x1,Math.ceil(o.tmax)-1);
-  x0=Math.max(0,x0);x1=Math.min(w-1,x1);const y0=Math.max(0,cy-R),y1=Math.min(h-1,cy+R);if(x0>x1||y0>y1)return free;
-  const M=Math.max(6,Math.round(R*.7)),X0=Math.max(0,x0-M),X1=Math.min(w-1,x1+M),Y0=Math.max(0,y0-M),Y1=Math.min(h-1,y1+M),ww=X1-X0+1,wh=Y1-Y0+1,n=ww*wh;
-  // Hintergrund: häufigste Farbe (16 Stufen je Kanal) im Fenster, als Mittel der Pixel dieser Stufe
-  const st=n>60000?2:1,cnt=new Uint32Array(4096),sm=new Float64Array(4096*3);
-  for(let y=Y0;y<=Y1;y+=st)for(let x=X0;x<=X1;x+=st){const i=(y*w+x)*4,k=(D[i]>>4)<<8|(D[i+1]>>4)<<4|D[i+2]>>4;cnt[k]++;sm[k*3]+=D[i];sm[k*3+1]+=D[i+1];sm[k*3+2]+=D[i+2]}
-  let kb=0;for(let k=1;k<4096;k++)if(cnt[k]>cnt[kb])kb=k;const br=sm[kb*3]/cnt[kb],bg=sm[kb*3+1]/cnt[kb],bb=sm[kb*3+2]/cnt[kb];
-  const dv=new Uint8Array(n),dh=new Uint32Array(256);
-  for(let y=Y0,j=0;y<=Y1;y++)for(let x=X0;x<=X1;x++,j++){const i=(y*w+x)*4,d=Math.round(Math.max(Math.abs(D[i]-br),Math.abs(D[i+1]-bg),Math.abs(D[i+2]-bb)));dv[j]=d;dh[d]++}
-  let acc=0,p98=0;for(let d=255;d>=0;d--){acc+=dh[d];if(acc>=n*.02){p98=d;break}}
-  const T=Math.max(26,Math.min(80,p98*.3));let nb=0,n9=0;for(let d=0;d<T;d++)nb+=dh[d];for(let d=0,a2=0;d<T;d++){a2+=dh[d];if(a2>=nb*.9){n9=d;break}}
-  const TW=Math.min(T,Math.max(T*.6,n9*2+6)); // schwache Schwelle für die Dochtspitze: über dem Rauschen des Hintergrunds (Foto)
-  const on=new Uint8Array(n);for(let j=0;j<n;j++)on[j]=dv[j]>=T?1:0;
-  // senkrechte Lücken bis 2 px schließen (dünne, unscharfe Dochte auf Fotos zerfallen sonst in Stücke)
-  for(let x=0;x<ww;x++)for(let y=1;y<wh-1;y++){const j=y*ww+x;if(!on[j]&&on[j-ww]&&(on[j+ww]||(y<wh-2&&on[j+2*ww]))){on[j]=2;if(!on[j+ww])on[j+ww]=2}}
-  // zusammenhängende Formen (8er-Nachbarschaft): Größe, Umriss, ob sie den Fensterrand berührt
-  const cid=new Int32Array(n).fill(-1),C=[],stk=[];
-  for(let j=0;j<n;j++){if(!on[j]||cid[j]>=0)continue;const c={n:0,x0:1e9,x1:-1,y0:1e9,y1:-1,edge:false};cid[j]=C.length;stk.push(j);
-   while(stk.length){const q=stk.pop(),qx=q%ww,qy=(q-qx)/ww;c.n++;if(qx<c.x0)c.x0=qx;if(qx>c.x1)c.x1=qx;if(qy<c.y0)c.y0=qy;if(qy>c.y1)c.y1=qy;
-    if((qx===0&&X0>0)||(qy===0&&Y0>0)||(qx===ww-1&&X1<w-1)||(qy===wh-1&&Y1<h-1))c.edge=true; // reicht über das Fenster hinaus (der Bildrand zählt nicht: dort abgeschnittene Labels bleiben Labels)
-    for(let ey=-1;ey<=1;ey++)for(let ex=-1;ex<=1;ex++){const nx=qx+ex,ny=qy+ey;if(nx<0||ny<0||nx>=ww||ny>=wh)continue;const r=ny*ww+nx;if(on[r]&&cid[r]<0){cid[r]=C.length;stk.push(r)}}}
-   C.push(c)}
-  // Schon eingezeichnete Labels („(3)“, „B“ …) über einem Hoch bzw. unter einem Tief: kleine freistehende Formen, die nebeneinander ein „Wort“
-  // bilden (höchstens 110 × 44 px). Liegt direkt unter (hi) bzw. über der Mitte des Worts, mit Lücke und höchstens 60 px entfernt, eine andere
-  // Form (Docht oder Linie), zählt das Wort nicht. Nebeneinanderliegende Kerzen werden so zu einem breiten „Wort“ und bleiben erhalten.
-  const smf=C.map(c=>c.n>=3&&!c.edge&&c.y1-c.y0<=44),gp=C.map((_,k)=>k),root=k=>{while(gp[k]!==k)k=gp[k]=gp[gp[k]];return k};
-  for(let a=0;a<C.length;a++)if(smf[a])for(let b=a+1;b<C.length;b++)if(smf[b]){const A=C[a],B=C[b];if(A.y0<=B.y1&&B.y0<=A.y1&&Math.max(A.x0,B.x0)-Math.min(A.x1,B.x1)<=5)gp[root(b)]=root(a)}
-  const G={};C.forEach((c,k)=>{if(!smf[k])return;const r=root(k),g=G[r]=G[r]||{x0:1e9,x1:-1,y0:1e9,y1:-1};g.x0=Math.min(g.x0,c.x0);g.x1=Math.max(g.x1,c.x1);g.y0=Math.min(g.y0,c.y0);g.y1=Math.max(g.y1,c.y1)});
-  const lbl=(k,hi)=>{if(!smf[k])return false;const r=root(k),g=G[r];if(g.x1-g.x0>110||g.y1-g.y0>44)return false;const mx=Math.round((g.x0+g.x1)/2);
-   for(let s=1;s<=60;s++){const y=hi?g.y1+s:g.y0-s;if(y<0||y>=wh)break;for(let x=Math.max(0,mx-3);x<=Math.min(ww-1,mx+3);x++){const j=y*ww+x;if(on[j]&&root(cid[j])!==r)return s>=4}}return false}; // näher als 4 px: Stück derselben Form, kein Label
-  const ok=[[],[]];C.forEach((c,k)=>{ok[0][k]=c.n>=3&&!lbl(k,true);ok[1][k]=c.n>=3&&!lbl(k,false)});if(IMG.debug)IMG.dbg={C:C.map((c,k)=>({...c,X0,Y0,okH:ok[0][k],okL:ok[1][k]})),T,bg:[br,bg,bb]};
-  // Profil je Bildspalte: oberstes (hi) bzw. unterstes abweichendes Pixel. Ein Docht-Hoch ist eine Spalte, die in ±K Spalten (am Handy ca. 18 px,
-  // am PC 8 px) am höchsten reicht; gleich hohe Nachbarspalten (Docht 1 bis 3 px breit, flache Spitze) zählen als eine, gemessen in ihrer Mitte.
-  // Wie beim Einrasten auf Kerzen: das nächste Wendehoch bzw. -tief am Finger, markante (über eine breite Strecke das Extrem) mit Bonus bis 27 px.
+  x0=Math.max(0,x0);x1=Math.min(w-1,x1);if(x0>x1)return free;
   const K=Math.max(1,Math.ceil((o.touch?18:8)/BW)),M2=Math.ceil(60/BW);
-  const find=hi=>{const L=ok[hi?0:1],P=new Int32Array(ww).fill(-1);
-   for(let x=0;x<ww;x++)for(let s=0;s<wh;s++){const y=hi?s:wh-1-s,j=y*ww+x;if(on[j]&&L[cid[j]]){P[x]=y;break}}
-   const val=x=>x<0||x>=ww||P[x]<0?-1e9:hi?-P[x]:P[x],out=[];
-   for(let x=Math.max(0,x0-X0);x<=Math.min(ww-1,x1-X0);x++){if(P[x]<0)continue;const v=val(x);if(val(x-1)===v&&x>x0-X0)continue; // nur der Anfang einer flachen Spitze
-    let e=x;while(e+1<ww&&val(e+1)===v)e++;let ok2=true;for(let j=x-K;j<=e+K&&ok2;j++)if(val(j)>v)ok2=false;if(!ok2)continue;
-    let wl=0,wr=0;while(wl<M2&&x-wl-1>=0&&val(x-wl-1)<=v)wl++;while(wr<M2&&e+wr+1<ww&&val(e+wr+1)<=v)wr++;
-    let cx2=Math.round((x+e)/2),ry=P[x];for(let z=0;z<6;z++){const ny=hi?ry-1:ry+1;if(ny<0||ny>=wh)break;let nx=-1;for(const dd of[0,-1,1]){const xx=cx2+dd;if(xx>=0&&xx<ww&&dv[ny*ww+xx]>=TW){nx=xx;break}}if(nx<0)break;cx2=nx;ry=ny} // mit halber Schwelle bis zur echten Spitze (blasse Dochtspitze auf Fotos)
-    const t=Math.round((x+e)/2)+X0,r=ry+Y0;if((o.tmin!==undefined&&!(t>o.tmin))||(o.tmax!==undefined&&!(t<o.tmax)))continue;
-    const p=h-r-.5,d=Math.hypot(X(t)-px,Y(p)-py);if(d>rad*1.5)continue;
-    out.push({t,p,kind:'img',hl:hi?'h':'l',s:d-.3*Math.min(90,((x-wl-1<0&&X0===0?M2:wl)+(e+wr+1>=ww&&X1===w-1?M2:wr))*BW)-(o.want===(hi?'H':'L')?14:0)})}
+  const find=hi=>{const A=hi?PA.hi:PA.lo,val=x=>x<0||x>=w||A[x]<0?-1e9:hi?-A[x]:A[x],out=[];
+   for(let x=x0;x<=x1;x++){if(A[x]<0)continue;const v=val(x);if(x>x0&&val(x-1)===v)continue; // nur der Anfang einer flachen Spitze
+    let e=x;while(e+1<w&&val(e+1)===v)e++;let ok=true;for(let j=x-K;j<=e+K&&ok;j++)if(val(j)>v)ok=false;if(!ok)continue;
+    let wl=0,wr=0;while(wl<M2&&x-wl-1>=0&&val(x-wl-1)<=v)wl++;while(wr<M2&&e+wr+1<w&&val(e+wr+1)<=v)wr++;
+    const t=Math.round((x+e)/2);if((o.tmin!==undefined&&!(t>o.tmin))||(o.tmax!==undefined&&!(t<o.tmax)))continue;
+    const p=h-A[x]-.5,d=Math.hypot(X(t)-px,Y(p)-py);if(d>rad*1.5)continue;
+    out.push({t,p,kind:'img',hl:hi?'h':'l',s:d-.3*Math.min(90,((x-wl-1<0?M2:wl)+(e+wr+1>=w?M2:wr))*BW)-(o.want===(hi?'H':'L')?14:0)})}
    return out};
   const want=o.want,all=(want==='l'?[]:find(true)).concat(want==='h'?[]:find(false));
   IMG.cand=all; // Testzugriff: Kandidaten des letzten Einrastens
   if(!all.length)return free;all.sort((a,b)=>a.s-b.s);return all[0]};
+ // Nachzeichnen (23.11.2026): Strich glätten (gleitendes Mittel über 3 Messpunkte) und Spalte für Spalte in den Verlauf schreiben.
+ // Mehrere Werte in einer Spalte (Hin und Her): oben und unten wie bei einer Kerze. Markiert als nachgezeichnet (man).
+ const ocApply=S=>{if(S.length<2)return;const PA=IMG.path,w=IMG.w,h=IMG.h,sm=S.map((q,i)=>{const a=S[Math.max(0,i-1)],b=S[Math.min(S.length-1,i+1)];return{t:(a.t+q.t+b.t)/3,p:(a.p+q.p+b.p)/3}});
+  sm[0]=S[0];sm[sm.length-1]=S[S.length-1];const hi={},lo={};
+  for(let i=1;i<sm.length;i++){const a=sm[i-1],b=sm[i],xa=Math.round(Math.min(a.t,b.t)),xb=Math.round(Math.max(a.t,b.t));
+   for(let x=Math.max(0,xa);x<=Math.min(w-1,xb);x++){const f=b.t===a.t?1:(x-a.t)/(b.t-a.t),p=a.p+(b.p-a.p)*Math.max(0,Math.min(1,f)),r=Math.max(0,Math.min(h-1,Math.round(h-p-.5)));
+    hi[x]=hi[x]===undefined?r:Math.min(hi[x],r);lo[x]=lo[x]===undefined?r:Math.max(lo[x],r)}}
+  Object.keys(hi).forEach(x=>{PA.hi[x]=hi[x];PA.lo[x]=lo[x];PA.man[x]=1})};
+ let TRS=null; // Strich, der gerade nachgezeichnet wird
+ // ---- Unterteilung prüfen (23.11.2026, Lenny): Für jede gezählte Welle ohne eigene Unterteilung sucht ein ZigZag-Filter die Wendepunkte im
+ // erkannten Verlauf (feine Schwelle: 4 % der Wellenlänge). Daraus wird eine Auswahl gesucht, die eine Unterteilung ergibt, die die Welle laut
+ // Regelwerk haben darf (PGSUB) und die die harten Regeln dieses Teilmusters erfüllt: Hoch und Tief wechseln sich ab, jede Teilwelle ist
+ // mindestens 8 % der Welle lang, jeder gewählte Wendepunkt ist das Extrem seiner beiden Teilwellen (bis auf 3 % der Welle, ocFit). Gibt es keine, folgt ein
+ // Warnsignal (keine harte Regel) mit den Wendepunkten des ZigZag-Filters (Schwellen 5 % bis 35 %) gestrichelt im Chart. Zeigt die Welle
+ // weniger Schwünge, als ihre Unterteilung braucht (z. B. zu wenige Kerzen), wird sie nicht beurteilt.
+ let OCF=1.5; // Größenordnung (ocFit): 1,5 = höchstens 5 % Fehlalarme im Strukturtest (Stand 23.11.2026)
+ const OCZZ=[.05,.075,.1,.125,.15,.2,.25,.3,.35];
+ const ocZig=(ta,tb,pa,pb,thr)=>{const PA=IMG.path,h=IMG.h,z=[{t:ta,p:pa}];let dir=Math.sign(pb-pa)||1,ex={t:ta,p:pa};
+  const push=q=>{if(q.t===ta&&z.length===1)return;z.push(q)};
+  for(let x=ta+1;x<tb;x++){if(PA.hi[x]<0)continue;const Hp=h-PA.hi[x]-.5,Lp=h-PA.lo[x]-.5;
+   if(dir>0){if(Hp>ex.p)ex={t:x,p:Hp};else if(ex.p-Lp>=thr){push(ex);dir=-1;ex={t:x,p:Lp}}}
+   else{if(Lp<ex.p)ex={t:x,p:Lp};else if(Hp-ex.p>=thr){push(ex);dir=1;ex={t:x,p:Hp}}}}
+  if(ex.t!==ta&&ex.t!==z[z.length-1].t)z.push(ex);z.push({t:tb,p:pb});
+  // aufräumen: Punkte ohne Richtungswechsel fallen weg, eine zu kleine letzte Gegenbewegung (unter halber Schwelle) ebenso
+  for(let ch=true;ch;){ch=false;for(let i=1;i<z.length-1;i++){const a=z[i].p-z[i-1].p,b=z[i+1].p-z[i].p;if(!a||!b||Math.sign(a)===Math.sign(b)){z.splice(i,1);ch=true;break}}
+   if(!ch&&z.length>2&&Math.abs(z[z.length-1].p-z[z.length-2].p)<thr*.5){z.splice(z.length-2,1);ch=true}}
+  return z};
+ const ocFit=(z,allow,d,minL)=>{const q=z.map(x=>x.p),n0=q.length-1;
+  const tl=minL*.375,clean=(i,j)=>{const lo=Math.min(q[i],q[j]),hi=Math.max(q[i],q[j]);for(let k=i+1;k<j;k++)if(q[k]<lo-tl||q[k]>hi+tl)return false;return true}; // Toleranz 3 % der Welle (Rauschen auf Fotos)
+  // eine Größenordnung: jede nicht gewählte Gegenbewegung innerhalb einer Teilwelle ist höchstens OCF-mal so groß wie die kleinste gewählte
+  // Korrekturwelle (sonst ließe sich aus fast jedem verrauschten Zigzag eine Fünfer-Unterteilung herauspicken)
+  const inner=(i,j)=>{const up=q[j]>q[i];let ex=q[i],m=0;for(let k=i+1;k<j;k++){if(up?q[k]>ex:q[k]<ex)ex=q[k];else m=Math.max(m,Math.abs(ex-q[k]))}return m};
+  const scale=sel=>{let cmin=1e18,imax=0;for(let j=1;j<sel.length;j++){const a=sel[j-1],b=sel[j];if(Math.sign(q[b]-q[a])!==d)cmin=Math.min(cmin,Math.abs(q[b]-q[a]));imax=Math.max(imax,inner(a,b))}return imax<=OCF*cmin};
+  for(const key of allow){const D=PAT[key],m=D.labels.length-1,sel=[0];
+   const dfs=(j,prev)=>{const lastStep=j===m-1;
+    for(let idx=prev+1;idx<=n0;idx+=2){if(lastStep&&idx!==n0)continue;if(!lastStep&&idx===n0)break;
+     if(Math.abs(q[idx]-q[prev])<minL||Math.sign(q[idx]-q[prev])!==(j%2?-d:d)||!clean(prev,idx))continue;
+     sel.push(idx);let ok=false;
+     if(lastStep){const u=norm(D,sel.map(i=>q[i]));ok=(!D.struct||D.struct(u))&&!hardFails(D,u).length&&scale(sel)}else ok=dfs(j+1,idx);
+     sel.pop();if(ok)return true}
+    return false};
+   if(dfs(0,0))return true}
+  return false};
+ const ocSub=(S,all)=>{const ps=S.ps,pr=ps.map(q=>q.p),last=ps.length-1,out=[];
+  const fams=Object.keys(PAT).filter(k=>PAT[k].labels.join()===frSeq(S.z).join()).map(k=>PAT[k]).filter(Q=>{const v=norm(Q,pr);
+   return Object.keys(Q.rules).every(id=>{const r=Q.rules[id];if(!r.hard||pgRuleMax(r)>last)return true;try{return r.ok(v)}catch(_){return true}})});
+  for(let k=1;k<=last;k++){
+   if(all.some(C=>C.par===S&&C.pk===k&&C.ps))continue; // selbst unterteilt: das prüft frCheck
+   const allow=[...new Set(fams.flatMap(Q=>PGSUB[Q.key].flatMap(V=>V[k-1]||[])))];if(!allow.length)continue;
+   const a=ps[k-1],b=ps[k],ta=Math.round(a.t),tb=Math.round(b.t),d=Math.sign(b.p-a.p);if(tb-ta<8||!d)continue;
+   const L=Math.abs(b.p-a.p),zf=ocZig(ta,tb,a.p,b.p,.04*L);if(zf.length-1<Math.min(...allow.map(key=>PAT[key].labels.length-1)))continue; /* zu grob aufgelöst */IMG.subJ++;
+   if(ocFit(zf,allow,d,.08*L))continue;
+   const res=OCZZ.map(f=>ocZig(ta,tb,a.p,b.p,f*L)),ns=res.map(z=>z.length-1);
+   const five=allow.every(key=>PAT[key].labels.length===6),three=allow.every(key=>PAT[key].labels.length===4),need=five?5:three?3:0;
+   const cnt={};ns.filter(n=>n>=3).forEach(n=>cnt[n]=(cnt[n]||0)+1);const typ=+Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x]||x-y)[0];
+   const best=res.slice().sort((x,y)=>Math.abs(x.length-1-(need||typ))-Math.abs(y.length-1-(need||typ)))[0];
+   out.push({k,need,n:typ,pts:best.map(q=>({t:q.t,p:q.p})),
+    txt:'In Welle '+frHtml(S.lev,S.z,k)+' finde ich '+(five?'keine regelkonforme Fünfer-Unterteilung':three?'keine regelkonforme dreiteilige Unterteilung':'keine regelkonforme Unterteilung')+
+     (typ===3?', sie wirkt eher dreiteilig':typ===5?', sie wirkt eher fünfteilig':typ>5?', sie wirkt unruhiger, mit mehr Teilwellen':'')+'. Prüf das mal genauer.'})}
+  return out};
  const snapPt=(px,py,o)=>{o=o||{};const rad=o.touch?40:15,t=Tof(px),yc=Math.max(6,Math.min(H-BP-2,py));
   if(o.alt)return{t:Math.max(0,Math.min(ZE,t)),p:Pof(yc),kind:'free'};
   let best=null;const take=(tt,p,kind,x,hl,bon)=>{const d=Math.hypot(x-px,Y(p)-py),s=d-(bon||0);if(d<=rad&&(!best||s<best.s))best={t:tt,p,kind,d,s,hl}}; // hl: Hoch ('h') oder Tief ('l')
@@ -1769,6 +1796,13 @@ function progn(arg,lvl){
    let j=0;segs().forEach(g=>g.pts.forEach((q,t)=>{j++;const prv=all[j-1],nx=all[j+1],up=q.p>=prv.p&&(!nx||q.p>=nx.p)||(!nx&&q.p>=prv.p);
     s+='<circle cx="'+X(q.x)+'" cy="'+Y(q.p)+'" r="5" fill="var(--up)" stroke="var(--surface)" stroke-width="1.5"/>';lab(X(q.x),Y(q.p),up,PGK[g.kind].l[t],'',0,'m'+j,0,[10,20]);
     if(t===g.n-1)lab(X(q.x),Y(q.p),up,pgLab(fam()[0].key,g.k),'',1,'m'+j,1);}))}
+  // erkannter Kursverlauf (23.11.2026): oben und unten je Bildschirmspalte zusammengefasst, Lücken bleiben offen; nicht im Export
+  if(IMG&&!EXP&&(IMG.show!==false||IMG.trace)&&!FR.done){const PA=IMG.path,a0=Math.max(0,Math.floor(Tof(0))),a1=Math.min(IMG.w-1,Math.ceil(Tof(W)));let dh='',dl='',sx=null,mh=0,ml=0,gap=true;
+   const out=()=>{if(sx===null)return;const yh=Y(IMG.h-mh-.5).toFixed(1),yl=Y(IMG.h-ml-.5).toFixed(1);dh+=(gap?'M':'L')+sx+' '+yh;dl+=(gap?'M':'L')+sx+' '+yl;gap=false};
+   for(let x=a0;x<=a1;x++){if(PA.hi[x]<0){out();sx=null;gap=true;continue}const X1=Math.round(X(x));if(X1!==sx){out();sx=X1;mh=PA.hi[x];ml=PA.lo[x]}else{mh=Math.min(mh,PA.hi[x]);ml=Math.max(ml,PA.lo[x])}}out();
+   s+='<g clip-path="url(#pgclip)"><path class="ocpath" d="'+dh+'"/><path class="ocpath" d="'+dl+'"/></g>'}
+  if(IMG&&TRS&&TRS.length>1)s+='<polyline class="octrs" points="'+TRS.map(q=>X(q.t).toFixed(1)+','+Y(q.p).toFixed(1)).join(' ')+'"/>';
+  if(IMG&&FR.done&&m.zz)m.zz.forEach(z=>{s+='<polyline class="pgzz" points="'+z.map(q=>X(q.t).toFixed(1)+','+Y(q.p).toFixed(1)).join(' ')+'"/>'+z.slice(1,-1).map(q=>'<circle class="pgzzp" cx="'+X(q.t).toFixed(1)+'" cy="'+Y(q.p).toFixed(1)+'" r="3"/>').join('')}); // gefundene Wendepunkte (Warnsignal Unterteilung)
   put();
   if(SNAPR&&!EXP)s+='<circle class="pgsnap" cx="'+X(SNAPR.t)+'" cy="'+Y(SNAPR.p)+'" r="10"/><circle cx="'+X(SNAPR.t)+'" cy="'+Y(SNAPR.p)+'" r="2.2" fill="var(--accent)"/>'; // Vorschau: hier rastet der Punkt ein
   // „Ab hier: deine Prognose“ an die erste Höhe, an der kein Label steht (sonst weglassen, die gestrichelte Linie bleibt)
@@ -1844,6 +1878,12 @@ function progn(arg,lvl){
    // Fangradius: Finger größer als Maus. Läuft eine Zählung, wird ein Punkt nicht ausgewählt oder verschoben: Tippen setzt dann das
    // nächste Label genau auf diesen Pivot (sk), Ziehen verschiebt den Chart.
    e.preventDefault();const [px,py]=loc(e),touch=e.pointerType==='touch';
+   // Verlauf nachzeichnen (23.11.2026): ein Finger bzw. die Maus zeichnet, ein zweiter Finger zoomt (Strich verworfen)
+   if(IMG&&IMG.trace&&FR&&!FR.done){const id=e.pointerId,S=[{t:Tof(px),p:Pof(py)}];let lx=e.clientX,ly=e.clientY;TRS=S;
+    const mv=ev=>{if(ev.pointerId!==id)return;lx=ev.clientX;ly=ev.clientY;const [x,y]=loc(ev);S.push({t:Math.max(0,Math.min(c0,Tof(x))),p:Pof(Math.max(TP,Math.min(H-BP,y)))});redraw(svg,pic())};
+    const stop=()=>{GEST=null;TRS=null;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up)};
+    const up=ev=>{if(ev.pointerId!==id)return;stop();if(ev.type==='pointerup')ocApply(S);frRender(fbLast)};
+    addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);GEST=stop;stop.touch=touch;stop.pos=()=>({id,x:lx,y:ly});return}
    if(py>=H-BP&&!IMG)return axisDrag(e,px); // Zeitachse: ziehen staucht/streckt, Doppeltipp setzt zurück, nie einen Punkt setzen
    let k=-1,sk=-1,lk=-1,best=touch?28:12,grp=[],gs=[],mq=null;
    // Werkzeug (seit 13.11.2026, Lenny): Zeichnen = Tipp auf einen Punkt setzt den neuen Punkt genau auf diesen Pivot (sk), Ziehen verschiebt
@@ -2080,16 +2120,17 @@ function progn(arg,lvl){
     eT.push(plainName(e.S)+': verstößt gegen „'+mt(r.name)+'“');FLIP=fl}
    else{eH.push('<p class="rnote">'+stufe('regel')+e.msg+'</p>');eT.push(e.msg.replace(/<[^>]*>/g,'').replace(/\s+/g,' '))}});
   const okS=all.filter(S=>S.fitQ&&S.ps&&!errs.some(e=>e.S===S||(e.pids||[e.pid]).some(id=>S.pts.some(q=>q.id===id))));
-  const notes=[],oT=[];
+  const notes=[],oT=[],sub=[];m.zz=[];IMG.trace=false;IMG.subJ=0;
   okS.forEach(S=>{const Q=S.fitQ,pr=S.ps.map(q=>q.p),last=pr.length-1,v=norm(Q,pr),fl=FLIP;FLIP=Q.sign(pr)<0;
    oT.push(plainName(S)+': keine harte Regel verletzt ('+Q.title+')');
    Object.keys(Q.rules).forEach(id=>{const r=Q.rules[id];if(r.hard||pgRuleMax(r)>last)return;let bad=false;try{bad=!r.ok(v)}catch(_){}
     if(bad){const f=r.lvl==='o';notes.push('<p class="rnote '+(f?'f':'w')+'">'+stufe(f?'faust':'warn')+'<b>'+frName(S)+'</b>: '+mt(r.ex)+' <span class="mut">('+tag(Q,id)+')</span></p>')}});
    imgFaust(Q,v,last).forEach(t=>notes.push('<p class="rnote f">'+stufe('faust')+'<b>'+frName(S)+'</b>: '+t+'</p>'));
-   FLIP=fl;if(S.lev===1)m.lines.push(...imgLines(S,Q))});
+   FLIP=fl;if(S.lev===1)m.lines.push(...imgLines(S,Q));
+   ocSub(S,all).forEach(x=>{notes.push('<p class="rnote w">'+stufe('warn')+x.txt+' <span class="mut">(Gestrichelt: die gefundenen Wendepunkte.)</span></p>');sub.push({c:S.c,k:x.k,need:x.need,n:x.n});m.zz.push(x.pts)})});
   const ok=!errs.length;
   IMG.res={ok,head:ok?'Deine Zählung ist regelkonform.':'Deine Zählung verstößt gegen das Regelwerk.',lines:(ok?oT:eT).concat(notes.length?['Hinweise: '+notes.length+' (Warnsignale und Faustregeln)']:[])};
-  PGS.res={ok,errs:errs.map(e=>e.id||'msg'),notes:notes.length,lines:m.lines.length};
+  PGS.res={ok,errs:errs.map(e=>e.id||'msg'),notes:notes.length,lines:m.lines.length,sub,subJ:IMG.subJ};
   FR.done=true;FR.sel=null;FR.pw=null;pathMark('own');
   frRender((ok?'<p class="ok">Deine Zählung ist regelkonform.</p>'+okS.map(S=>'<p><b>'+frName(S)+'</b> ('+PGK[S.z].t+', '+SIZE[S.lev]+') verletzt keine harte Regel des Musters „'+S.fitQ.title+'“'+(fam(S)>1?' (oder eines anderen Musters mit dieser Beschriftung)':'')+'.</p>').join('')
     :'<p class="bad">Deine Zählung verstößt gegen das Regelwerk.</p>'+eH.join('')+(okS.length?'<p class="mut">Regelkonform: '+okS.map(S=>frName(S)+' ('+S.fitQ.title+')').join(', ')+'.</p>':''))+
@@ -2206,14 +2247,17 @@ function progn(arg,lvl){
  const toolBar=()=>FR.done?'':'<div class="pgtool" role="group" aria-label="Werkzeug">'+[['draw','Zeichnen (C)','<path d="M12 3v6M12 15v6M3 12h6M15 12h6"/>'],['sel','Auswählen (V)','<path d="M6 3l12 9-5.5 1.2L15.5 20l-2.6 1.1-2.6-6.6L6 18z"/>']]
   .map(([md,t,ic])=>'<button data-md="'+md+'" class="'+(FR.md===md?'on':'')+'" aria-pressed="'+(FR.md===md)+'" title="'+t+'" aria-label="'+t+'"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ic+'</svg></button>').join('')+'</div>';
  const frRender=fb=>{fbLast=fb;const ready=frReady(),pg0=$('#pgc'),top0=pg0?pg0.getBoundingClientRect().top:null;
-  $('#view').innerHTML='<p class="kick">'+(IMG?'Eigenen Chart prüfen':'Wie geht es weiter? · Schwer')+'</p><p class="task">'+(FR.done?(IMG?'Geprüft. Du kannst die Zählung weiter ändern oder das Ergebnis als Bild speichern.':'Geprüft.'):IMG&&!FR.pts.length?'<b>Zähle deinen Chart.</b> Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, der Punkt rastet am Docht-Hoch bzw. -Tief in der Nähe ein'+(mob?'':' (mit gedrückter Alt-Taste frei)')+'. Die erste Zählung ist die große Welle; Unterteilungen setzt du danach über die Auswahl einer Welle.':FR.md==='sel'?'<b>Auswählen.</b> Tippe einen Punkt an: Seine Zählung wird hervorgehoben, du kannst ihn verschieben, umbenennen oder die Zählung löschen. Für eine Unterteilung wähle die übergeordnete Welle (ihren Endpunkt) und dann die Zählweise.':FR.ac!==null?'<b>Zeichnen, Zählung läuft.</b> Jeder Tipp setzt das nächste Label (im sichtbaren Teil am nächsten Hoch oder Tief), ein Tipp auf einen bestehenden Punkt setzt es genau auf diesen Pivot.':FR.pts.length?'<b>Zeichnen.</b> Der nächste Tipp beginnt eine neue Zählung, auch genau auf einem bestehenden Pivot. Sie ist so groß wie die Zählung, an die sie anschließt. Für eine Unterteilung wechsle zu Auswählen, tippe die übergeordnete Welle an und dann die Zählweise.':'<b>Zähle frei und plane die Fortsetzung.</b> Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, danach springt die Leiste weiter. Im sichtbaren Teil rastet der Punkt am nächsten Hoch oder Tief ein, in der grauen Zone setzt du frei. Die erste Zählung ist die große Welle; Unterteilungen setzt du danach über die Auswahl einer Welle.')+'</p>'+
-   (FR.done?'':frBar())+(FR.done||mhSeen()?'':'<p class="pgmh card"><span>Zwei Werkzeuge links am Chart: <b>Zeichnen</b> (Fadenkreuz) setzt mit jedem Tipp einen Punkt, <b>Auswählen</b> (Pfeil) wählt Punkte zum Verschieben, Umbenennen und Löschen.</span><button id="pgmhok">OK</button></p>')+'<div class="chart pgc'+(IMG?' ocimg':'')+'" id="pgc"></div>'+(IMG?'<p class="ocfd"><label for="ocfr">Bild blasser</label><input type="range" id="ocfr" min="0" max="85" step="5" value="'+Math.round(IMG.fade*100)+'"></p>':'')+legend+(IMG&&!FR.done?OCNOTE:'')+(FR.sel&&!FR.done?frSelUI():'')+
+  $('#view').innerHTML='<p class="kick">'+(IMG?'Eigenen Chart prüfen':'Wie geht es weiter? · Schwer')+'</p><p class="task">'+(FR.done?(IMG?'Geprüft. Du kannst die Zählung weiter ändern oder das Ergebnis als Bild speichern.':'Geprüft.'):IMG&&IMG.trace?'<b>Verlauf nachzeichnen.</b> Fahre mit dem Finger oder der Maus den Kursverlauf entlang: Was du zeichnest, ersetzt dort den erkannten Verlauf, zum Nachbessern fährst du einfach noch einmal über die Stelle. Zwei Finger zoomen.':IMG&&!FR.pts.length?'<b>Zähle deinen Chart.</b> Die blaue Linie zeigt den erkannten Kursverlauf, darauf rasten die Punkte ein. Passt sie nicht, zeichne den Verlauf nach. Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, der Punkt rastet am Docht-Hoch bzw. -Tief in der Nähe ein'+(mob?'':' (mit gedrückter Alt-Taste frei)')+'. Die erste Zählung ist die große Welle; Unterteilungen setzt du danach über die Auswahl einer Welle.':FR.md==='sel'?'<b>Auswählen.</b> Tippe einen Punkt an: Seine Zählung wird hervorgehoben, du kannst ihn verschieben, umbenennen oder die Zählung löschen. Für eine Unterteilung wähle die übergeordnete Welle (ihren Endpunkt) und dann die Zählweise.':FR.ac!==null?'<b>Zeichnen, Zählung läuft.</b> Jeder Tipp setzt das nächste Label (im sichtbaren Teil am nächsten Hoch oder Tief), ein Tipp auf einen bestehenden Punkt setzt es genau auf diesen Pivot.':FR.pts.length?'<b>Zeichnen.</b> Der nächste Tipp beginnt eine neue Zählung, auch genau auf einem bestehenden Pivot. Sie ist so groß wie die Zählung, an die sie anschließt. Für eine Unterteilung wechsle zu Auswählen, tippe die übergeordnete Welle an und dann die Zählweise.':'<b>Zähle frei und plane die Fortsetzung.</b> Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, danach springt die Leiste weiter. Im sichtbaren Teil rastet der Punkt am nächsten Hoch oder Tief ein, in der grauen Zone setzt du frei. Die erste Zählung ist die große Welle; Unterteilungen setzt du danach über die Auswahl einer Welle.')+'</p>'+
+   (FR.done?'':frBar())+(FR.done||mhSeen()?'':'<p class="pgmh card"><span>Zwei Werkzeuge links am Chart: <b>Zeichnen</b> (Fadenkreuz) setzt mit jedem Tipp einen Punkt, <b>Auswählen</b> (Pfeil) wählt Punkte zum Verschieben, Umbenennen und Löschen.</span><button id="pgmhok">OK</button></p>')+'<div class="chart pgc'+(IMG?' ocimg':'')+'" id="pgc"></div>'+(IMG?'<p class="ocfd"><label for="ocfr">Bild blasser</label><input type="range" id="ocfr" min="0" max="85" step="5" value="'+Math.round(IMG.fade*100)+'"></p>'+(FR.done?'':'<p class="ocfd ocpt"><label><input type="checkbox" id="ocsh"'+(IMG.show!==false||IMG.trace?' checked':'')+(IMG.trace?' disabled':'')+'> Erkannten Verlauf zeigen</label><button id="octr" class="'+(IMG.trace?'on':'')+'" aria-pressed="'+!!IMG.trace+'">'+(IMG.trace?'Nachzeichnen beenden':'Verlauf nachzeichnen')+'</button>'+(IMG.path.man.some(v=>v)?'<button id="ocrs">Erkannten Verlauf wiederherstellen</button>':'')+'</p>'):'')+legend+(IMG&&!FR.done?OCNOTE:'')+(FR.sel&&!FR.done?frSelUI():'')+
    '<div class="dock">'+(FR.done&&IMG?'<button class="p" id="ocsave">Als Bild speichern</button>'+(ocCanShare()?'<button id="ocshare">Teilen</button>':'')+'<button id="ocedit">Zählung ändern</button><button id="ocnew">Neues Bild</button>':FR.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
     '<button class="p" id="fchk" '+(ready?'':'disabled')+'>Prüfen</button><button id="ftrash" class="pgtrash" '+(FR.sel&&FR.md==='sel'?'':'disabled')+' aria-label="Ausgewählte Zählung löschen" title="Ausgewählte Zählung löschen (Entf)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="fund">Zurück</button><button id="frst">Neu setzen</button>'+(ready?'':'<p class="mut pghint">'+(IMG?'Prüfen geht, sobald eine Zählung mindestens drei Punkte hat (Start und zwei Labels).':'Prüfen geht, sobald mindestens die nächste große Welle in der grauen Zone steht.')+'</p>'))+'</div>'+
    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
   initView();$('#pgc').innerHTML=pic()+tfBar()+toolBar()+'<button id="pgend" class="pgend" hidden>Zum Ende springen</button>';bindChart();
   // Seit 14.11.2026: Ändert sich die Höhe von Text oder Leiste, bleibt der Chart trotzdem an seiner Stelle im Bild (kein Verrutschen unter dem Finger)
   if(top0!==null){const d=$('#pgc').getBoundingClientRect().top-top0;if(Math.abs(d)>.5)scrollBy(0,d)}
+  const osh=$('#ocsh');if(osh)osh.onchange=()=>{IMG.show=osh.checked;frRender(fbLast)};
+  const otr=$('#octr');if(otr)otr.onclick=()=>{IMG.trace=!IMG.trace;frRender(fbLast)};
+  const ors=$('#ocrs');if(ors)ors.onclick=()=>{IMG.path.hi.set(IMG.auto.hi);IMG.path.lo.set(IMG.auto.lo);IMG.path.man.fill(0);frRender(fbLast)};
   const ofr=$('#ocfr');if(ofr)ofr.oninput=()=>{IMG.fade=+ofr.value/100;const r=$('#ocfade');if(r)r.setAttribute('opacity',IMG.fade);try{localStorage.setItem('waveChecker.ocFade',ofr.value)}catch(_){}};
   if(FR.done&&IMG){$('#ocsave').onclick=ocSave;const sh=$('#ocshare');if(sh)sh.onclick=ocShare;$('#ocedit').onclick=()=>{FR.done=false;FR.err={};m.lines=[];FR.md='sel';frRender()};$('#ocnew').onclick=()=>ownChart();return}
   if(FR.done){$('#real').onclick=()=>{m.shown=true;frRender(fb+'<p class="mut">Darübergelegt: der tatsächliche Verlauf mit der erzeugten Zählung der großen Welle. Gestrichelt darunter: deine Prognose. Nur zum Vergleich: Punkte gibt es für regelkonformes Zählen, nicht für Treffer.</p>')};$('#nxt').onclick=()=>progn(arg,lvl);return}
@@ -2292,6 +2336,57 @@ function progn(arg,lvl){
 // ---- „Eigenen Chart prüfen“ (20.11.2026, Lenny): Bild hochladen, Chartbereich zuschneiden, dann zählen wie in „Wie geht es weiter?“ Schwer
 // (progn mit {img}). Ohne KI und ohne Server: Das Bild wird nur im Browser gelesen und nie verschickt. Grundlage nur das Regelwerk (Version 15).
 // Preise immer linear aus der Pixelhöhe. Kein Spielmodus: keine Punkte, keine Serie, keine Ränge.
+// Kursverlauf aus dem Bild (23.11.2026, Lenny), ohne KI: je Bildspalte höchstes und tiefstes Pixel von Kerzen bzw. Linie.
+// Hintergrund je Kachel (48 px, häufigste Farbe; weicht sie stark vom ganzen Bild ab, dessen häufigste Farbe), abweichend ab einer Schwelle
+// nach dem Kontrast des Bilds. Herausgefiltert: dünne waagerechte bzw. senkrechte Linien über weite Strecken (Gitter, Preislinie, Fadenkreuz;
+// wo eine Kerze sie kreuzt, bleibt sie ganz), Störpixel (unter 4 zusammen), kleine freistehende „Wörter“ (Text, schon eingezeichnete Labels,
+// bis 110 × 44 px, auch Textzeilen bis 20 px Höhe), gestrichelte Linien (höchstens 3 px hoch) und breite Formen am unteren Rand neben dem
+// Hauptchart (Volumen). Blasse Dochtspitzen (Fotos) werden mit schwacher Schwelle um bis zu 6 px verlängert.
+// Ergebnis: IMG.path = {hi, lo (Zeile, -1 = nichts erkannt), man (1 = nachgezeichnet)}, IMG.auto = erkannte Werte zum Wiederherstellen.
+function ocPath(IMG){const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=c=>(D[c]>>4)<<8|(D[c+1]>>4)<<4|D[c+2]>>4;
+ const mode=(x0,y0,x1,y1,st)=>{const cnt=new Uint32Array(4096),sm=new Float64Array(12288);let bk=0;
+  for(let y=y0;y<y1;y+=st)for(let x=x0;x<x1;x+=st){const c=(y*w+x)*4,k=Q(c);cnt[k]++;sm[k*3]+=D[c];sm[k*3+1]+=D[c+1];sm[k*3+2]+=D[c+2];if(cnt[k]>cnt[bk])bk=k}
+  return cnt[bk]?[sm[bk*3]/cnt[bk],sm[bk*3+1]/cnt[bk],sm[bk*3+2]/cnt[bk]]:[0,0,0]};
+ const G=mode(0,0,w,h,Math.max(1,Math.floor(Math.sqrt(n/250000)))),TS=48,tw=Math.ceil(w/TS),BG=[];
+ for(let ty=0;ty<Math.ceil(h/TS);ty++)for(let tx=0;tx<tw;tx++){let c=mode(tx*TS,ty*TS,Math.min(w,tx*TS+TS),Math.min(h,ty*TS+TS),2);
+  if(Math.max(Math.abs(c[0]-G[0]),Math.abs(c[1]-G[1]),Math.abs(c[2]-G[2]))>60)c=G;BG.push(c)}
+ const dv=new Uint8Array(n),dh=new Uint32Array(256);
+ for(let y=0;y<h;y++){const row=Math.floor(y/TS)*tw;for(let x=0;x<w;x++){const i=y*w+x,c=i*4,b=BG[row+Math.floor(x/TS)],d=Math.round(Math.max(Math.abs(D[c]-b[0]),Math.abs(D[c+1]-b[1]),Math.abs(D[c+2]-b[2])));dv[i]=d;dh[d]++}}
+ let acc=0,p98=0;for(let d=255;d>=0;d--){acc+=dh[d];if(acc>=n*.02){p98=d;break}}
+ const T=Math.max(26,Math.min(80,p98*.3));let nb=0,n9=0;for(let d=0;d<T;d++)nb+=dh[d];for(let d=0,a=0;d<T;d++){a+=dh[d];if(a>=nb*.9){n9=d;break}}
+ const TW=Math.min(T,Math.max(T*.6,n9*2+6)),on=new Uint8Array(n);for(let i=0;i<n;i++)on[i]=dv[i]>=T?1:0;
+ // dünne lange Linien: waagerecht ab 35 % der Breite, senkrecht ab 60 % der Höhe, höchstens 3 px dick; Kreuzungen mit Kerzen bleiben
+ const lr=new Uint8Array(h),lc=new Uint8Array(w);
+ for(let y=0;y<h;y++){let r=0;for(let x=0;x<w;x++){if(on[y*w+x]){if(++r>=.35*w){lr[y]=1;break}}else r=0}}
+ for(let x=0;x<w;x++){let r=0;for(let y=0;y<h;y++){if(on[y*w+x]){if(++r>=.6*h){lc[x]=1;break}}else r=0}}
+ for(let y=0;y<h;){if(!lr[y]){y++;continue}let e=y;while(e+1<h&&lr[e+1])e++;if(e-y<3)for(let x=0;x<w;x++){const up=y>0&&on[(y-1)*w+x],dn=e<h-1&&on[(e+1)*w+x];if(!(up&&dn))for(let yy=y;yy<=e;yy++)on[yy*w+x]=0}y=e+1}
+ for(let x=0;x<w;){if(!lc[x]){x++;continue}let e=x;while(e+1<w&&lc[e+1])e++;if(e-x<3)for(let y=0;y<h;y++){const l=x>0&&on[y*w+x-1],r=e<w-1&&on[y*w+e+1];if(!(l&&r))for(let xx=x;xx<=e;xx++)on[y*w+xx]=0}x=e+1}
+ // senkrechte Lücken bis 2 px schließen (dünne, unscharfe Dochte auf Fotos zerfallen sonst in Stücke)
+ for(let x=0;x<w;x++)for(let y=1;y<h-1;y++){const j=y*w+x;if(!on[j]&&on[j-w]&&(on[j+w]||(y<h-2&&on[j+2*w]))){on[j]=1;if(!on[j+w])on[j+w]=1}}
+ // zusammenhängende Formen (8er-Nachbarschaft)
+ const cid=new Int32Array(n).fill(-1),C=[],stk=[];
+ for(let j=0;j<n;j++){if(!on[j]||cid[j]>=0)continue;const c={n:0,x0:1e9,x1:-1,y0:1e9,y1:-1};cid[j]=C.length;stk.push(j);
+  while(stk.length){const q=stk.pop(),qx=q%w,qy=(q-qx)/w;c.n++;if(qx<c.x0)c.x0=qx;if(qx>c.x1)c.x1=qx;if(qy<c.y0)c.y0=qy;if(qy>c.y1)c.y1=qy;
+   for(let ey=-1;ey<=1;ey++)for(let ex=-1;ex<=1;ex++){const nx=qx+ex,ny=qy+ey;if(nx<0||ny<0||nx>=w||ny>=h)continue;const r=ny*w+nx;if(on[r]&&cid[r]<0){cid[r]=C.length;stk.push(r)}}}
+  C.push(c)}
+ // Gruppen: Formen nebeneinander (gleiche Höhe, kleiner Abstand) wie Buchstaben eines Worts oder Kerzen einer Reihe
+ const gp=C.map((_,k)=>k),root=k=>{while(gp[k]!==k)k=gp[k]=gp[gp[k]];return k},ord=C.map((_,k)=>k).sort((a,b)=>C[a].x0-C[b].x0);
+ for(let i=0;i<ord.length;i++){const A=C[ord[i]];if(A.n<4)continue;for(let j=i+1;j<ord.length;j++){const B=C[ord[j]];if(B.x0>A.x1+Math.max(6,.8*(A.x1-A.x0+1)))break;
+  if(B.n<4||A.y0>B.y1||B.y0>A.y1)continue;const gap=B.x0-A.x1-1;if(gap>=-2&&gap<=Math.max(6,.8*Math.min(A.x1-A.x0+1,B.x1-B.x0+1)))gp[root(ord[j])]=root(ord[i])}}
+ const Gs={};C.forEach((c,k)=>{if(c.n<4)return;const r=root(k),g=Gs[r]=Gs[r]||{x0:1e9,x1:-1,y0:1e9,y1:-1,n:0,m:0,hmax:0};g.x0=Math.min(g.x0,c.x0);g.x1=Math.max(g.x1,c.x1);g.y0=Math.min(g.y0,c.y0);g.y1=Math.max(g.y1,c.y1);g.n+=c.n;g.m++;g.hmax=Math.max(g.hmax,c.y1-c.y0+1)});
+ let main=null;Object.values(Gs).forEach(g=>{if(!main||g.n>main.n)main=g});
+ Object.values(Gs).forEach(g=>{const gw=g.x1-g.x0+1,gh=g.y1-g.y0+1;
+  g.keep=g===main||!((gw<=110&&gh<=44)||(gh<=20&&gw<=400&&g.m>=3&&g.hmax<=18)||(gh<=3&&gw>=20)||(g.y1>=h-2&&gw>=.15*w&&gh<=.3*h&&g.y0>main.y0))});
+ // aussortierte kleine Gruppen, neben denen links oder rechts (bis 12 px) in derselben Höhe der Chart weiterläuft, sind Kerzen (z. B. nach einer
+ // Lücke), keine Schrift: Labels stehen über bzw. unter dem Kurs
+ const kept=j=>on[j]&&C[cid[j]].n>=4&&Gs[root(cid[j])].keep;
+ Object.values(Gs).forEach(g=>{if(g.keep||g.y1-g.y0>44)return;const side=(xa,xb)=>{for(let x=Math.max(0,xa);x<=Math.min(w-1,xb);x++)for(let y=g.y0;y<=g.y1;y++)if(kept(y*w+x))return true;return false};
+  if(side(g.x0-12,g.x0-1)||side(g.x1+1,g.x1+12))g.back=true});Object.values(Gs).forEach(g=>{if(g.back)g.keep=true});
+ const hi=new Int16Array(w).fill(-1),lo=new Int16Array(w).fill(-1);
+ for(let x=0;x<w;x++){for(let y=0;y<h;y++){const j=y*w+x;if(on[j]&&C[cid[j]].n>=4&&Gs[root(cid[j])].keep){hi[x]=y;break}}
+  for(let y=h-1;y>=0;y--){const j=y*w+x;if(on[j]&&C[cid[j]].n>=4&&Gs[root(cid[j])].keep){lo[x]=y;break}}
+  if(hi[x]<0)continue;for(let z=0;z<6&&hi[x]>0&&dv[(hi[x]-1)*w+x]>=TW;z++)hi[x]--;for(let z=0;z<6&&lo[x]<h-1&&dv[(lo[x]+1)*w+x]>=TW;z++)lo[x]++} // blasse Spitze
+ IMG.path={hi,lo,man:new Uint8Array(w)};IMG.auto={hi:hi.slice(),lo:lo.slice()};return IMG.path}
 const OCMAX=2000; // längste Seite des zugeschnittenen Bilds in Pixeln (größere werden verkleinert, damit Einrasten und Export flüssig bleiben)
 const OCNOTE='<p class="mut ocnote">Die App prüft deine Zählung nach dem Regelwerk. Sie erkennt keine Wellen selbst und gibt keine Kursprognose oder Anlageempfehlung.</p>';
 function ownChart(){TUTCTX=null;
@@ -2340,7 +2435,7 @@ function ocCrop(im,u){const iw=im.naturalWidth,ih=im.naturalHeight;let r={x:0,y:
   const c=document.createElement('canvas');c.width=w;c.height=h;const cg=c.getContext('2d',{willReadFrequently:true});cg.imageSmoothingQuality='high';cg.drawImage(im,x,y,w0,h0,0,0,w,h);
   let data;try{data=cg.getImageData(0,0,w,h).data}catch(_){return toast('Das Bild ließ sich nicht lesen.')}
   URL.revokeObjectURL(u);let fade=.25;try{const v=localStorage.getItem('waveChecker.ocFade');if(v!==null)fade=+v/100}catch(_){}
-  c.toBlob(b=>{const IMG={cv:c,data,w,h,url:URL.createObjectURL(b),fade,crop:{x,y,f}};progn({img:IMG},'schwer')},'image/png')}}
+  c.toBlob(b=>{const IMG={cv:c,data,w,h,url:URL.createObjectURL(b),fade,crop:{x,y,f}};ocPath(IMG);progn({img:IMG},'schwer')},'image/png')}}
 // Modus 7: „Blitz-Erkennen“ (schnelles Mustererkennen nach dem Vorbild von Perceptual-Learning-Trainings).
 // 20 Charts je Runde, jeder nur kurz sichtbar, dann 4 Antworten. Anzeigedauer passt sich an: nach 3 richtigen in Folge
 // 0,5 s kürzer (mind. 1,5 s), nach einer falschen 0,5 s länger (höchstens 5 s). Falsch erkannte Muster kommen 1–2 Mal wieder.

@@ -53,6 +53,11 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
   das Bild). Bild unverzerrt; darüber Fläche in `--surface` (Regler „Bild blasser“ unter dem Chart, 0–85 %, Start 25 %), hellt im
   hellen Design auf und dunkelt im dunklen ab. Text-Labels mit Hintergrund (`.pglbg`: `--surface` 92 %, Rand `--line`, Ecken 6 px),
   große Labels wie immer im Kreis.
+- Erkannter Kursverlauf (seit 23.11.2026): dünne Linie in `--accent` (1,3 px, 85 %) oben und unten am Verlauf, nur beim Zählen.
+  Darunter eine Zeile: Kästchen „Erkannten Verlauf zeigen“, Knopf „Verlauf nachzeichnen“ (aktiv blau hinterlegt, Text dann „Nachzeichnen
+  beenden“), nach dem Nachzeichnen „Erkannten Verlauf wiederherstellen“. Der laufende Strich ist grün (`--ok`, 2,4 px, runde Enden).
+- Warnsignal zur Unterteilung: gefundene Wendepunkte als gestrichelte Linie in `--warn-text` (1,8 px, Strich 5/4) mit kleinen Kreisen
+  (Füllung `--surface`), nur im Ergebnis.
 - Ergebnis: Befunde als `.rnote` mit Abzeichen (Regel, Warnsignal, Faustregel). Leiste unten: „Als Bild speichern“ (Hauptknopf),
   „Teilen“ (nur Handy/iPad), „Zählung ändern“, „Neues Bild“.
 - Bild-Export (PNG, 2- bis 3-fach): Bild mit Labels und Linien, darunter Trennlinie, Fazit fett in `--ok` bzw. `--bad` mit ✓/✗,

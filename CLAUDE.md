@@ -65,24 +65,46 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   immer linear (auch bei log-Charts, ohne Hinweis). Keine Zukunftszone, keine Zeiteinheiten, Mausrad zoomt unverzerrt.
   Werkzeuge und Zoom stehen in einem Streifen über dem Bild (`TP` 54 px), damit keine Bildecke verdeckt ist.
   Regler „Bild blasser“ (Fläche in `--surface` über dem Bild, `localStorage` `waveChecker.ocFade`), Labels mit Hintergrund (`.pglbg`).
-- Einrasten (`imgSnap`, statt Kerzen): Hintergrund = häufigste Farbe im Fenster um den Fangbereich, abweichend ab Schwelle nach
-  Kontrast (Gitterlinien bleiben darunter), Formen ab 3 Pixeln, senkrechte Lücken bis 2 px geschlossen. Profil je Spalte (oberstes bzw.
-  unterstes Pixel), Wendehoch/-tief in ±K Spalten wie beim Kerzen-Einrasten (Abstand zum Finger, Bonus für markante Spitzen, Richtung
-  aus `wantOf`), Spitze mit schwacher Schwelle verfolgt (blasse Dochte auf Fotos). Schon eingezeichnete Labels (kleines „Wort“ bis
-  110 × 44 px, 4 bis 60 px über einem Hoch bzw. unter einem Tief) zählen nicht: Tipp aufs Label rastet am Docht ein. Kein Treffer: frei.
-  Start ohne Richtung: das nähere von Hoch und Tief (wie in Schwer). Tipps bis Fangradius neben dem Bildrand gelten noch.
+- Kursverlauf (seit 23.11.2026, `ocPath`, direkt nach dem Zuschneiden): je Bildspalte höchstes und tiefstes Pixel von Kerzen bzw.
+  Linie → `IMG.path` = {hi, lo (Zeile, -1 = nichts), man (nachgezeichnet)}, `IMG.auto` = erkannte Werte. Hintergrund je Kachel (48 px,
+  häufigste Farbe), Schwelle nach Kontrast. Herausgefiltert: dünne lange Linien (waagerecht ab 35 % Breite, senkrecht ab 60 % Höhe, Kreuzungen
+  mit Kerzen bleiben), Störpixel, kleine freistehende „Wörter“ (Text und schon eingezeichnete Labels bis 110 × 44 px, Textzeilen bis 20 px hoch,
+  gestrichelte Linien), breite Formen am unteren Rand neben dem Hauptchart (Volumen). Kleine Gruppen, neben denen in gleicher Höhe der Chart
+  weiterläuft, bleiben (Kerzen nach einer Lücke). Blasse Dochtspitzen werden bis 6 px verlängert.
+- Der Verlauf liegt als dünne blaue Linie über dem Bild (`.ocpath`, oben und unten je Bildschirmspalte; Kästchen „Erkannten Verlauf zeigen“,
+  `IMG.show`). „Verlauf nachzeichnen“ (`IMG.trace`): ein Finger bzw. die Maus zeichnet (`TRS`, `ocApply`: gleitendes Mittel über 3
+  Messpunkte, Spalte für Spalte in den Verlauf, `man` = 1), ein zweiter Finger zoomt, erneutes Zeichnen bessert nach, „Erkannten Verlauf
+  wiederherstellen“ setzt `IMG.auto` zurück. Während des Nachzeichnens werden keine Punkte gesetzt.
+- Einrasten (`imgSnap`, seit 23.11.2026 auf dem Verlauf): Profil `IMG.path`, Wendehoch/-tief in ±K Spalten wie beim Kerzen-Einrasten
+  (Abstand zum Finger bis 1,5 × Fangradius, Bonus für markante Spitzen, Richtung aus `wantOf`). Kein Treffer: frei. Start ohne Richtung: das
+  nähere von Hoch und Tief (wie in Schwer). Tipps bis Fangradius neben dem Bildrand gelten noch. Nachgezeichnetes zählt sofort.
 - Prüfen (`imgVerify`, sobald eine große Zählung 3 Punkte hat): `frCheck` ohne Kerzendaten (Lage am Hoch entfällt, Wellengebiet aus den
   Punkten), merkt das passende Muster (`S.fitQ`). Alle Befunde auf einmal: harte Regeln = Fehler (rot, Grenzlinie), Warnsignale und
   Faustregeln = Hinweise, Invalidierungslinien des passenden Musters für große Zählungen. Text nur „Deine Zählung ist regelkonform“
   bzw. „verstößt gegen …“, nie „richtige Zählung“. Danach „Als Bild speichern“ (PNG: Bild, Labels, Linien, Fazit, „Wave Checker“;
-  `ocPng`), „Teilen“ (nur Touch mit Datei-Teilen), „Zählung ändern“, „Neues Bild“. Testzugriff: `PGS.img`, `PGS.res`, `PGS.lastPng`,
-  `IMG.cand` (Kandidaten des letzten Einrastens), `IMG.debug` → `IMG.dbg`.
+  `ocPng`), „Teilen“ (nur Touch mit Datei-Teilen), „Zählung ändern“, „Neues Bild“. Testzugriff: `PGS.img`, `PGS.res` (ok, errs, notes,
+  lines, sub = Warnsignale der Unterteilung {c,k,need,n}, subJ = beurteilte Wellen), `PGS.lastPng`, `PGS.setOCF(f)`, `IMG.cand`.
+- Unterteilung prüfen (seit 23.11.2026, `ocSub`, in `imgVerify` für jede regelkonforme Zählung): Für jede Welle ohne eigene Unterteilung
+  sucht ein ZigZag-Filter (`ocZig`, Schwelle 4 % der Wellenlänge) die Wendepunkte im Verlauf. `ocFit` sucht daraus eine Unterteilung, die
+  die Welle laut `PGSUB` haben darf (Vereinigung über alle Muster der Zählweise, deren harte Regeln die Zählung erfüllt) und die die harten
+  Regeln des Teilmusters erfüllt: abwechselnd Hoch/Tief, jede Teilwelle ≥ 8 % der Welle, jeder Wendepunkt Extrem seiner Teilwellen (bis 3 %),
+  eine Größenordnung (jede nicht gewählte Gegenbewegung innerhalb einer Teilwelle höchstens `OCF` = 1,5 × die kleinste gewählte Korrektur).
+  Keine gefunden: Warnsignal „In Welle … finde ich keine regelkonforme Fünfer-Unterteilung, sie wirkt eher dreiteilig. Prüf das mal genauer.“,
+  dazu die ZigZag-Wendepunkte (Schwellen 5–35 %, `OCZZ`) gestrichelt (`.pgzz`, `m.zz`). Zeigt die Welle weniger Schwünge, als ihre Unterteilung
+  braucht, wird sie nicht beurteilt. Selbst gezählte Unterteilungen prüft wie bisher `frCheck`. Abwägung (Strukturtest, 23.11.): mit `OCF` 1,5
+  rund 3–4 % Fehlalarme, eine in Wahrheit dreiteilige Welle 3 wird in rund 20–35 % erkannt; „genau eine Schwelle“ statt Suche ergab 26 %
+  Fehlalarme bei 79 % Erkennung, kleineres `OCF` (1,0) 13 % Fehlalarme.
 - Test: `node tests/eigener-chart.js [Runden]` (Playwright, Handy/iPad/PC, `NUR=Handy` für ein Gerät, `DBG=1` Fehlgriffe, `SHOTS=Ordner`
-  Bildschirmfotos). Testbilder im TradingView-Stil mit bekannten Preisen (hell/dunkel, Kerzen/Linie, linear/log, Handyfoto-Simulation
+  Bildschirmfotos). Seit 23.11. auch: erkannter Verlauf an jeder Kerze (≥ 95 %, Stand rund 99,8–100 %), Nachzeichnen mit echtem Strich,
+  Einrasten auf dem Strich, Wiederherstellen. Testbilder im TradingView-Stil mit bekannten Preisen (hell/dunkel, Kerzen/Linie, linear/log, Handyfoto-Simulation
   mit Unschärfe/Rauschen/Moiré/JPEG, teils mit eingezeichneten Labels): Hochladen, echtes Zuschneiden, Einrasten ≥ 95 % (Stand 20.11.:
   Handy, iPad, PC je rund 99–100 %, Labels 100 %), Ziehen, Prüfergebnis gleich den Regeln für die bekannten Preise (log: Pixelhöhe),
   Regler, Bild-Export, Spielstand unverändert. Der Start wird auf bzw. jenseits des Extrems getippt. Nach Änderungen an Schwer,
   `snapPt` oder `frCheck` auch diesen Test laufen lassen.
+- Strukturtest: `node tests/struktur.js [Charts je Gerät]` (Playwright, Handy/iPad/PC, `NUR`, `DBG=1`, `OCF=Faktor`): Charts aus `pgData`
+  (alle Muster, bekannte Unterteilung) als Bild im TradingView-Stil (hell/dunkel, Kerzen/Linie, teils Foto), große Welle an den bekannten
+  Wendepunkten gezählt: Fehlalarme ≤ 5 % der beurteilten Wellen, ≥ 70 % beurteilt; manipulierte Impulse mit dreiteiliger Welle 3 (Zigzag)
+  müssen über alle Geräte in ≥ 15 % ein Warnsignal für Welle 3 geben (Stand 23.11.: rund 20 %). Nach Änderungen an `ocPath`, `ocZig`, `ocFit` oder `PGSUB` laufen lassen.
 
 ## Neue Ränge: Abzeichen und Aufstiegs-Ansicht (seit 23.11.2026)
 - `rankCheck` merkt jeden Rangaufstieg (neu oder verbessert, auch Elliott-Meister als `c:'m'`) in `localStorage`

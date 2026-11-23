@@ -10,6 +10,7 @@
 //  3) Prüfung: Ergebnis („regelkonform“ bzw. „verstößt gegen …“ samt Regel) stimmt mit den Regeln für die bekannten Preise überein
 //     (linear: echte Preise; logarithmisch: Pixelhöhe, wie vorgegeben). Keine Punkte, keine Serie, kein „richtige Zählung“.
 //  4) Ziehen (Auswählen): ins Leere bleibt der Punkt frei stehen, zurück neben den Docht rastet er wieder ein.
+//  6) Verlauf nachzeichnen (echter Strich), Einrasten auf dem Strich, Wiederherstellen.
 //  5) „Bild blasser“, Labels mit Hintergrund, Ergebnis als Bild (PNG-Download mit Fazit und „Wave Checker“), keine Fehler in der Konsole.
 const { chromium } = require('playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
@@ -54,11 +55,11 @@ const MK = String.raw`(o)=>{let sd=o.seed;const rnd=()=>(sd=(sd*16807)%214748364
  for(let xx=PL+60;xx<PR;xx+=110)g.fillText(['Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov'][Math.floor(xx/110)%9],xx-10,PB+22);
  g.strokeStyle=C.tx;g.globalAlpha=.4;g.strokeRect(PR+.5,PT-10,0,PB-PT+10);g.globalAlpha=1;
  g.fillStyle=C.tx;g.font='13px sans-serif';g.fillText('Bitcoin / US-Dollar · 1D · BITSTAMP',PL+8,PT-14);
- const tips=[];
- if(o.kind==='line'){g.strokeStyle=C.ln;g.lineWidth=2;g.lineJoin='round';g.beginPath();cand.forEach((k,i)=>{const X=xOf(i),Y=yOf(k.c);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.stroke();
+ const tips=[],cdl=[]; // cdl: je Kerze Spalte und Zeilen von Hoch und Tief (Linie: Punkt der Linie, a = b)
+ if(o.kind==='line'){g.strokeStyle=C.ln;g.lineWidth=2;g.lineJoin='round';g.beginPath();cand.forEach((k,i)=>{const X=xOf(i),Y=yOf(k.c);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.stroke();cand.forEach((k,i)=>cdl.push({x:xOf(i),a:yOf(k.c),b:yOf(k.c)}));
   piv.forEach((i,k)=>{const up=k?P[k]>P[k-1]:P[0]>P[1];tips.push({x:xOf(i),y:yOf(cand[i].c)+(up?-1:1),hl:up?'h':'l'})})}
  else{cand.forEach((k,i)=>{const X=xOf(i),yh=Math.round(yOf(k.h)),yl=Math.round(yOf(k.l)),yt=Math.round(yOf(Math.max(k.o,k.c))),yb=Math.round(yOf(Math.min(k.o,k.c))),up=k.c>=k.o;
-   g.fillStyle=up?C.up:C.dn;g.fillRect(X,yh,1,yl-yh+1);g.fillRect(X-(bw-1)/2,yt,bw,Math.max(1,yb-yt))});
+   g.fillStyle=up?C.up:C.dn;g.fillRect(X,yh,1,yl-yh+1);g.fillRect(X-(bw-1)/2,yt,bw,Math.max(1,yb-yt));cdl.push({x:X,a:yh,b:yl})});
   piv.forEach((i,k)=>{const up=k?P[k]>P[k-1]:P[0]>P[1];tips.push({x:xOf(i),y:Math.round(yOf(up?cand[i].h:cand[i].l)),hl:up?'h':'l'})})}
  // schon eingezeichnete Labels (wie das Elliott-Werkzeug von TradingView): blauer Text über dem Hoch bzw. unter dem Tief
  const labs=[];if(o.labels){g.fillStyle=C.ln;g.font='bold 15px sans-serif';g.textAlign='center';const L=o.z==='N'?['1','2','3','4','5']:['A','B','C'];
@@ -70,7 +71,7 @@ const MK = String.raw`(o)=>{let sd=o.seed;const rnd=()=>(sd=(sd*16807)%214748364
    for(let c=0;c<3;c++)D[i+c]=Math.max(0,Math.min(255,D[i+c]*v+(dark?14:0)+mo+nz))}
   h2.putImageData(id,0,0);out=c2}
  const T=(x,y)=>({x:(x+.5)*sc-.5,y:(y+.5)*sc-.5});
- return{url:out.toDataURL(o.photo?'image/jpeg':'image/png',.75),W:out.width,H:out.height,plot:{x0:PL*sc,y0:PT*sc,x1:PR*sc,y1:PB*sc},tips:tips.map(q=>({...T(q.x,q.y),hl:q.hl})),labs:labs.map(q=>T(q.x,q.y)),
+ return{url:out.toDataURL(o.photo?'image/jpeg':'image/png',.75),W:out.width,H:out.height,plot:{x0:PL*sc,y0:PT*sc,x1:PR*sc,y1:PB*sc},tips:tips.map(q=>({...T(q.x,q.y),hl:q.hl})),labs:labs.map(q=>T(q.x,q.y)),cdl:cdl.map(q=>({x:T(q.x,0).x,a:T(0,q.a).y,b:T(0,q.b).y})),
   fy:tips.map((q,k)=>H0-q.y),sc}}`;
 
 module.exports = { MK, PATS };
@@ -89,7 +90,7 @@ if (require.main === module) (async () => {
         for (let i = 0; i < 3; i++) { await page.waitForTimeout(50); await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x2, y: y2 }] }); } if (hold) await hold(); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await page.waitForTimeout(450); return; }
       await page.mouse.move(x1, y1); await page.mouse.down(); await page.mouse.move(x2, y2, { steps: 8 }); if (hold) await hold(); await page.mouse.up(); await page.waitForTimeout(80); };
     const pts = () => page.evaluate(() => PGS.FR().pts.map(q => ({ id: q.id, c: q.c, i: q.i, t: q.t, p: q.p })));
-    let hit = 0, tot = 0, lhit = 0, ltot = 0, rounds = 0, dragDone = false, pngDone = false;
+    let traceDone = false, pok = 0, ptot = 0, pbad = 0, hit = 0, tot = 0, lhit = 0, ltot = 0, rounds = 0, dragDone = false, pngDone = false;
     const pts0 = await page.evaluate(() => JSON.stringify([localStorage.getItem('waveChecker'), localStorage.getItem('waveChecker.progress')]));
     for (let r = 0; r < N * PATS.length; r++) {
       const P = PATS[r % PATS.length], o = { seed: 1 + Math.floor(Math.random() * 2e9), pr: P.pr, z: P.z, theme: Math.random() < .5 ? 'dark' : 'light', kind: Math.random() < .3 ? 'line' : 'candle', log: Math.random() < .3, photo: Math.random() < .35, labels: Math.random() < .3 };
@@ -113,6 +114,13 @@ if (require.main === module) (async () => {
       // erwartete Lage im zugeschnittenen Bild
       const exp = img.tips.map(q => ({ t: (q.x - crop.x) * crop.f, p: crop.h - (q.y - crop.y) * crop.f - .5, hl: q.hl }));
       const tol = (o.kind === "line" ? 3.2 : 1.2) * (o.photo ? 3.3 : 1) * Math.max(1, crop.f), et = Math.max(tol, 1.2 * img.sc * crop.f);
+      // ---- 1b) erkannter Verlauf: je Kerze Hoch und Tief in der Spalte des Dochts (Foto: ±1 Spalte), Linie: der Verlauf umfasst den Linienpunkt
+      const pv = await page.evaluate(() => ({ hi: Array.from(PGS.img.path.hi), lo: Array.from(PGS.img.path.lo) })), ptol = (o.photo ? 3.5 : 1.5) * Math.max(1, crop.f * img.sc);
+      img.cdl.forEach(q => { const x = Math.round((q.x - crop.x) * crop.f); if (x < 2 || x > crop.w - 3) return; const a = (q.a - crop.y) * crop.f, b = (q.b - crop.y) * crop.f; if (a < 1 || b > crop.h - 2) return;
+        const xs = o.photo ? [x - 1, x, x + 1] : [x], his = xs.map(c => pv.hi[c]).filter(v => v >= 0), los = xs.map(c => pv.lo[c]).filter(v => v >= 0); ptot++;
+        const hi = his.length ? Math.min(...his) : -1, lo = los.length ? Math.max(...los) : -1;
+        const ok = hi >= 0 && (o.kind === 'line' ? hi <= a + ptol && lo >= b - ptol : Math.abs(hi - a) <= ptol && Math.abs(lo - b) <= ptol);
+        if (ok) pok++; else if (process.env.DBG && pbad++ < 8) console.log('   Verlauf', name, desc, 'Spalte', x, 'erwartet', a.toFixed(1), b.toFixed(1), 'erkannt', hi, lo); });
       // ---- 2) Zählen mit echten Tipps ----
       await page.evaluate(z => document.querySelector('[data-fz="' + z + '"]').click(), P.z); await page.waitForTimeout(60);
       let placed = 0;
@@ -135,6 +143,22 @@ if (require.main === module) (async () => {
       // „Bild blasser“ und Label-Hintergrund
       const fd = await page.evaluate(() => { const r = document.querySelector('#ocfr'); r.value = 60; r.dispatchEvent(new Event('input')); return { op: +document.querySelector('#ocfade').getAttribute('opacity'), bg: document.querySelectorAll('#svg .pglbg,#svg .pgc1').length }; });
       if (Math.abs(fd.op - .6) > .01) fail('Regler „Bild blasser“ wirkt nicht'); if (!fd.bg) fail('Labels ohne Hintergrund');
+      // ---- 6) Verlauf nachzeichnen (einmal je Gerät): Bogen über die Bildmitte ziehen, der Verlauf folgt dem Strich, ein Tipp neben die Spitze
+      // rastet auf ihr ein, „Erkannten Verlauf wiederherstellen“ stellt alles zurück
+      if (!traceDone) { traceDone = true; await page.waitForTimeout(450); await page.click('#octr'); await page.waitForTimeout(150);
+        const g = await page.evaluate(() => { document.querySelector('#pgc').scrollIntoView({ block: 'center', behavior: 'instant' }); const b = document.querySelector('#svg').getBoundingClientRect(), I = PGS.img;
+          const xa = b.left + PGS.X(I.w * .35), xb = b.left + PGS.X(I.w * .65), ym = b.top + PGS.Y(I.h * .5), A = (PGS.Y(0) - PGS.Y(I.h)) * .25; return { xa, xb, ym, A, top: b.top, left: b.left, BW: PGS.view().BW }; });
+        const P = []; for (let i = 0; i <= 30; i++) { const u = i / 30; P.push([g.xa + (g.xb - g.xa) * u, g.ym - g.A * Math.sin(Math.PI * u)]); }
+        if (touch) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: P[0][0], y: P[0][1] }] }); for (const [x, y] of P.slice(1)) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y }] }); await page.waitForTimeout(60); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
+        else { await page.mouse.move(P[0][0], P[0][1]); await page.mouse.down(); for (const [x, y] of P.slice(1)) await page.mouse.move(x, y); await page.mouse.up(); }
+        await page.waitForTimeout(200);
+        const tr = await page.evaluate(([P, top, left]) => { const I = PGS.img, PA = I.path; let n = 0, bad = 0, man = 0; for (let i = 2; i < P.length - 2; i++) { const t = Math.round(PGS.Tof(P[i][0] - left)), r = Math.round(I.h - PGS.Pof(P[i][1] - top) - .5); n++; if (PA.man[t]) man++; if (Math.abs(PA.hi[t] - r) * PGS.view().BW > 4 || Math.abs(PA.lo[t] - r) * PGS.view().BW > 4) bad++; } return { n, bad, man }; }, [P, g.top, g.left]);
+        if (tr.man < tr.n || tr.bad > 1) fail('Nachzeichnen: Verlauf folgt dem Strich nicht (' + JSON.stringify(tr) + ')');
+        const top = P[15], sn = await page.evaluate(([x, y, touch]) => { const F = PGS.FR(), keep = F.pts; F.pts = []; try { return PGS.snapAt(x, y, { touch, want: 'h' }); } finally { F.pts = keep; } }, [top[0] - g.left + 6, top[1] - g.top + 8, touch]); /* bestehende Punkte ausgeblendet: die hätten Vorrang */
+        if (!sn || sn.kind !== 'img' || Math.abs((await page.evaluate(p => PGS.Y(p), sn.p)) - (top[1] - g.top)) > 4) fail('Nachzeichnen: Einrasten auf der Spitze des Strichs klappt nicht (' + JSON.stringify(sn) + ')');
+        await page.waitForTimeout(450); await page.click('#ocrs'); await page.waitForTimeout(100);
+        const back = await page.evaluate(() => { const I = PGS.img; return I.path.man.every(v => !v) && I.path.hi.every((v, i) => v === I.auto.hi[i]); }); if (!back) fail('„Erkannten Verlauf wiederherstellen“ stellt nicht zurück');
+        await page.waitForTimeout(450); await page.click('#octr'); await page.waitForTimeout(100); }
       // ---- 4) Ziehen (einmal je Gerät): ins Leere frei, zurück neben den Docht rastet ein ----
       if (!dragDone && P.z === 'N' && !o.labels) {
         await page.evaluate(() => document.querySelector('[data-md="sel"]').click()); await page.waitForTimeout(120);
@@ -181,6 +205,7 @@ if (require.main === module) (async () => {
     if (pts0 !== pts1) fail('Spielstand (Punkte/Serie) hat sich geändert');
     const rate = tot ? hit / tot : 1, lr = ltot ? lhit / ltot : 1;
     console.log(name + ': ' + rounds + ' Runden, Einrasten ' + hit + '/' + tot + ' (' + (100 * rate).toFixed(1) + ' %)' + (ltot ? ', auf vorhandenes Label getippt ' + lhit + '/' + ltot + ' (' + (100 * lr).toFixed(1) + ' %)' : ''));
+    console.log(name + ': erkannter Verlauf ' + pok + '/' + ptot + ' Kerzen (' + (100 * pok / Math.max(1, ptot)).toFixed(1) + ' %)'); if (pok < .95 * ptot) fail('Verlauf an weniger als 95 % der Kerzen richtig erkannt');
     if (rate < .95) fail('Einrasten unter 95 %'); if (ltot >= 5 && lr < .9) fail('Abpausen: Tipp auf Label trifft den Docht zu selten');
     if (!rounds) fail('keine einzige vollständige Runde');
     if (errs.length) fail('Konsole: ' + [...new Set(errs)].slice(0, 3).join(' | '));
