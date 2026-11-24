@@ -41,7 +41,7 @@ const LUM = `const lum=c=>{const m=c.match(/[\\d.]+/g).map(Number),f=v=>{v/=255;
         if (opt.hasTouch) await page.touchscreen.tap(b2.x + b2.width - 2, b2.y + b2.height / 2); else await page.mouse.click(b2.x + b2.width - 2, b2.y + b2.height / 2); await page.waitForTimeout(450); }
       else await page.$eval('#ocfr', (e, v) => { e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }, v); };
     const state = () => page.evaluate(new Function(LUM + `const pgc=document.querySelector('#pgc'),fd=document.querySelector('#ocfade'),cs=getComputedStyle(pgc),sh=document.querySelector('#ocsh');
-      const txt=[...pgc.querySelectorAll('svg text')].filter(t=>t.getBBox().width>0).map(t=>getComputedStyle(t).fill),lin=[...pgc.querySelectorAll('svg .ocpath')].map(e=>getComputedStyle(e).stroke);
+      const txt=[...pgc.querySelectorAll('svg text')].filter(t=>t.getBBox().width>0).map(t=>getComputedStyle(t).fill),lin=[...pgc.querySelectorAll('svg .occ path')].map(e=>getComputedStyle(e).stroke);
       return{val:+document.querySelector('#ocfr').value,out:(document.querySelector('#ocfv')||{}).textContent,op:fd?+fd.getAttribute('opacity'):null,fdFill:fd&&fd.getAttribute('fill'),ocw:pgc.classList.contains('ocw'),bg:cs.backgroundColor,
        sh:sh?sh.checked:null,path:lin.length,txtMin:txt.length?Math.min(...txt.map(c=>con(c,'rgb(255,255,255)'))):99,pathCon:lin.length?Math.min(...lin.map(c=>con(c,'rgb(255,255,255)'))):99,nTxt:txt.length}`));
     // 0 %

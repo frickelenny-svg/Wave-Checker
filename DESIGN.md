@@ -54,7 +54,10 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
   das Bild wird stufenlos blasser zu Weiß hin. Bei 100 % ist das Bild ausgeblendet: Chartfläche #FFFFFF auch im dunklen Design, darin die Farben
   des hellen Designs (`.ocw`), der erkannte bzw. nachgezeichnete Verlauf wird eingeblendet; das Export-Bild übernimmt die Einstellung. Text-Labels mit Hintergrund (`.pglbg`: `--surface` 92 %, Rand `--line`, Ecken 6 px),
   große Labels wie immer im Kreis.
-- Erkannter Kursverlauf (seit 23.11.2026): dünne Linie in `--accent` (1,3 px, 85 %) oben und unten am Verlauf, nur beim Zählen.
+- Erkannter bzw. nachgezeichneter Kursverlauf (seit 24.11.2026 als Kerzen, vorher Zickzack-Linie aus Hoch und Tief): Kerzen in `--accent`,
+  Docht 1,2 px, steigend gefüllt (`.occu`), fallend als Umriss ohne Füllung (`.occd`, 1,2 px). Breite der Kerze 70 % ihres Abstands; in der
+  Start-Ansicht etwa so breit wie im Original, mindestens 2 Bildschirmpixel, beim Hineinzoomen feiner, beim Herauszoomen gröber. Nur beim Zählen
+  (bei „Bild blasser“ 100 % immer, auch im Ergebnis und im Export).
   Darunter eine Zeile: Kästchen „Erkannten Verlauf zeigen“, Knopf „Verlauf nachzeichnen“ (aktiv blau hinterlegt, Text dann „Nachzeichnen
   beenden“), nach dem Nachzeichnen „Erkannten Verlauf wiederherstellen“. Der laufende Strich ist grün (`--ok`, 2,4 px, runde Enden).
 - Warnsignal zur Unterteilung: gefundene Wendepunkte als gestrichelte Linie in `--warn-text` (1,8 px, Strich 5/4) mit kleinen Kreisen

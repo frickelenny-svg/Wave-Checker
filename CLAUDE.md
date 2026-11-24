@@ -78,7 +78,8 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
      Geraden ab (Hough); jede Kandidatin wird mit einer Ausgleichsgeraden nachgemessen (Dicke = Median der Läufe). Linie = ab 12 % der Breite
      (mind. 50 px) mit Treffern in mind. 35 % der Spalten (gepunktet 20 % bei 20 % Breite; Lücken bis 16 Spalten; Treffer nur frei stehend, nicht
      an Kerzen hängend). Entfernt nur, wenn der Kurs in mind. 60 % ihrer Spalten woanders liegt (sonst ist die Gerade selbst der Kurs, gerades Stück
-     im Linienchart). Entfernt wird bis 8 Spalten über die Treffer hinaus und unter berührender Schrift hindurch; über einem Kerzenkörper fällt
+     im Linienchart; seit 24.11.2026 werden erst alle Linien gesucht, Pixel auf anderen gefundenen Linien und weiter als 50 % der Höhe entfernte
+     Pixel, etwa die Legende, zählen nicht als Kurs). Entfernt wird bis 8 Spalten über die Treffer hinaus und unter berührender Schrift hindurch; über einem Kerzenkörper fällt
      die Linie auch dort weg, ein 1 px breiter Docht bleibt.
   1b. Kästchen (seit 23.11.2026 nach Lennys PayPal-Bild): Rechtecke 12 px bis 35 % breit, 7–45 px hoch, Oberkante frei, Unterkante (auf Fotos
      unscharf) und beide Seiten zu mind. 85 %, mit Schrift innen (hohl: 3–70 % Pixel innen; gefüllt: andersfarbige Pixel ab 4 %); auch ohne sichtbare
@@ -117,7 +118,14 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
      `tests/eigener-chart.js` toleriert bis 0,4 % Ausschlag-Spalten (mit Zeichnungen 2 %, Einrasten ab 88 %). Liegt nur etwas über 25 % der Höhe daneben, bleibt die Spalte leer (kein Ausreißer). Echte lange Dochte
      hängen am Kerzenkörper und bleiben. Blasse Dochtspitzen werden bis 6 px verlängert.
   Was dann noch nicht passt, überzeichnet man mit „Verlauf nachzeichnen“.
-- Der Verlauf liegt als dünne blaue Linie über dem Bild (`.ocpath`, oben und unten je Bildschirmspalte; Kästchen „Erkannten Verlauf zeigen“,
+- Der Verlauf liegt als Kerzen über dem Bild (seit 24.11.2026, `ocCandles`; vorher Zickzack aus Hoch und Tief, wirkte wie eine Doppelspur):
+  `ocG()` Bildspalten je Kerze, so dass die Kerzen in der Start-Ansicht etwa so breit sind wie im Original (`IMG.cw` aus `ocPath`: Breite der
+  Stücke mit Verlauf bei Kerzen/Balken mit Lücken, sonst etwa 250 Kerzen über die Breite), mindestens 2 Bildschirmpixel; hineingezoomt feiner,
+  herausgezoomt gröber, Gruppen fest an Vielfachen von G. Hoch/Tief = genaues Extrem der Spalten, Schluss = Mitte der letzten Spalte, Eröffnung =
+  Schluss davor; steigend gefüllt, fallend Umriss (`.occ`, `.occw/.occu/.occd`). Gilt auch für Nachgezeichnetes. Das Einrasten nutzt weiter die
+  einzelnen Spalten. Test: `node tests/verlauf-kerzen.js` (Playwright, Handy/PC, feste Bilder und Linienchart, 0/100 %, Zoom: Hoch/Tief und
+  Körper genau, Anzahl wie im Original, feiner/gröber, Einrasten auf der Spalte, Kontrast auf Weiß). Testzugriff `PGS.ocG()`.
+  Kästchen „Erkannten Verlauf zeigen“,
   `IMG.show`). „Verlauf nachzeichnen“ (`IMG.trace`): ein Finger bzw. die Maus zeichnet (`TRS`, `ocApply`: gleitendes Mittel über 3
   Messpunkte, Spalte für Spalte in den Verlauf, `man` = 1), ein zweiter Finger zoomt, erneutes Zeichnen bessert nach, „Erkannten Verlauf
   wiederherstellen“ setzt `IMG.auto` zurück. Während des Nachzeichnens werden keine Punkte gesetzt.
