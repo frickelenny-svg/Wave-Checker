@@ -16,6 +16,13 @@ Veröffentlicht wird über `main` (GitHub Pages). Gestaltungsregeln: `DESIGN.md`
   Vor jedem Veröffentlichen von Änderungen an Schwer laufen lassen. Hinweis für Tests: Nach einem synthetischen Wisch mit Schwung
   verschluckt der Test-Browser den nächsten Tipp (Finger vor dem Loslassen ruhen lassen); der Click eines Touch-Tipps kommt verzögert.
 - Seit 18.11.2026 braucht das installierte Edge (Version 157) Playwright ab 1.65; ältere Versionen starten es nicht mehr.
+- Testumfang nach Größe der Änderung (Regel von Lenny, seit 24.11.2026):
+  · Klein (Text, Design, eine Funktion in einem Modus): nur gezielte Tests für das Geänderte plus ein kurzer Rauchtest, dass die App startet.
+  · Mittel (Bedienung, Zieh-/Tipp-Logik, ein Modus umgebaut): gezielte Tests plus die bestehenden Tests dieses Modus.
+  · Groß (Generator, Regel-Checker, mehrere Modi): voller Testlauf mit vielen Runden.
+  Lange Dauertests (tausende Runden) nur bei großen Änderungen oder wenn Lenny es ausdrücklich verlangt. Steht im Auftrag ein größerer
+  Testumfang, gilt dieser. Die Hinweise „immer auf Handy, iPad und PC“ und „nach Änderungen an … laufen lassen“ in dieser Datei gelten
+  innerhalb dieses Umfangs. Am Ende kurz sagen, welche Tests gelaufen sind und wie lange sie gedauert haben.
 
 ## Punkte ziehen, alle Modi (seit 18.11.2026)
 Gilt für „Chart durchzählen“, „Muster erkennen – Schwer“, Tagesaufgabe (`bindPoints`), „Subwellen zählen“ (`sub`) und
