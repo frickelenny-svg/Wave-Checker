@@ -69,8 +69,17 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Ecken/Kanten anpassen, im Rahmen verschieben, „Ganzes Bild“. Ausschnitt höchstens 2000 px lange Seite (`OCMAX`).
 - Zählen = `progn({img:IMG},'schwer')`: dieselbe Bedienung wie Schwer (Zählweisen, Zeichnen/Auswählen, Unterteilungen, Löschen,
   Zoom). `IMG` = {cv, data, w, h, url, fade, crop:{x,y,f}}. Zeit = Bildspalte, Preis = Pixelhöhe von unten (`h - Zeile - 0,5`),
-  immer linear (auch bei log-Charts, ohne Hinweis). Keine Zukunftszone, keine Zeiteinheiten, Mausrad zoomt unverzerrt.
+  immer linear (auch bei log-Charts, ohne Hinweis). Keine Zukunftszone, keine Zeiteinheiten.
   Werkzeuge und Zoom stehen in einem Streifen über dem Bild (`TP` 54 px), damit keine Bildecke verdeckt ist.
+  Steuerung (seit 24.11.2026 wie in „Wie geht es weiter?“, dieselben Funktionen `zoomX`/`zoomAt`/`axisDrag`): Mausrad ohne Taste streckt bzw.
+  staucht nur die Zeitachse um die Maus (Seite scrollt nicht), Strg/Cmd + Mausrad und + / − zoomen in alle Richtungen. Ziehen verschiebt
+  waagerecht und senkrecht (im Bild auch mit einem Finger, die Seite scrollt dann nicht); ein Klick mit Bewegung unter 5 px (Maus; Finger 8 px)
+  setzt im Werkzeug Zeichnen einen Punkt, nach dem Verschieben nie. Streifen „↔ Zeitachse ziehen“ unter dem Bild (`BP` 26 px, `.ocax`):
+  Ziehen streckt/staucht (vor allem für Handy/iPad), Doppeltipp setzt zurück. Knopf „Ansicht zurücksetzen“ (`[data-zr]`, links neben −) und
+  Doppelklick auf die Chartfläche (nicht im Werkzeug Zeichnen, dort setzt ein Klick einen Punkt; nicht auf einem Punkt) stellen die
+  Startansicht her. Bild (`<image>` mit preserveAspectRatio none), Kerzen, Punkte und Labels hängen alle an X/Y, verzerren also gemeinsam.
+  Test: `node tests/bild-steuerung.js` (Playwright, Handy/iPad/PC: Mausrad, Strg + Mausrad, Ziehen vs. Klick, Streifen, + / −, Zurücksetzen,
+  Bild, Kerzen und Punkte deckungsgleich).
   Regler „Bild blasser“ 0–100 % (seit 23.11.2026; weiße Fläche über dem Bild, stufenlos, Anzeige `#ocfv`, `localStorage` `waveChecker.ocFade`).
   Bei 100 % ist die ganze Chartfläche weiß, auch im dunklen Design (Klasse `.ocw` am `#pgc` setzt die Farben des hellen Designs, Kontrast ≥ 4,5:1),
   der Verlauf ist immer zu sehen (Kästchen wird eingeschaltet, auch im Ergebnis und im Export-Bild). Labels mit Hintergrund (`.pglbg`).

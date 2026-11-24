@@ -282,7 +282,8 @@ body.tut-on .tutbtn{visibility:hidden}
 .pgtrash{min-width:48px;display:inline-flex;align-items:center;justify-content:center}.pgtrash:not(:disabled){color:var(--dn);border-color:var(--dn)}#toast .tbtn{margin:0 0 0 6px;min-height:36px;padding:4px 12px;font-size:.9rem}
 .pgsnap{fill:none;stroke:var(--accent);stroke-width:2.2}
 .pgc1.pgls{stroke:var(--accent);stroke-width:2.6}.pglsr{fill:var(--accent);fill-opacity:.14;stroke:var(--accent);stroke-width:1.6}
-.pgzm{position:absolute;right:8px;top:8px;display:flex;gap:4px}.pgzm button{margin:0;min-height:40px;min-width:44px;padding:4px 10px;font-size:1.1rem;font-weight:800;border-radius:12px}
+.pgzm{position:absolute;right:8px;top:8px;display:flex;gap:4px}.pgzm [data-zr] svg{width:18px;height:18px}
+.ocax line{stroke:var(--line);stroke-width:1}.ocax text{fill:var(--muted);font-size:11px;text-anchor:middle;pointer-events:none}.pgzm button{margin:0;min-height:40px;min-width:44px;padding:4px 10px;font-size:1.1rem;font-weight:800;border-radius:12px}
 .pgtf button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 /* Werkzeugleiste im Schwer-Modus (DESIGN.md, Werkzeugleiste): links unter den Zeiteinheiten, Zeichnen und Auswählen */
 .pgtool{position:absolute;left:8px;top:44px;display:flex;flex-direction:column;gap:4px}.pgtool button{margin:0;min-height:30px;height:30px;min-width:34px;width:34px;padding:2px;border-radius:9px;display:flex;align-items:center;justify-content:center}
@@ -796,6 +797,7 @@ const ICON={
  cal:ico('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/>'),
  image:ico('<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15l-5-5L5 20"/>'),
  warn:ico('<path d="M12 3.5L22 20.5H2z"/><path d="M12 10v5M12 17.8h.01"/>'),
+ reset:ico('<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/>'),
  bulb:ico('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>')};
 const tipLine=t=>t.startsWith('Tipp')?'<p class="tip">'+ICON.bulb+'<span>'+t+'</span></p>':'<p>'+t+'</p>'; // Tipps mit Glühbirne
 const stufe=s=>'<span class="stufe s-'+s+'">'+{regel:'Regel',warn:'Warnsignal',faust:'Faustregel'}[s]+'</span>';
@@ -1536,7 +1538,7 @@ function progn(arg,lvl){
  const waves=()=>{const o=[];for(let k=CNT.cut+1;k<CNT.lab.length;k++)o.push(k);return o}; // fehlende Hauptwellen (1 = erste Welle)
  // Ansicht: W×H in Bildschirmpixeln, BW Pixel je Kerze, tf Stunden je Kerze, sc = wie weit der Chart nach links geschoben ist.
  // Die Zukunftszone endet bei Stunde ZE: Platz für gut das Anderthalbfache des echten Rests, mindestens die halbe Musterlänge.
- const mob=innerWidth<=600,TP=IMG?54:26,BP=IMG?8:30;let BW=5,ZE=IMG?c0:c0+Math.round(Math.max(1.6*(N-c0),.5*(N-R.mp[0])));
+ const mob=innerWidth<=600,TP=IMG?54:26,BP=IMG?26:30; /* Bild: unten ein Streifen zum Strecken/Stauchen (24.11.2026) */let BW=5,ZE=IMG?c0:c0+Math.round(Math.max(1.6*(N-c0),.5*(N-R.mp[0])));
  const pat=R.pr.slice(R.mp[0],c0+1),patLo=Math.min(...pat),patHi=Math.max(...pat),patRg=patHi-patLo; // sichtbarer Teil des Musters
  let W=0,H=0,sc=null,tf=24,yr=[0,1],fbLast,peek=null;
  const size=()=>{W=Math.max(280,$('#pgc').clientWidth);if(!H&&IMG){const ph=(W-48)*IMG.h/IMG.w;H=TP+BP+Math.round(Math.max(220,Math.min(ph,mob?innerHeight*.6:Math.min(700,innerHeight*.68))))} // Bild: Höhe nach Seitenverhältnis
@@ -1571,7 +1573,8 @@ function progn(arg,lvl){
  const zoomAt=(f,px,py)=>{const nb=Math.max(bwMin(),Math.min(bwMax(),BW*f)),g=nb/BW;if(Math.abs(g-1)<1e-4)return;const t=Tof(px),p=Pof(py),sp=Math.min(6*(yBase()[1]-yBase()[0]),(yr[1]-yr[0])/g),r=(py-TP)/(H-TP-BP);
   BW=nb;sc=clampSc((t+.5)*BW/tf-px);yr=[p+r*sp-sp,p+r*sp]};
  // Nur die Zeitachse strecken/stauchen (seit 13.11.2026, Lenny): Kerzenbreite ändern, die Zeit unter px bleibt stehen, Preisachse unverändert
- const zoomX=(f,px)=>{if(IMG)return zoomAt(f,px,(H-BP)/2); /* Bild: nie verzerren */const nb=Math.max(bwMin(),Math.min(bwMax(),BW*f));if(Math.abs(nb/BW-1)<1e-4)return;const t=Tof(px);BW=nb;sc=clampSc((t+.5)*BW/tf-px)};
+ // Seit 24.11.2026 auch im Bild (Lenny): Bild, Kerzen, Punkte und Labels hängen alle an X/Y und strecken sich gemeinsam
+ const zoomX=(f,px)=>{const nb=Math.max(bwMin(),Math.min(bwMax(),BW*f));if(Math.abs(nb/BW-1)<1e-4)return;const t=Tof(px);BW=nb;sc=clampSc((t+.5)*BW/tf-px)};
  const resetX=()=>{if(IMG){startView(1);return}const bw=Math.min(40,bwFit(tf)),t=Tof(W/2);BW=Math.max(bwMin(),bw>=1?bw:2);sc=clampSc((t+.5)*BW/tf-W/2)}; // Doppeltipp auf die Zeitachse: Breite der Start-Ansicht
  const zoomedY=()=>yr[1]-yr[0]<.97*(yBase()[1]-yBase()[0]); // hineingezoomt: dann darf man auch senkrecht verschieben
  const panY=dy=>{const d=dy*(yr[1]-yr[0])/(H-TP-BP);yr=[yr[0]+d,yr[1]+d]};
@@ -1762,6 +1765,7 @@ function progn(arg,lvl){
   const hl=EXP?null:focus();if(hl){const a=Math.max(0,X(hl[0])),b=Math.min(W,X(hl[1]));if(b>a)s+='<rect class="pgfoc" x="'+a+'" y="0" width="'+(b-a)+'" height="'+(H-BP)+'"/>'} // Welle, die gerade dran ist
   const cx=IMG?-1e9:X(c0+.5);if(cx>-2&&cx<W+2)s+='<line class="pgcut" x1="'+cx+'" x2="'+cx+'" y1="0" y2="'+(H-BP)+'"/>';
   if(!IMG)for(let y=20;y<H-BP;y+=50)s+='<line x1="0" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width=".6"/>';
+  if(IMG&&!EXP)s+='<g class="ocax"><line x1="0" x2="'+W+'" y1="'+(H-BP+.5)+'" y2="'+(H-BP+.5)+'"/><text x="'+W/2+'" y="'+(H-8)+'">↔ Zeitachse ziehen</text></g><rect class="pgax" x="0" y="'+(H-BP)+'" width="'+W+'" height="'+BP+'" fill="transparent" style="cursor:ew-resize"/>'; // Bild: Streifen zum Strecken/Stauchen
   if(!IMG)s+='<line x1="0" x2="'+W+'" y1="'+(H-BP+4)+'" y2="'+(H-BP+4)+'" stroke="var(--line)" stroke-width="1"/>'+axis()+'<rect class="pgax" x="0" y="'+(H-BP)+'" width="'+W+'" height="'+BP+'" fill="transparent" style="cursor:ew-resize"/>';
   // Kerzen: steigend blau gefüllt, fallend weiß mit blauem Rand (wie im Wellen-Pfad); der wahre Rest nach dem Auflösen blass
   const thin=BW<2.5; // sehr weit herausgezoomt: nur Dochte
@@ -1852,7 +1856,7 @@ function progn(arg,lvl){
  const C1=l=>'<span class="c1">'+l+'</span>'; // Beschriftung der Ebene 1 im Kreis (wie im Chart)
  const SUBS='mittlere Wellen: (1)–(5), (a)–(c), (a)–(e), (w)–(y) oder (w)–(z)';
  const tfBar=()=>(IMG?'':'<div class="pgtf" role="group" aria-label="Zeiteinheit">'+PGTF.map(([n,h])=>'<button data-tf="'+h+'" class="'+(h===tf?'on':'')+'" aria-pressed="'+(h===tf)+'">'+n+'</button>').join('')+'</div>')+
-  '<div class="pgzm" role="group" aria-label="Zoom"><button data-zm="-" aria-label="Herauszoomen">−</button><button data-zm="+" aria-label="Hineinzoomen">+</button></div>';
+  '<div class="pgzm" role="group" aria-label="Zoom">'+(IMG?'<button data-zr aria-label="Ansicht zurücksetzen" title="Ansicht zurücksetzen">'+ICON.reset+'</button>':'')+'<button data-zm="-" aria-label="Herauszoomen">−</button><button data-zm="+" aria-label="Hineinzoomen">+</button></div>';
  const legend='<p class="pglg" aria-label="Beschriftung der Wellengrößen"><span class="c1">1</span> große Welle · <b>(1)</b> mittlere · <span class="mut">1</span> kleine <span class="mut">· Labels kleiner Wellen erscheinen beim Hineinzoomen</span></p>';
  const wn=k=>pgLab(fam()[0].key,k);
  // Ansicht einrichten (Breite am fertigen Rahmen messen; beim ersten Mal Zeiteinheit und Kerzenbreite wählen)
@@ -1901,11 +1905,15 @@ function progn(arg,lvl){
   if(FR&&!FR.done&&FR.md==='sel')svg.onpointermove=e=>{if(GEST||e.pointerType==='touch')return;const [x,y]=loc(e);svg.style.cursor=FR.pts.some(q=>Math.hypot(X(q.t)-x,Y(q.p)-y)<12)?'move':'default'};
   // Zoom-Knöpfe: um die Bildmitte
   document.querySelectorAll('[data-zm]').forEach(b=>b.onclick=()=>{zoomAt(b.dataset.zm==='+'?1.5:1/1.5,W/2,(H-BP)/2);saveV();redraw(svg,pic());endBtn()});
+  // Bild (24.11.2026): Startansicht über den Knopf oder Doppelklick auf die freie Fläche (im Werkzeug Zeichnen setzt ein Klick dort einen Punkt,
+  // daher nur beim Auswählen, im fertigen Ergebnis und auf dem Zeitachsen-Streifen; dort auch Doppeltipp)
+  const rv=$('[data-zr]');if(rv)rv.onclick=()=>{startView(1);saveV();upd()};
+  if(IMG)svg.ondblclick=e=>{const [px,py]=loc(e);if(FR&&!FR.done&&FR.md==='draw'&&py<H-BP)return;if(FR&&FR.pts.some(q=>Math.hypot(X(q.t)-px,Y(q.p)-py)<14))return;startView(1);saveV();upd()};
   // Strg/Cmd + Mausrad bzw. Trackpad-Zoom: um die Mausposition. Sonst verschieben Mausrad und Trackpad den Chart; am Anschlag scrollt die Seite normal weiter
   // Mausrad (seit 13.11.2026): ohne Taste nur die Zeitachse strecken (nach oben) bzw. stauchen (nach unten), um die Mausposition;
   // Strg/Cmd + Mausrad zoomt in alle Richtungen; waagerechtes Wischen am Trackpad verschiebt. Über dem Chart scrollt die Seite nie.
   svg.onwheel=e=>{e.preventDefault();const [x,y]=loc(e),k=e.deltaMode===1?33:e.deltaMode===2?400:1,dx=e.deltaX*k,dy=e.deltaY*k;
-   if(e.ctrlKey||e.metaKey||(IMG&&Math.abs(dy)>=Math.abs(dx))){zoomAt(Math.exp(-Math.max(-60,Math.min(60,dy))*.004),x,y);saveV();redraw(svg,pic());endBtn();return}
+   if(e.ctrlKey||e.metaKey){zoomAt(Math.exp(-Math.max(-60,Math.min(60,dy))*.004),x,y);saveV();redraw(svg,pic());endBtn();return}
    if(Math.abs(dx)>Math.abs(dy)){const n=clampSc(sc+dx);if(n!==sc){sc=n;upd()}return}
    zoomX(Math.exp(-Math.max(-120,Math.min(120,dy))*.002),x);saveV();upd()};
   svg.onpointerdown=e=>{if(e.button)return;
@@ -1919,7 +1927,7 @@ function progn(arg,lvl){
     const stop=()=>{GEST=null;TRS=null;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up)};
     const up=ev=>{if(ev.pointerId!==id)return;stop();if(ev.type==='pointerup')ocApply(S);frRender(fbLast)};
     addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);GEST=stop;stop.touch=touch;stop.pos=()=>({id,x:lx,y:ly});return}
-   if(py>=H-BP&&!IMG)return axisDrag(e,px); // Zeitachse: ziehen staucht/streckt, Doppeltipp setzt zurück, nie einen Punkt setzen
+   if(py>=H-BP)return axisDrag(e,px); // Zeitachse: ziehen staucht/streckt, Doppeltipp setzt zurück, nie einen Punkt setzen
    let k=-1,sk=-1,lk=-1,best=touch?28:12,grp=[],gs=[],mq=null;
    // Werkzeug (seit 13.11.2026, Lenny): Zeichnen = Tipp auf einen Punkt setzt den neuen Punkt genau auf diesen Pivot (sk), Ziehen verschiebt
    // nur den Chart; Auswählen = Tipp wählt aus, Ziehen auf einem Punkt verschiebt ihn (k). Kein Werkzeug tut, was das andere tut.
@@ -1936,7 +1944,7 @@ function progn(arg,lvl){
    const x0=e.clientX,y0=e.clientY,s0=sc,T0=performance.now(),id=e.pointerId,zy=zoomedY();let mode='',ly=y0,lx=x0,dw=null,lsn=null,lkey='',t00=0,p00=0;
    const stop=()=>{GEST=null;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);svg.style.cursor=cur0;saveV()};
    const mv=ev=>{if(ev.pointerId!==id)return;const dx=ev.clientX-x0,dy=ev.clientY-y0;
-    if(!mode&&Math.hypot(dx,dy)>(k>=0?5:8)){mode=k>=0?'p':touch&&!zy&&Math.abs(dy)>Math.abs(dx)?'v':'h';svg.style.cursor='grabbing';if(mode==='p'){m.lines=[];if(FR&&mq){FR.sel=mq.id;FR.pw={c:mq.c,k:Math.max(1,mq.i)};dw=wantOf(mq.c,mq.i);t00=mq.t;p00=mq.p}}}
+    if(!mode&&Math.hypot(dx,dy)>(k>=0||!touch?5:8)){mode=k>=0?'p':touch&&!zy&&!IMG&&Math.abs(dy)>Math.abs(dx)?'v':'h'; /* Maus: ab 5 px ziehen statt klicken; Bild: ein Finger verschiebt in alle Richtungen */svg.style.cursor='grabbing';if(mode==='p'){m.lines=[];if(FR&&mq){FR.sel=mq.id;FR.pw={c:mq.c,k:Math.max(1,mq.i)};dw=wantOf(mq.c,mq.i);t00=mq.t;p00=mq.p}}}
     // nur das gewählte Label bewegt sich. Seit 16.11.2026: Der Punkt folgt dem Finger (am Handy 34 px darüber, damit man ihn sieht),
     // ein Ring zeigt, wo er einrasten wird (snapPt); wechselt das Ziel, vibriert das Handy kurz. Alt (PC): frei, ohne Einrasten.
     // Seit 18.11.2026 (Lenny): Der Punkt bleibt zwischen Vorgänger und Nachfolger seiner Zählung (gleiches Label, nie umsortiert).
@@ -1948,7 +1956,7 @@ function progn(arg,lvl){
     else if(mode==='p'){const [x,y]=loc(ev),lo2=(k?m.pts[k-1].x:CNT.t[CNT.cut])+.3,hi2=k<m.pts.length-1?m.pts[k+1].x-.3:ZE; // nur dieser Punkt bewegt sich; Punkte bleiben zeitlich in Reihenfolge
      if(Tof(x)<lo2||Tof(x)>hi2)ordHint();
      m.pts[k]={x:Math.max(lo2,Math.min(hi2,Tof(x))),p:Pof(Math.max(6,Math.min(H-BP-2,y)))};if(y<TP+24||y>H-BP-24)grow(m.pts[k].p);redraw(svg,pic())} // am Rand: Achse erweitern
-    else if(mode==='h'){sc=clampSc(s0-dx);if(zy)panY(ev.clientY-ly);upd()} // waagerecht verschieben, hineingezoomt auch senkrecht; der Maßstab bleibt
+    else if(mode==='h'){sc=clampSc(s0-dx);if(zy||IMG)panY(ev.clientY-ly);upd()} // waagerecht verschieben, hineingezoomt auch senkrecht; der Maßstab bleibt
     else if(mode==='v'){scrollBy(0,ly-ev.clientY)} // senkrecht wischen: die Seite scrollt
     ly=ev.clientY;lx=ev.clientX};
    // Loslassen ohne Bewegung = Tippen (auch dicht neben einem Punkt: dann entsteht der nächste Punkt, der alte bleibt, wo er ist)
