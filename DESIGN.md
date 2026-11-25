@@ -66,6 +66,10 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
   (bei „Bild blasser“ 100 % immer, auch im Ergebnis und im Export).
   Darunter eine Zeile: Kästchen „Erkannten Verlauf zeigen“, Knopf „Verlauf nachzeichnen“ (aktiv blau hinterlegt, Text dann „Nachzeichnen
   beenden“), nach dem Nachzeichnen „Erkannten Verlauf wiederherstellen“. Der laufende Strich ist grün (`--ok`, 2,4 px, runde Enden).
+  Unsichere Stellen der Kerzensuche (seit 25.11.2026, `.ocun`): über die ganze Bildhöhe `--warn-text` mit 20 % Deckkraft, unten ein Streifen
+  6 px mit 85 %, mindestens 6 px breit; nur beim Zählen, nie im Export; nachgezeichnete Spalten gelten als geklärt. Darunter der Satz
+  „Erkennung zu … % sicher.“ (`.ocqs`, `--muted`), bei unsicheren Stellen mit einem 14-px-Farbfeld davor und „Orange markierte Stellen: Prüf dort
+  den Verlauf und zeichne ihn bei Bedarf nach.“
 - Warnsignal zur Unterteilung: gefundene Wendepunkte als gestrichelte Linie in `--warn-text` (1,8 px, Strich 5/4) mit kleinen Kreisen
   (Füllung `--surface`), nur im Ergebnis.
   Die betroffene Welle ist im Chart orange hinterlegt (`--warn-text`, 10 % Deckkraft, `.pgwb`). Der Hinweis ist antippbar (Rand beim Darüberfahren

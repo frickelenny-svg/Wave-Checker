@@ -85,6 +85,18 @@ const MK = String.raw`(o)=>{let sd=o.seed;const rnd=()=>(sd=(sd*16807)%214748364
   if(rnd()<.5&&tips.length>2){const a=tips[0],b=tips[tips.length-1],c=pk();touch(a);touch(b);g.font='11px sans-serif';[0,.236,.382,.5,.618,.786,1].forEach(v=>{const y=Math.round(a.y+(b.y-a.y)*v)+.5;g.strokeStyle=c;g.lineWidth=1;g.beginPath();g.moveTo(a.x,y);g.lineTo(PR,y);g.stroke();g.fillStyle=c;g.fillText(v+' ('+(100+v*50).toFixed(2)+')',a.x+4,y-3)})}
   if(o.legend&&rnd()<.7){const lc=cand[cand.length-1],yl=Math.round(yOf(lc.c)),bx0=PR-58,bx1=PR-4;g.fillStyle=C.bg;g.fillRect(bx0,yl-9,bx1-bx0,18);g.strokeStyle=C.tx;g.lineWidth=1;g.strokeRect(bx0+.5,yl-8.5,bx1-bx0-1,17);g.fillStyle=C.tx;g.font='11px sans-serif';g.fillText('BTCUSD',bx0+5,yl+4);
    cdl.forEach(q=>{if(q.x>=bx0-3&&q.x<=bx1+3&&q.b>=yl-12&&q.a<=yl+12)q.hid=1})}} // vom Kästchen verdeckte Kerzen werden nicht gewertet
+ // Fibonacci- bzw. Zielzonen (25.11.2026, Lenny, nach dem CoreWeave-Bild aus dem Discord): halbtransparent gefüllte Rechtecke ÜBER den Kerzen (wie in
+ // TradingView, die Kerzen darin sind eingefärbt), Rand in Kerzenrot, Kerzengrün oder Orange, Beschriftung rechts daneben in derselben Farbe, dazu kurze
+ // Fib-Striche mit Beschriftung. Von Schrift verdeckte Kerzen werden nicht gewertet; Wendepunkte auf einer Kante bekommen 3 px Toleranz (tt).
+ if(o.zones){const zc=[C.dn,C.up,'#ff9800'],nz=1+Math.floor(rnd()*3);g.font='11px sans-serif';
+  for(let z=0;z<nz;z++){const i0=Math.floor(rr(.08,.8)*N),i1=Math.min(N-1,i0+Math.max(3,Math.floor(rr(.06,.2)*N))),xa=Math.round(xOf(i0)-sp/2),xb=Math.round(xOf(i1)+sp/2);
+   const k=cand[Math.floor((i0+i1)/2)],ym=yOf(rnd()<.5?k.h:k.l),hh=rr(.06,.18)*(PB-PT),ya=Math.round(Math.max(PT,ym-hh*rr(.2,.8))),yb=Math.round(Math.min(PB-2,ya+hh)),c=zc[Math.floor(rnd()*zc.length)];
+   g.save();g.globalAlpha=rr(.15,.3);g.fillStyle=c;g.fillRect(xa,ya,xb-xa,yb-ya);g.restore();g.strokeStyle=c;g.lineWidth=1;g.strokeRect(xa+.5,ya+.5,xb-xa,yb-ya);
+   const t=(rr(.5,1.8)*100).toFixed(2)+'% ('+(50+rnd()*100).toFixed(2)+')',tw=g.measureText(t).width;g.fillStyle=c;g.fillText(t,xb+4,ya+4);
+   const fy=Math.round(ya+(yb-ya)*rr(.3,.7)),fx=xb+6+tw+10,ft='0,'+Math.floor(rr(236,887))+' ('+(40+rnd()*60).toFixed(2)+')',fw=g.measureText(ft).width;
+   if(fx+24+fw<PR){g.fillRect(fx,fy,18,1);g.fillText(ft,fx+22,fy+4)}
+   cdl.forEach(q=>{if((q.x>=xb+1&&q.x<=xb+7+tw&&q.b>=ya-9&&q.a<=ya+6)||(fx+24+fw<PR&&q.x>=fx-2&&q.x<=fx+24+fw&&q.b>=fy-9&&q.a<=fy+6))q.hid=1});
+   tips.forEach(q=>{if(q.x>=xa-1&&q.x<=xb+1&&(Math.abs(q.y-ya)<=2||Math.abs(q.y-yb)<=2))q.tt=1})}}
  let out=cv,sc=1;
  if(o.photo){sc=o.big?2.1:1.4;const c2=document.createElement('canvas');c2.width=Math.round(W0*sc);c2.height=Math.round(H0*sc);const h2=c2.getContext('2d');h2.filter='blur(0.7px)';h2.imageSmoothingQuality='high';h2.drawImage(cv,0,0,c2.width,c2.height);h2.filter='none';
   const id=h2.getImageData(0,0,c2.width,c2.height),D=id.data,cw=c2.width,ch=c2.height;
@@ -116,7 +128,8 @@ if (require.main === module) (async () => {
     for (let r = 0; r < N * PATS.length; r++) {
       const P = PATS[r % PATS.length], o = { seed: 1 + Math.floor(Math.random() * 2e9), pr: P.pr, z: P.z, theme: Math.random() < .5 ? 'dark' : 'light', kind: (k => k < .25 ? 'line' : k < .45 ? 'ohlc' : 'candle')(Math.random()), ohlcW: Math.random() < .5, draw: Math.random() < .5, log: Math.random() < .3, photo: Math.random() < .35, labels: Math.random() < .3 };
       o.big = o.photo && Math.random() < .3; o.legend = Math.random() < .6; o.axis = o.legend && Math.random() < .5; // Legende im Chart, Zuschnitt mit Preisachse
-      const desc = P.name + ' [' + [o.theme, o.kind, o.log ? 'log' : 'linear', o.photo ? (o.big ? 'Foto groß' : 'Foto') : 'Screenshot', o.labels ? 'Labels' : '', o.draw ? 'Zeichnungen' : '', o.kind === 'ohlc' && o.ohlcW ? 'weiß' : '', o.legend ? 'Legende' : '', o.axis ? 'mit Preisachse' : ''].filter(Boolean).join(', ') + ']';
+      o.zones = Math.random() < .35; // Fibonacci-/Zielzonen über den Kerzen (seit 25.11.2026)
+      const desc = P.name + ' [' + [o.theme, o.kind, o.log ? 'log' : 'linear', o.photo ? (o.big ? 'Foto groß' : 'Foto') : 'Screenshot', o.labels ? 'Labels' : '', o.draw ? 'Zeichnungen' : '', o.zones ? 'Zonen' : '', o.kind === 'ohlc' && o.ohlcW ? 'weiß' : '', o.legend ? 'Legende' : '', o.axis ? 'mit Preisachse' : ''].filter(Boolean).join(', ') + ']';
       const img = await page.evaluate(new Function('return ' + MK)(), o).catch(e => { fail('Testbild: ' + e.message); return null; }); if (!img) continue;
       // ---- 1) Hochladen und Zuschneiden ----
       await page.evaluate(() => ownChart()); await page.waitForSelector('#ocfile', { state: 'attached' });
@@ -144,7 +157,7 @@ if (require.main === module) (async () => {
         const ok = hi >= 0 && (o.kind === 'line' ? hi <= a + ptol && lo >= b - ptol : Math.abs(hi - a) <= ptol && Math.abs(lo - b) <= ptol);
         // senkrechte Ausschläge: Verlauf reicht über die Kerzen der Nachbarschaft hinaus (z. B. bis zur Legende)
         if (hi >= 0) { const nb = img.cdl.map(c => ({ x: (c.x - crop.x) * crop.f, a: (c.a - crop.y) * crop.f, b: (c.b - crop.y) * crop.f })).filter(c => Math.abs(c.x - x) <= Math.max(2, 1.6 * Math.abs(img.cdl[1].x - img.cdl[0].x) * crop.f)); if (nb.length && (hi < Math.min(...nb.map(c => c.a)) - 3 * ptol || lo > Math.max(...nb.map(c => c.b)) + 3 * ptol)) { if (o.draw) pspikeD++; else pspike++; if (process.env.DBG) console.log('   Ausschlag', name, desc, 'Spalte', x, hi, lo, 'o=' + JSON.stringify({ pi: r % PATS.length, seed: o.seed, theme: o.theme, kind: o.kind, log: o.log, photo: o.photo, big: o.big, labels: o.labels, legend: o.legend, axis: o.axis })); } }
-        if (ok) pok++; else if (process.env.DBG && pbad++ < 8) console.log('   Verlauf', name, desc, 'Spalte', x, 'erwartet', a.toFixed(1), b.toFixed(1), 'erkannt', hi, lo); });
+        if (ok) pok++; else if (process.env.DBG && pbad++ < (+process.env.DBGN || 8)) console.log('   Verlauf', name, desc, 'Spalte', x, 'erwartet', a.toFixed(1), b.toFixed(1), 'erkannt', hi, lo); });
       // ---- 2) Zählen mit echten Tipps ----
       await page.evaluate(z => document.querySelector('[data-fz="' + z + '"]').click(), P.z); await page.waitForTimeout(60);
       let placed = 0;

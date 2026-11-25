@@ -102,6 +102,39 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Hinweis „Viele Zeichnungen im Bild, die Erkennung ist unsicher“ mit Tipp (`.ocq`), wenn `IMG.q.low`: Verlauf in unter 80 % der 6-Spalten-Abschnitte
   oder entfernte Zeichnungen (Linien-, Kästchen- und Zonenpixel) ab `Q_DRAW` = 0,8 % der Bildfläche (`IMG.q` = {cov, draw, low}).
   Test: `node tests/pruefen-nachzeichnen.js` (Playwright, Handy/iPad/PC: Tipp, Vorschlag, Gründe, Nachzeichnen nur dort, danach Zeichnen, Punkte, Prüfen).
+- Kerzensuche (seit 25.11.2026, `ocKerzen`, in `ocPath` vor der Strangwahl; nach Discord-Feedback CoreWeave: Treppen entlang von Fibonacci-Boxen):
+  Kerzen finden statt „alles, was nicht Hintergrund ist“. Der bisherige Weg (unten) liefert weiter Rahmen, Achsen, Legende, Kästchen und Linien
+  (`RMV`: 1 = Linie, 2 = Zonenfläche, 3 = Kästchen/Zonenrahmen) und bleibt Rückfall, wenn keine Kerzen gefunden werden.
+  1. Hintergrund je 16-px-Kachel: häufigste Farbe (auf Fotos alle Pixel bis 10 + Rauschen daneben, ab 30 % der Kachel, bis 120 vom Charthintergrund);
+     Kachelfarben, die selbst Kerzenfarbe sind (s ab 0,45 vom Charthintergrund bzw. einer helleren Nachbarkachel aus), fallen weg (breite Körper).
+     Kandidaten je Pixel: Charthintergrund und die 3 × 3 Kacheln rundherum. So ist die Füllung einer halbtransparenten Box lokaler Hintergrund.
+  2. Kerzenfarben aus senkrechten Strichen, gruppiert nach der Richtung vom Charthintergrund aus (Fächer, häufigste zuerst, Winkel bis ~10°),
+     Bezug = 90-%-Wert der Entfernung; mindestens 3 % der Striche über 10 von 24 Abschnitten; höchstens zwei, die zweite mit anderer Richtung.
+  3. Kerzenpixel: liegt das Pixel (fast) auf einem Hintergrund (bis max(8, 0,4 T) + 1,5 × Rauschen), ist es Hintergrund; sonst Kerze, wenn
+     Pixel − Hintergrund = s × (Kerzenfarbe − Charthintergrund) mit s 0,5–1,35 und Rest bis 10 + 10 % + Rauschen (Kerze in der Box: von der
+     Füllung aus). Blasse Dochte wachsen senkrecht weiter (s ab 0,25), auch durch Pixel, die die Linienerkennung entfernt hat.
+  4. Nur Säulen: dünne waagerechte Stücke (bis 3 px hoch, ab 1,6 × Körperbreite + 3, höchstens 15) und senkrechte Box-Kanten (Säule, die oben und
+     unten an so einem Stück endet) fallen weg, ebenso gepunktete Linien (≥ 5 Punkte, gleicher Abstand), Kreis-Labels (Löcher in ≥ 30 % der
+     Spalten; verschmolzene Label-Stapel zeilenweise auf Höhe der Löcher), Beschriftung in Kerzenfarbe (Kette ≥ 4 kleiner Formen; Formen im festen
+     Abstand sind Kerzen, außer sie haben Löcher wie 0, 4, 6, %) und die oberste/unterste 2 Bildzeilen (angeschnittene Labels).
+  5. Liniencharts (eine Hauptfarbe, ≥ 85 % der Spalten, Strich kaum länger als der Anstieg): nur mit gefüllten Zonen über die Farbmaske (ohne
+     Schritt 4 waagerecht), sonst der bisherige Weg (Trend- und Fib-Linien in Linienfarbe).
+  Strangwahl im Kerzenmodus: Auslassen kostet 2 statt 6, Belohnung bis 30 Pixel Säulenlänge statt 6 (sonst gewann ein Kreis-Label mit Pixeln in
+  jeder Spalte gegen die dünnen Dochte); Lücken bis 10 px in einer Säule ohne Hintergrund (Linie kreuzt den Balken) werden überbrückt.
+  Danach: dünn besetzte Stellen (±5 Kerzenabstände unter 30 % der mittleren Dichte des Kurses; dünne OHLC-Balken belegen nur ~5 %) fallen weg; Lücken über 1,6 ×
+  Kerzenabstand (`KZ.P`, Median der Abstände der Formen) werden bis 14 Kerzen bzw. 5 % der Breite zwischen den Nachbarkerzen linear ergänzt
+  (`IMG.ip`) und als unsicher markiert, ebenso Stellen mit konkurrierender Säule weit abseits (`IMG.uns` = Bereiche). `IMG.kz` = Farben,
+  Körperbreite, Abstand, `ok`. Anzeige: unsichere Stellen orange im Chart (`ocUns`, `ocUnsR`, nachgezeichnete Spalten zählen nicht), darunter
+  „Erkennung zu … % sicher“ (`ocQS`, `ocSure`); `IMG.q.sure`, Hinweis „Erkennung unsicher“ auch ab 12 % unsicherer Spalten.
+  Zuschnitt-Vorschlag: oben/unten der 0,3-%-Wert statt des Extrems. Stand 25.11.2026 auf 40 Generatorbildern (Kerzen/OHLC): 96,9–97,2 % der Kerzen
+  genau (bisher 92,1 %), Ausschlag-Spalten aller 40 Bilder 435 statt 1539; Liniencharts mit Zonen 0 statt 61/20 Ausschlag-Spalten.
+  Weitere Filter: Farbsaum (Kerzenpixel, die in 5 × 5 von mehr als dreimal so vielen kräftigen andersfarbigen Pixeln umgeben sind), Label-Gruppen der
+  alten Regel (`lab`), die zu weniger als 50 % aus Kerzenfarbe bestehen; Textzeilen der alten Regel nur im oberen Viertel (Legende).
+  `tests/eigener-chart.js 6` am 25.11.2026, alt gegen neu (mit den neuen Zonen-Charts): Verlauf 92,8/93,4/94,6 % → 95,2/95,7/94,0 %,
+  Ausschlag-Spalten 30/50/14 → 0/11/8, Einrasten 89,6/88,0/98,4 % → 100/94,6/95,5 %, Tipp auf vorhandenes Label 85,7/94,4/100 % →
+  85,7/92,9/56,3 % (PC schwächer, auch Liniencharts über den alten Weg betroffen); der Test reißt weiter einzelne Grenzen (alt 10, neu 7 Fehler).
+  Offen: Tipp auf vorhandene Labels; Reste hinter der letzten Kerze (Kreis-Labels, Klammern von Fib-Beschriftungen) bleiben, liegen aber in den unsicheren Bereichen;
+  Fotos mit überlappenden Zonen; Kreis-Labels in fast Kerzenfarbe auf stark verkleinerten Bildern.
 - Kursverlauf (seit 23.11.2026, `ocPath`, direkt nach dem Zuschneiden): je Bildspalte höchstes und tiefstes Pixel von Kerzen bzw.
   Linie → `IMG.path` = {hi, lo (Zeile, -1 = nichts), man (nachgezeichnet)}, `IMG.auto` = erkannte Werte. Hintergrund je Kachel (48 px,
   häufigste Farbe, nur aus Pixeln innerhalb des Rahmens), Schwelle nach Kontrast. Schutzstufen (überarbeitet 23.11.2026 nach senkrechten Balken bis zur Legende):
@@ -211,17 +244,20 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Antippen blinkt, Export. Nach Änderungen an `ocSub`, `imgVerify` oder den Texten laufen lassen.
 - Verlauf auf festen Bildern (seit 25.11.2026 auch `coreweave-zeichnungen-ganz.png` = Discord-Screenshot ohne Zuschnitt, voller Zeichnungen, und
   `coreweave-zeichnungen.png` = dessen vorgeschlagener Ausschnitt; Felder `vorschlag`, `hinweis`, `ausschlaege`; der zweite Discord-Screenshot zeigte
-  nur die App und ist kein Testbild): `node tests/verlauf.js` (Playwright, Handy/iPad/PC). Bilder und Erwartungen in `tests/faelle/faelle.json`
+  nur die App und ist kein Testbild; seit der Kerzensuche auch `coreweave-original.png` = derselbe Screenshot in Originalgröße 1921 × 1276 mit
+  verbotener Oberkante der Box b und Zone hinter der letzten Kerze): `node tests/verlauf.js` (Playwright, Handy/iPad/PC). Bilder und Erwartungen in `tests/faelle/faelle.json`
   (Bereich, kein Verlauf über `oben`/unter `unten`, keine senkrechten Ausschläge, Abdeckung je 6 Spalten). `legende-oben.png` = Lennys
   Screenshot vom 23.11.2026 (TradingView dunkel, Legende, Preisachse, Labels; blaue App-Linie herausgerechnet). `lumen-trendlinien.png` =
   Lennys Original (dünne weiße OHLC-Balken, lila Trendlinien, Kästchen 6.49), `paypal-preiskaestchen.png` = Lennys Original (dünne weiße
   Kerzen, Kästchen PYPL/52.84/44.31, gepunktete Preislinie, Preisachse mit Rand, E/D-Symbole). Optional je Fall `kurs` (Kursfarbe bzw. Helligkeit; nur Pixel mit Nachbar in Kursfarbe
-  darüber oder darunter, also keine Punkte einer gepunkteten Linie): Verlauf bis 3 px am obersten/untersten Kurspixel (Anteil `nah`), höchstens 0,5 % der Spalten mehr als 8 px abseits; `verboten` = Rechtecke ohne Verlauf. Neue
+  darüber oder darunter, also keine Punkte einer gepunkteten Linie; seit 25.11.2026 zählt auch ein einzelnes Pixel ohne 2 weitere in derselben Zeile
+  ±12 Spalten, also ein Balken ohne Bewegung wie in Lumen): Verlauf bis 3 px am obersten/untersten Kurspixel (Anteil `nah`), höchstens 0,5 % der Spalten mehr als 8 px abseits; `verboten` = Rechtecke ohne Verlauf. Neue
   Problembilder dort aufnehmen (Original-Screenshots sind besser als zurückgerechnete). `tests/eigener-chart.js` zeichnet seit 23.11. auch TradingView-Legende im Chart, gepunktete Linie des letzten Kurses,
   Preis-Kästchen auf der mitgeschnittenen Preisachse und lange Dochte und prüft „keine senkrechten Ausschläge“. Seit 23.11. außerdem OHLC-Balken
   (farbig bzw. weiß/grau, `kind:'ohlc'`) und Zeichnungen (`draw`: Trendlinie durch zwei Hochs/Tiefs, Kanal, Fibonacci mit Beschriftung,
   Symbol-Kästchen auf Kurshöhe; Farbe lila, blau, grau oder Kursfarbe); verdeckte Kerzen zählen nicht (`hid`), an berührten Spitzen (`tt`) 3 px
-  Toleranz.
+  Toleranz. Seit 25.11.2026 Zonen (`zones`, 35 %): 1–3 halbtransparente Rechtecke über den Kerzen in Kerzenrot, -grün oder Orange mit Rand und
+  Beschriftung in derselben Farbe, dazu kurze Fib-Striche; von Schrift verdeckte Kerzen zählen nicht, Wendepunkte auf einer Kante bekommen `tt`.
 - Strukturtest: `node tests/struktur.js [Charts je Gerät]` (Playwright, Handy/iPad/PC, `NUR`, `DBG=1`, `OCF=Faktor`): Charts aus `pgData`
   (alle Muster, bekannte Unterteilung) als Bild im TradingView-Stil (hell/dunkel, Kerzen/Linie, teils Foto), große Welle an den bekannten
   Wendepunkten gezählt: Fehlalarme ≤ 5 % der beurteilten Wellen, ≥ 70 % beurteilt; manipulierte Impulse mit dreiteiliger Welle 3 (Zigzag)

@@ -10,6 +10,7 @@ Kein Spielmodus (keine Punkte, Serie, Ränge, Tutorials), ohne KI und ohne Serve
 |---|---|---|
 | Hochladen | `ownChart()` | Dateifeld bzw. Ziehen (PNG/JPG), Tipp „Zeichnungen ausblenden“ (`.octip`), Hinweis `OCNOTE` |
 | Zuschneiden | `ocCrop(im,u)`, `ocSuggest(im)` | Vorschlag = vorgewählter Rahmen (ohne Achsen, Legende, Leisten), anpassen oder neu ziehen, „Ganzes Bild“; höchstens `OCMAX` = 2000 px |
+| Kerzensuche | `ocKerzen(k)` (aus `ocPath`) | Kerzenfarben, lokaler Hintergrund je 16-px-Kachel, nur Säulen in Kerzenfarbe → Maske für die Strangwahl; Rückfall auf den alten Weg ohne Kerzen |
 | Verlauf erkennen | `ocPath(IMG)` | je Bildspalte Hoch/Tief → `IMG.path` {hi, lo, man}, `IMG.auto`, `IMG.cw` (Kerzenbreite), `IMG.ax` (Rahmen/Achsen), `IMG.q` (Qualität) |
 | Zählen | `progn({img:IMG},'schwer')` | Bedienung wie „Wie geht es weiter?“ Schwer (Zeichnen/Auswählen, Unterteilungen) |
 | Darstellung | `pic()`, `ocCandles()`, `ocG()` | Bild als `<image>`, Regler „Bild blasser“ (0–100 %), Verlauf als Kerzen |
@@ -22,7 +23,20 @@ Kein Spielmodus (keine Punkte, Serie, Ränge, Tutorials), ohne KI und ohne Serve
 
 Testzugriff: `PGS.img`, `PGS.res`, `PGS.ocG()`, `PGS.snapAt`, `PGS.X/Y`, `PGS.Tof/Pof`, `PGS.view()`, `PGS.zoom()`, `PGS.lastPng`.
 
-## Chart-Erkennung (`ocPath`) – aktueller Stand
+## Kerzensuche (`ocKerzen`, seit 25.11.2026)
+
+Anlass: Discord-Feedback (CoreWeave in Originalgröße, `tests/faelle/coreweave-original.png`): waagerechte Treppen entlang von Fibonacci-Boxen, flacher Verlauf auf Fib-Linien. Ursache im alten Weg: Kerzen in halbtransparenten Boxen verschwanden mit der Zonenfarbe, übrig blieben Box-Kanten und Fib-Texte in Kerzenrot.
+
+1. **Lokaler Hintergrund:** je 16-px-Kachel die häufigste Farbe (Fotos: alle Pixel nahe daran). Kandidaten je Pixel: Charthintergrund plus 3 × 3 Kacheln. Kachelfarben, die selbst Kerzenfarbe sind, fallen weg.
+2. **Kerzenfarben:** Striche (senkrechte Läufe), gruppiert nach Richtung vom Charthintergrund aus (Farbfächer, häufigste zuerst), Bezug 90-%-Wert. Höchstens zwei, die zweite mit anderer Richtung.
+3. **Kerzenpixel relativ:** Pixel − Hintergrund = s × (Kerzenfarbe − Charthintergrund), s 0,5–1,35. Eine Box über der Kerze verschiebt Kerze und Hintergrund gleich. Pixel auf einem Hintergrund (auch Box-Füllung) sind nie Kerze. Blasse Dochte wachsen senkrecht weiter.
+4. **Nur Säulen:** dünne waagerechte Stücke, senkrechte Box-Kanten, gepunktete Linien, Kreis-Labels, Beschriftungsketten und die äußersten 2 Bildzeilen fallen weg.
+5. **Danach in `ocPath`:** Strangwahl mit billigem Auslassen und Belohnung langer Säulen, dünn besetzte Stellen weg, Lücken linear ergänzt (`IMG.ip`), unsichere Bereiche `IMG.uns` → orange im Chart, „Erkennung zu … % sicher“.
+6. **Liniencharts:** nur mit gefüllten Zonen über die Farbmaske, sonst der alte Weg.
+
+Messung (40 Generatorbilder, Skript nur im Arbeitsordner): Kerzen/OHLC 97 % genau statt 92 %, Ausschlag-Spalten 435 statt 1539.
+
+## Chart-Erkennung (`ocPath`) – bisheriger Weg (liefert Rahmen, Achsen, Legende, Kästchen und Linien; Rückfall ohne Kerzen)
 
 Reihenfolge im Code:
 
@@ -54,6 +68,15 @@ Reihenfolge im Code:
 | Zonen nur über Kacheln ab 4 × 16 px | schmale Zonen (55 px) blieben → zusätzlich pixelweise |
 | Mindestlänge gezeichneter Linien 12 % | kurze Fibonacci-/Trendlinien blieben → 6 % (Messung leicht besser) |
 | Unterteilungsprüfung empfindlicher (`OCF` 1,0 bzw. „genau eine Schwelle“) | 13 % bzw. 26 % Fehlalarme → `OCF` 1,5 (2–4 % Fehlalarme, rund 20–35 % Erkennung dreiteiliger Wellen) |
+| Kerzenfarbe nach RGB-Abstand gruppiert (Abstand 48) | blasse/unscharfe Kerzenpixel bildeten eigene Gruppen, Mischfarben wurden „Kerzenfarbe“ und passten zu Rahmen und Grau → Gruppierung nach Richtung vom Hintergrund |
+| Farbgruppen in Bildreihenfolge, höchstens 16 | auf Fotos war die Liste schon mit Rauschen voll, bevor die roten Kerzen kamen → erst Fächer zählen, häufigste zuerst |
+| Kerzenfarben nur mit gefüllten Körpern (3 × 3) | dünne Kerzen (Original 1921 px) haben keine Körper, Werkzeugleiste und VERKAUF-Kästchen schon |
+| Vergleich nur mit dem nächstgelegenen Hintergrund | reingrüne Kerze neben roter Box passte nicht mehr → jeder Hintergrund, aber Pixel auf einem Hintergrund sind nie Kerze |
+| Linienchart = eine lange Form | dicht gepackte Kerzen (verkleinertes Bild) sind auch eine Form → Strichlänge gegen Anstieg, Hauptfarben |
+| Textzeilen der alten Erkennung ausschließen | ruhige Kerzenreihen galten als Schrift → eigene Kettenregel mit festem Abstand und Löchern |
+| Alte Label-Regel ausschließen | verlor Kerzen in Zonen und das echte Hoch |
+| Engere Farbtoleranz gegen Kreis-Labels | kostete auf Fotos Kerzen (91 → 69 %) |
+| Strangwahl mit Auslassen 6 und Belohnung bis 6 | Kreis-Label mit Pixeln in jeder Spalte gewann gegen dünne Dochte (Allzeithoch fehlte) → im Kerzenmodus 2 bzw. 30 |
 | Bild frei verschiebbar, nicht randfüllend | Bild ließ sich aus der Fläche schieben (Video Lenny) → fixiert |
 
 ## Testbilder und Tests
@@ -67,6 +90,7 @@ Feste Bilder liegen in `tests/faelle/`, die Erwartungen in `tests/faelle/faelle.
 | `paypal-preiskaestchen.png` | Original: Kästchen PYPL/52.84/44.31, gepunktete Preislinie, E/D-Symbole |
 | `coreweave-zeichnungen-ganz.png` | Discord: ohne Zuschnitt, voller Zeichnungen, Zonen, Kästchen VERKAUF/KAUF |
 | `coreweave-zeichnungen.png` | dessen vorgeschlagener Ausschnitt |
+| `coreweave-original.png` | derselbe Screenshot in Originalgröße (1921 × 1276), Anlass der Kerzensuche |
 
 Tests (alle Playwright, `NODE_PATH` und `PWCH=msedge` siehe Memory bzw. CLAUDE.md):
 
@@ -86,6 +110,8 @@ Tests, die fertig zugeschnittene Bilder hochladen, müssen vor „Weiter“ auf 
 Für feste Vergleiche gab es ein Skript `bench2.js` (144 Generatorbilder: Verlauf je Kerze, Ausschläge, Einrasten mit harten Versätzen). Es lag nur im temporären Arbeitsordner. Stand: 96,3 % Verlauf, 37 Ausschlag-Spalten, 89,6 % Einrasten. Bei Bedarf als `tests/` neu anlegen.
 
 ## Bekannte offene Probleme
+
+- **Kerzensuche:** Reste hinter der letzten Kerze (Kreis-Labels, Klammern von Fib-Beschriftungen) bleiben im Verlauf, liegen aber in orange markierten Bereichen. Fotos mit überlappenden Zonen haben weiter Ausschläge. Auf stark verkleinerten Bildern sind Kreis-Labels fast kerzenfarbig. Kerzen werden als Hohlkerzen (TradingView „Hollow candles“) nicht getestet. Laufzeit rund 0,3–1 s für 2000-px-Bilder.
 
 - **CoreWeave (viele Zeichnungen):**
   - Der Verlauf hängt noch an Kanten der Zone „b“, an zwei kurzen blauen Linien, an Zonenkanten unten rechts und am Logo unten links.

@@ -81,6 +81,27 @@
       ],
       "hinweis": true,
       "quelle": "Ausschnitt aus coreweave-zeichnungen-ganz.png, wie ihn der Zuschnitt-Vorschlag liefert (139, 154, 1138 × 703)."
+    },
+    {
+      "datei": "coreweave-original.png",
+      "bereich": [275, 1510],
+      "oben": 150,
+      "unten": 1215,
+      "abdeckung": 0.85,
+      "verboten": [
+        [1815, 0, 1921, 1276],
+        [0, 0, 1000, 140],
+        [1020, 498, 1040, 506],
+        [1570, 1135, 1810, 1215]
+      ],
+      "vorschlag": {
+        "innen": [300, 240, 1500, 1100],
+        "rechts": 1815,
+        "unten": 1230,
+        "oben": 120
+      },
+      "hinweis": true,
+      "quelle": "Discord-Screenshot vom 25.11.2026 in Originalgröße (1921 × 1276, über Lenny): TradingView dunkel, CoreWeave 8h, Fibonacci-/Zielzonen (halbtransparent, Kerzen darin eingefärbt), Box-Kanten und Fib-Beschriftung in Kerzenrot, Labels in Kreisen. Vorher waagerechte Treppen entlang der Boxen und flacher Verlauf auf Fib-Linien rechts unten. Seit der Kerzensuche (25.11.2026) Testfall. Verboten: Preisachse, Legende/Werkzeugleiste, linke Oberkante der Box b (ohne Kerzen), gelbe Zone rechts unten hinter der letzten Kerze. Bekannte Reste hinter der letzten Kerze (Kreis-Label ii, Klammern der Fib-Beschriftung) liegen in den als unsicher markierten Bereichen."
     }
   ]
 }

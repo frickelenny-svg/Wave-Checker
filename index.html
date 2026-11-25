@@ -313,6 +313,7 @@ body.tut-on .tutbtn{visibility:hidden}
 /* Verlauf als Kerzen (24.11.2026): steigend gefüllt, fallend als Umriss, in --accent */
 .occw{fill:none;stroke:var(--accent);stroke-width:1.2}.occu{fill:var(--accent);stroke:var(--accent);stroke-width:1}.occd{fill:none;stroke:var(--accent);stroke-width:1.2}.octrs{fill:none;stroke:var(--ok);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .pgzz{fill:none;stroke:var(--warn-text);stroke-width:1.8;stroke-dasharray:5 4}.pgzzp{fill:var(--surface);stroke:var(--warn-text);stroke-width:1.6}.ocpt{flex-wrap:wrap}.ocpt button{margin:0;min-height:40px}.ocpt label{display:inline-flex;align-items:center;gap:6px}
+.ocun rect{fill:var(--warn-text);opacity:.2}.ocun rect.ocunm{opacity:.85}.ocqs{display:flex;align-items:center;gap:8px;margin:4px 2px 0}.ocqsw{flex:none;width:14px;height:14px;border-radius:3px;background:var(--warn-text);opacity:.45}.ocqsw[hidden]{display:none}
 .ocq{display:flex;gap:8px;align-items:flex-start;margin:8px 2px;padding:10px 12px;border-radius:12px;background:var(--warn-bg);color:var(--warn-text);font-size:14px}.ocq svg{width:18px;height:18px;flex:none;margin-top:2px}
 .ocwarn{display:flex;align-items:center;gap:8px;margin:0 0 6px;color:var(--warn-text);font-weight:700;font-size:1.05rem}.ocwarn svg{width:22px;height:22px;flex:none}
 .ocsubn{cursor:pointer}.ocsubn:hover,.ocsubn:focus-visible{border-color:var(--warn-text)}.pgwb{fill:var(--warn-text);opacity:.1}.pgwb.blink{animation:ocblink .42s ease-in-out 4 alternate}
@@ -1564,6 +1565,10 @@ function progn(arg,lvl){
    const yt=Yr(Math.min(op,cl)),yb=Yr(Math.max(op,cl)),hh=Math.max(1,yb-yt),r='M'+f1(cx-bw/2)+' '+f1(yt-(yb-yt<1?.5:0))+'h'+f1(bw)+'v'+f1(hh)+'h'+f1(-bw)+'z';
    if(cl<=op)up+=r;else dn+=r} // Zeile kleiner = höher: steigend
   return'<g clip-path="url(#pgclip)" class="occ"><path class="occw" d="'+wk+'"/><path class="occu" d="'+up+'"/><path class="occd" d="'+dn+'"/></g>'};
+ // Unsichere Stellen der Kerzensuche (25.11.2026, Lenny): orange hinterlegt, damit man dort gezielt nachzeichnet; Nachgezeichnetes gilt als geklärt
+ const ocUns=()=>{let r='',m='';const yT=Y(IMG.h),yB=Y(0);ocUnsR(IMG).forEach(([a,b])=>{let x0=X(a-.5),x1=X(b+.5);if(x1-x0<6){const c=(x0+x1)/2;x0=c-3;x1=c+3}if(x1<0||x0>W)return;
+   r+='<rect x="'+x0.toFixed(1)+'" y="'+yT.toFixed(1)+'" width="'+(x1-x0).toFixed(1)+'" height="'+(yB-yT).toFixed(1)+'"/>';m+='<rect class="ocunm" x="'+x0.toFixed(1)+'" y="'+(yB-6).toFixed(1)+'" width="'+(x1-x0).toFixed(1)+'" height="6"/>'});
+  return r?'<g clip-path="url(#pgclip)" class="ocun">'+r+m+'</g>':''}; // ganze Bildhöhe blass, unten ein kräftiger Streifen; mindestens 6 px breit
  const bwFit=h=>IMG?imFit():(W-2*EP)/((ZE-tA)/h+2),bwMin=()=>IMG?imFit():Math.max(.5,W/(ZE/tf+2)),bwMax=()=>IMG?Math.max(8,imFit()*12):Math.max(60,bwFit(tf)*1.01);
  let baseY=null; // gemeinsame Grundachse: sichtbares Muster + Luft für die Prognose
  const yBase=()=>{if(!baseY){let lo=patLo-(FR?.8:.5)*patRg,hi=patHi+(FR?.8:.5)*patRg;room().forEach(p=>{lo=Math.min(lo,p);hi=Math.max(hi,p)});const pad=(hi-lo)*.04;baseY=[lo-pad,hi+pad]}return baseY.slice()};
@@ -1844,6 +1849,7 @@ function progn(arg,lvl){
   // beim Hineinzoomen feiner, beim Herauszoomen gröber. Hoch/Tief = exaktes Extrem der Gruppe, Schluss = Mitte der letzten Spalte, Eröffnung =
   // Schluss der Kerze davor. Steigend gefüllt, fallend als Umriss. Das Einrasten nutzt weiter die einzelnen Spalten (imgSnap).
   // Bei „Bild blasser“ 100 % immer, auch im Ergebnis und im Export, sonst wäre die Fläche leer
+  if(IMG&&!EXP&&!FR.done&&(IMG.show!==false||IMG.trace||IMG.fade>=1))s+=ocUns();
   if(IMG&&(IMG.fade>=1||!EXP&&(IMG.show!==false||IMG.trace)&&!FR.done))s+=ocCandles();
   if(IMG&&TRS&&TRS.length>1)s+='<polyline class="octrs" points="'+TRS.map(q=>X(q.t).toFixed(1)+','+Y(q.p).toFixed(1)).join(' ')+'"/>';
   if(IMG&&FR.done&&m.zz)m.zz.forEach(z=>{s+='<polyline class="pgzz" points="'+z.map(q=>X(q.t).toFixed(1)+','+Y(q.p).toFixed(1)).join(' ')+'"/>'+z.slice(1,-1).map(q=>'<circle class="pgzzp" cx="'+X(q.t).toFixed(1)+'" cy="'+Y(q.p).toFixed(1)+'" r="3"/>').join('')}); // gefundene Wendepunkte (Warnsignal Unterteilung)
@@ -2307,7 +2313,7 @@ function progn(arg,lvl){
   .map(([md,t,ic])=>'<button data-md="'+md+'" class="'+(FR.md===md?'on':'')+'" aria-pressed="'+(FR.md===md)+'" title="'+t+'" aria-label="'+t+'"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ic+'</svg></button>').join('')+'</div>';
  const frRender=fb=>{fbLast=fb;const ready=frReady(),pg0=$('#pgc'),top0=pg0?pg0.getBoundingClientRect().top:null;
   $('#view').innerHTML='<p class="kick">'+(IMG?'Eigenen Chart prüfen':'Wie geht es weiter? · Schwer')+'</p><p class="task">'+(FR.done?(IMG?'Geprüft. Du kannst die Zählung weiter ändern oder das Ergebnis als Bild speichern.':'Geprüft.'):IMG&&IMG.trace?'<b>Verlauf nachzeichnen.</b> Fahre mit dem Finger oder der Maus den Kursverlauf entlang: Was du zeichnest, ersetzt dort den erkannten Verlauf, zum Nachbessern fährst du einfach noch einmal über die Stelle. Zwei Finger zoomen.':IMG&&!FR.pts.length?'<b>Zähle deinen Chart.</b> Die blaue Linie zeigt den erkannten Kursverlauf, darauf rasten die Punkte ein. Passt sie nicht, zeichne den Verlauf nach. Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, der Punkt rastet am Docht-Hoch bzw. -Tief in der Nähe ein'+(mob?'':' (mit gedrückter Alt-Taste frei)')+'. Die erste Zählung ist die große Welle; Unterteilungen setzt du danach über die Auswahl einer Welle.':FR.md==='sel'?'<b>Auswählen.</b> Tippe einen Punkt an: Seine Zählung wird hervorgehoben, du kannst ihn verschieben, umbenennen oder die Zählung löschen. Für eine Unterteilung wähle die übergeordnete Welle (ihren Endpunkt) und dann die Zählweise.':FR.ac!==null?'<b>Zeichnen, Zählung läuft.</b> Jeder Tipp setzt das nächste Label (im sichtbaren Teil am nächsten Hoch oder Tief), ein Tipp auf einen bestehenden Punkt setzt es genau auf diesen Pivot.':FR.pts.length?'<b>Zeichnen.</b> Der nächste Tipp beginnt eine neue Zählung, auch genau auf einem bestehenden Pivot. Sie ist so groß wie die Zählung, an die sie anschließt. Für eine Unterteilung wechsle zu Auswählen, tippe die übergeordnete Welle an und dann die Zählweise.':'<b>Zähle frei und plane die Fortsetzung.</b> Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, danach springt die Leiste weiter. Im sichtbaren Teil rastet der Punkt am nächsten Hoch oder Tief ein, in der grauen Zone setzt du frei. Die erste Zählung ist die große Welle; Unterteilungen setzt du danach über die Auswahl einer Welle.')+'</p>'+
-   (FR.done?'':frBar())+(FR.done||mhSeen()?'':'<p class="pgmh card"><span>Zwei Werkzeuge links am Chart: <b>Zeichnen</b> (Fadenkreuz) setzt mit jedem Tipp einen Punkt, <b>Auswählen</b> (Pfeil) wählt Punkte zum Verschieben, Umbenennen und Löschen.</span><button id="pgmhok">OK</button></p>')+'<div class="chart pgc'+(IMG?' ocimg'+(IMG.fade>=1?' ocw':''):'')+'" id="pgc"></div>'+(IMG?'<p class="ocfd"><label for="ocfr">Bild blasser</label><input type="range" id="ocfr" min="0" max="100" step="5" value="'+Math.round(IMG.fade*100)+'" aria-valuetext="'+Math.round(IMG.fade*100)+' %"><output id="ocfv" for="ocfr">'+Math.round(IMG.fade*100)+' %</output></p>'+(FR.done?'':'<p class="ocfd ocpt"><label><input type="checkbox" id="ocsh"'+(IMG.show!==false||IMG.trace||IMG.fade>=1?' checked':'')+(IMG.trace?' disabled':'')+'> Erkannten Verlauf zeigen</label><button id="octr" class="'+(IMG.trace?'on':'')+'" aria-pressed="'+!!IMG.trace+'">'+(IMG.trace?'Nachzeichnen beenden':'Verlauf nachzeichnen')+'</button>'+(IMG.path.man.some(v=>v)?'<button id="ocrs">Erkannten Verlauf wiederherstellen</button>':'')+'</p>'):'')+legend+(IMG&&!FR.done&&IMG.q&&IMG.q.low?'<p class="ocq" role="note">'+ICON.warn+'<span>Viele Zeichnungen im Bild, die Erkennung ist unsicher. Tipp: In TradingView vorher alle Zeichnungen ausblenden (Augen-Symbol links) und nur den Chart abfotografieren. Passt der erkannte Verlauf an einer Stelle nicht, zeichne ihn dort nach.</span></p>':'')+(IMG&&!FR.done?OCNOTE:'')+(FR.sel&&!FR.done?frSelUI():'')+
+   (FR.done?'':frBar())+(FR.done||mhSeen()?'':'<p class="pgmh card"><span>Zwei Werkzeuge links am Chart: <b>Zeichnen</b> (Fadenkreuz) setzt mit jedem Tipp einen Punkt, <b>Auswählen</b> (Pfeil) wählt Punkte zum Verschieben, Umbenennen und Löschen.</span><button id="pgmhok">OK</button></p>')+'<div class="chart pgc'+(IMG?' ocimg'+(IMG.fade>=1?' ocw':''):'')+'" id="pgc"></div>'+(IMG?'<p class="ocfd"><label for="ocfr">Bild blasser</label><input type="range" id="ocfr" min="0" max="100" step="5" value="'+Math.round(IMG.fade*100)+'" aria-valuetext="'+Math.round(IMG.fade*100)+' %"><output id="ocfv" for="ocfr">'+Math.round(IMG.fade*100)+' %</output></p>'+(FR.done?'':'<p class="ocfd ocpt"><label><input type="checkbox" id="ocsh"'+(IMG.show!==false||IMG.trace||IMG.fade>=1?' checked':'')+(IMG.trace?' disabled':'')+'> Erkannten Verlauf zeigen</label><button id="octr" class="'+(IMG.trace?'on':'')+'" aria-pressed="'+!!IMG.trace+'">'+(IMG.trace?'Nachzeichnen beenden':'Verlauf nachzeichnen')+'</button>'+(IMG.path.man.some(v=>v)?'<button id="ocrs">Erkannten Verlauf wiederherstellen</button>':'')+'</p>'+ocQS(IMG)):'')+legend+(IMG&&!FR.done&&IMG.q&&IMG.q.low?'<p class="ocq" role="note">'+ICON.warn+'<span>Viele Zeichnungen im Bild, die Erkennung ist unsicher. Tipp: In TradingView vorher alle Zeichnungen ausblenden (Augen-Symbol links) und nur den Chart abfotografieren. Passt der erkannte Verlauf an einer Stelle nicht, zeichne ihn dort nach.</span></p>':'')+(IMG&&!FR.done?OCNOTE:'')+(FR.sel&&!FR.done?frSelUI():'')+
    '<div class="dock">'+(FR.done&&IMG?'<button class="p" id="ocsave">Als Bild speichern</button>'+(ocCanShare()?'<button id="ocshare">Teilen</button>':'')+'<button id="ocedit">Zählung ändern</button><button id="ocnew">Neues Bild</button>':FR.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
     '<button class="p" id="fchk" '+(ready?'':'disabled')+'>Prüfen</button><button id="ftrash" class="pgtrash" '+(FR.sel&&FR.md==='sel'?'':'disabled')+' aria-label="Ausgewählte Zählung löschen" title="Ausgewählte Zählung löschen (Entf)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="fund">Zurück</button><button id="frst">Neu setzen</button>'+(ready?'':'<p class="mut pghint" id="pgwhy">'+(IMG?ocWhy():'Prüfen geht, sobald mindestens die nächste große Welle in der grauen Zone steht.')+'</p>'))+'</div>'+
    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
@@ -2411,8 +2417,115 @@ function progn(arg,lvl){
 // bis 110 × 44 px), gestrichelte Linien (höchstens 3 px hoch), breite Formen am unteren Rand neben dem Hauptchart (Volumen), Randbänder mit
 // Schrift (Legende, Achsen) und je Spalte alles außer dem Strang, der zum Verlauf der Nachbarspalten passt (seit 23.11.2026). Blasse Dochtspitzen (Fotos) werden mit schwacher Schwelle um bis zu 6 px verlängert.
 // Ergebnis: IMG.path = {hi, lo (Zeile, -1 = nichts erkannt), man (1 = nachgezeichnet)}, IMG.auto = erkannte Werte zum Wiederherstellen.
+// Kerzensuche (25.11.2026, Lenny, nach Discord-Feedback CoreWeave: Treppen entlang von Fibonacci-Boxen): Kerzen finden statt „alles, was nicht
+// Hintergrund ist“. 1. Hintergrund je 16-px-Kachel (häufigste Farbe nah am Charthintergrund, also auch die Füllung einer halbtransparenten Box).
+// 2. Kerzenfarben aus der Form: Farben kräftiger Pixel in senkrechten Strichen, über die Breite verteilt; gibt es gefüllte Körper (ab 3 × 3 px),
+// zählen nur Farben mit Körpern (keine Labels in Kreisen). 3. Ein Pixel ist Kerze, wenn sein Abstand zum lokalen Hintergrund in Richtung der
+// Kerzenfarbe zeigt (Abstand = s × (Kerzenfarbe − Charthintergrund), s 0,5–1,35): Eine halbtransparente Box über der Kerze verschiebt beide gleich,
+// die Kerze in der Box bleibt erkannt, die Box selbst nicht. 4. Nur Säulen: dünne waagerechte Stücke (Box-Kanten, Fib-Linien) und Ketten kleiner
+// Formen auf einer Höhe (Beschriftungen in Kerzenfarbe) fallen weg, ebenso als Zeichnung entfernte Pixel und Legende/Achsen (ex).
+// Ergebnis: {M (1 + Farbindex je Pixel), soft (schwacher Treffer für blasse Spitzen), Wb (Körperbreite), info} oder null (keine Kerzen, z. B.
+// Linienchart: dann gilt der bisherige Weg).
+function ocKerzen(k){const{D,w,h,n,AX,G,T,p98,ex,exG}=k,NZ=Math.min(20,k.n9||0) /* Rauschen des Hintergrunds (Fotos) */,Q=c=>(D[c]>>4)<<8|(D[c+1]>>4)<<4|D[c+2]>>4,md=(a,b)=>Math.max(Math.abs(a[0]-b[0]),Math.abs(a[1]-b[1]),Math.abs(a[2]-b[2]));
+ const TS=16,tw=Math.ceil(w/TS),th=Math.ceil(h/TS),TB=[],cnt=new Uint16Array(4096),touched=[];
+ for(let ty=0;ty<th;ty++)for(let tx=0;tx<tw;tx++){const x0=tx*TS,y0=ty*TS,x1=Math.min(w,x0+TS),y1=Math.min(h,y0+TS);let bk=-1,bn=0;
+  for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const q=Q((y*w+x)*4);if(!cnt[q])touched.push(q);if(++cnt[q]>bn){bn=cnt[q];bk=q}}
+  touched.forEach(q=>cnt[q]=0);touched.length=0;let r=0,g=0,b=0,c=0;
+  for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const j=(y*w+x)*4;if(Q(j)===bk){r+=D[j];g+=D[j+1];b+=D[j+2];c++}}
+  // Fotos: Rauschen verteilt eine Fläche auf viele Farbstufen, daher zählen alle Pixel nahe der häufigsten Farbe (±10 + Rauschen)
+  const c0=[r/c,g/c,b/c],TT=10+NZ;r=g=b=c=0;for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const j=(y*w+x)*4;if(Math.abs(D[j]-c0[0])<=TT&&Math.abs(D[j+1]-c0[1])<=TT&&Math.abs(D[j+2]-c0[2])<=TT){r+=D[j];g+=D[j+1];b+=D[j+2];c++}}
+  const col=[r/c,g/c,b/c];TB.push(c>=(x1-x0)*(y1-y0)*.3&&md(col,G)<=120?col:null)} // Kacheln in Kerzenfarbe (breite Körper) fallen unten wieder weg
+ // Hintergrund-Kandidaten je Kachel: Charthintergrund und die Kacheln rundherum (Pixel am Rand einer Box liegen in der Nachbarkachel)
+ let CB=[];const mkCB=()=>{CB=[];for(let ty=0;ty<th;ty++)for(let tx=0;tx<tw;tx++){const L=[G];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const yy=ty+dy,xx=tx+dx;if(yy<0||xx<0||yy>=th||xx>=tw)continue;const c=TB[yy*tw+xx];if(c&&!L.some(o=>md(o,c)<=6))L.push(c)}CB.push(L)}};mkCB();
+ const bgOf=j=>{const x=j%w,y=(j-x)/w;return CB[Math.floor(y/TS)*tw+Math.floor(x/TS)]},ins=j=>{const x=j%w,y=(j-x)/w;return x>=AX.l&&x<AX.r&&y>=AX.t+2&&y<AX.b-2}; // oberste und unterste 2 Zeilen: nur angeschnittene Labels
+ const S=new Uint8Array(n);for(let j=0;j<n;j++){if(!ins(j)||ex(j))continue;const c=j*4,p=[D[c],D[c+1],D[c+2]];let m=1e9;for(const b of bgOf(j)){const d=md(p,b);if(d<m)m=d}if(m>=T)S[j]=1}
+ const runs=(A,vert)=>{const R=new Uint8Array(n);if(vert){for(let x=0;x<w;x++){let y=0;while(y<h){if(!A[y*w+x]){y++;continue}let e=y;while(e+1<h&&A[(e+1)*w+x])e++;const L=Math.min(255,e-y+1);for(let q=y;q<=e;q++)R[q*w+x]=L;y=e+1}}}
+   else for(let y=0;y<h;y++){let x=0;while(x<w){if(!A[y*w+x]){x++;continue}let e=x;while(e+1<w&&A[y*w+e+1])e++;const L=Math.min(255,e-x+1);for(let q=x;q<=e;q++)R[y*w+q]=L;x=e+1}}return R};
+ // Kerzenfarben aus senkrechten Strichen, gruppiert nach der Richtung vom Charthintergrund aus (Winkel bis rund 10°): kräftige und blasse bzw.
+ // unscharfe Pixel derselben Kerzenfarbe liegen auf einer Richtung, nur unterschiedlich weit. Bezug = 90 %-Wert der Entfernung (kräftige Farbe).
+ let vr=runs(S,1),hr=runs(S,0);const cl=[],bn=new Map();let tot=0;const DC=Math.max(T,p98*.35);
+ for(let j=0;j<n;j++){if(!S[j]||vr[j]<3||vr[j]<1.5*hr[j])continue;const c=j*4,d=[D[c]-G[0],D[c+1]-G[1],D[c+2]-G[2]];if(Math.max(...d.map(Math.abs))<DC)continue;const L=Math.hypot(d[0],d[1],d[2]),u=d.map(v=>v/L);
+  const key=Math.round(u[0]*12)*625+Math.round(u[1]*12)*25+Math.round(u[2]*12);let o=bn.get(key);if(!o)bn.set(key,o={s:[0,0,0],n:0,sp:0,m:[]});
+  o.n++;o.s[0]+=u[0];o.s[1]+=u[1];o.s[2]+=u[2];if(o.m.length<3000)o.m.push(L);o.sp|=1<<Math.min(23,Math.floor(j%w/w*24));tot++}
+ // Richtungs-Fächer nach Häufigkeit zusammenfassen (die häufigsten zuerst; sonst belegte Rauschen auf Fotos die Gruppen, bevor die Kerzen kamen)
+ [...bn.values()].sort((a,b)=>b.n-a.n).forEach(b=>{const l=Math.hypot(...b.s),u=b.s.map(v=>v/l);let o=cl.find(q=>q.u[0]*u[0]+q.u[1]*u[1]+q.u[2]*u[2]>=.985);
+  if(!o){o={u,s:[0,0,0],n:0,sp:0,m:[]};cl.push(o)}o.n+=b.n;o.s[0]+=b.s[0];o.s[1]+=b.s[1];o.s[2]+=b.s[2];o.sp|=b.sp;for(const v of b.m)o.m.push(v)});
+ const bits=v=>{let c=0;while(v){c+=v&1;v>>>=1}return c};
+ cl.forEach(o=>{const L=Math.hypot(...o.s),m=o.m.sort((p,q)=>p-q),m9=m[Math.floor(m.length*.9)]||0;o.e=o.s.map(v=>v/L*m9);o.col=o.e.map((v,i)=>G[i]+v)});
+ let cand=cl.filter(c=>tot>=100&&c.n>=tot*.03&&bits(c.sp)>=10&&Math.max(...c.e.map(Math.abs))>=50);if(!cand.length)return null;
+ const dbg=cand.map(c=>({c:c.col.map(Math.round),n:c.n,sp:bits(c.sp)}));cand=cand.sort((a,b)=>b.n-a.n);{const un=c=>{const l=Math.hypot(...c.e);return c.e.map(v=>v/l)},a=cand[0],ua=un(a),b=cand.slice(1).find(c=>{const u=un(c);return u[0]*ua[0]+u[1]*ua[1]+u[2]*ua[2]<.95});cand=b?[a,b]:[a]} // zweite Farbe nur mit anderer Richtung (auf Fotos zerfällt eine Farbe in mehrere Gruppen)
+ // Kerzenpixel relativ zum lokalen Hintergrund
+ const E=cand.map(o=>{const e=o.e,ee=e[0]*e[0]+e[1]*e[1]+e[2]*e[2];return{e,ee,tol:10+.1*Math.max(...e.map(Math.abs))+NZ}});
+ // Kachelfarben, die selbst Kerzenfarbe sind (s ab 0,45 vom Charthintergrund aus; Box-Füllungen liegen bei 0,15–0,35): breite Kerzenkörper, kein Hintergrund
+ {let ch=false;const T0=TB.slice();T0.forEach((c,i)=>{if(!c)return;const tx=i%tw,ty=(i-tx)/tw,R=[G];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const yy=ty+dy,xx=tx+dx;if(yy<0||xx<0||yy>=th||xx>=tw)continue;const q=T0[yy*tw+xx];if(q&&md(q,G)<md(c,G))R.push(q)}
+   for(const b of R){const d=[c[0]-b[0],c[1]-b[1],c[2]-b[2]];for(const{e,ee,tol}of E){const s=(d[0]*e[0]+d[1]*e[1]+d[2]*e[2])/ee;if(s>=.45&&Math.max(...d.map((v,k)=>Math.abs(v-s*e[k])))<=tol){TB[i]=null;ch=true;return}}}});if(ch)mkCB()} // auch von einer Box-Füllung daneben aus (Kerze in der Box)
+ // Liegt das Pixel (fast) genau auf einer Hintergrundfarbe (auch der Füllung einer Box), ist es Hintergrund. Sonst passt es, wenn es von einem der
+ // Hintergründe aus in Richtung einer Kerzenfarbe liegt (eine Kerze in der Box von der Füllung aus, eine Kerze daneben vom Charthintergrund aus).
+ const BGT=Math.max(8,T*.4)+1.5*NZ,match=(j,s0,tf)=>{const c=j*4,L=bgOf(j);for(const q of L)if(Math.max(Math.abs(D[c]-q[0]),Math.abs(D[c+1]-q[1]),Math.abs(D[c+2]-q[2]))<=BGT)return 0;
+  for(const b of L){const d0=D[c]-b[0],d1=D[c+1]-b[1],d2=D[c+2]-b[2];for(let i=0;i<E.length;i++){const{e,ee,tol}=E[i],s=(d0*e[0]+d1*e[1]+d2*e[2])/ee;if(s<s0||s>1.35)continue;
+   if(Math.max(Math.abs(d0-s*e[0]),Math.abs(d1-s*e[1]),Math.abs(d2-s*e[2]))<=tol*tf)return i+1}}return 0};
+ const M=new Uint8Array(n);for(let j=0;j<n;j++)if(ins(j)&&!ex(j))M[j]=match(j,.5,1);
+ // blasse, unscharfe Dochte (Fotos): von einem sicheren Kerzenpixel aus senkrecht weiter, solange das Pixel schwach in Kerzenfarbe liegt (s ab 0,25)
+ const soft=j=>!ex(j)&&ins(j)&&match(j,.25,1.25)>0,softG=j=>!exG(j)&&ins(j)&&match(j,.25,1.25)>0; // softG: auch durch Pixel, die die Linienerkennung entfernt hat (Trendlinie berührt die Dochtspitze)
+ for(let x=0;x<w;x++){for(let y=0;y<h-1;y++){const j=y*w+x;if(M[j]&&!M[j+w]){let q=j+w;while(q<n&&!M[q]&&softG(q)){M[q]=M[j];q+=w}}}
+  for(let y=h-1;y>0;y--){const j=y*w+x;if(M[j]&&!M[j-w]){let q=j-w;while(q>=0&&!M[q]&&softG(q)){M[q]=M[j];q-=w}}}}
+ // Farbsaum anderer Objekte (Fotos, JPEG: Randpixel eines blauen Labels in Kerzengrün): Kerzenpixel, die in ihrer 5 × 5-Umgebung von mehr als dreimal so
+ // vielen kräftigen andersfarbigen Pixeln umgeben sind, fallen weg (ein Docht, den eine Linie kreuzt, bleibt)
+ {const del=[];for(let y=2;y<h-2;y++)for(let x=2;x<w-2;x++){const j=y*w+x;if(!M[j])continue;let m=0,o=0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const q=j+dy*w+dx;if(M[q])m++;else if(S[q])o++}if(o>3*m)del.push(j)}del.forEach(j=>M[j]=0)}
+ // Linienchart statt Kerzen: Bei einer Linie ist der Strich je Spalte nur so lang wie der Anstieg zwischen den Nachbarspalten plus die Liniendicke;
+ // Kerzen reichen weiter (Docht von Hoch bis Tief). Linie = eine Hauptfarbe (zweite unter 25 % davon), mindestens 85 % der Spalten belegt und Überschuss im Median höchstens 4 px: dann gilt
+ // der bisherige Weg. Zwei kräftige Farben (steigend/fallend) sind immer Kerzen, auch stark gestauchte ohne Lücken.
+ let el=0,sp=0,fa=-1,fb=-1;const RS=[];for(let x=0;x<w;x++){let r=null,m=0;if(x>=AX.l&&x<AX.r)for(let y=AX.t;y<AX.b;y++){if(!M[y*w+x])continue;if(r&&y-r[1]<=3)r[1]=y;else{m++;r=[y,y]}}
+  if(m){el++;sp|=1<<Math.min(23,Math.floor(x/w*24));if(fa<0)fa=x;fb=x}RS.push(m===1?r:null)}
+ const ex2=[];for(let x=1;x<w-1;x++){const a=RS[x-1],r=RS[x],b=RS[x+1];if(a&&r&&b)ex2.push(r[1]-r[0]+1-Math.abs(b[0]+b[1]-a[0]-a[1])/4)}ex2.sort((p,q)=>p-q);const lx=ex2.length?ex2[ex2.length>>1]:0,fc=el/Math.max(1,fb-fa+1);
+ // Körperbreite: Median der waagerechten Läufe in hohen Säulen; dünne waagerechte Stücke (bis 3 px hoch, ab 1,6 × Körperbreite + 3 lang) fallen weg
+ vr=runs(M,1);hr=runs(M,0);const hh=new Uint32Array(256);let hn=0;for(let j=0;j<n;j++)if(vr[j]>=4){hh[hr[j]]++;hn++}
+ let Wb=1;for(let a=0,i=0;i<256;i++){a+=hh[i];if(a>=hn/2){Wb=Math.max(1,Math.min(40,i));break}}const HL=Math.max(6,Math.round(Math.min(Wb,8)*1.6)+3); /* dichte Kerzen ohne Lücke ergeben lange Läufe: höchstens 15 px */
+ const isLine=(cand.length===1||cand[1].n<cand[0].n*.25)&&fc>=.85&&ex2.length>=50&&(lx<=4+NZ||fc>=.97&&NZ>=3); // Fotos: unscharfe Linie ist dicker, lückenlos und einfarbig genügt
+ const HZ=new Uint8Array(n);if(!isLine)for(let j=0;j<n;j++)if(M[j]&&vr[j]<=3&&hr[j]>=HL){M[j]=0;HZ[j]=1}
+ // senkrechte Kanten einer Box: Säule, die oben und unten an einer entfernten waagerechten Kante endet (Ecken); ein Docht kreuzt Linien nur
+ {const hz=(x,y)=>{for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const xx=x+dx,yy=y+dy;if(xx>=0&&yy>=0&&xx<w&&yy<h&&HZ[yy*w+xx])return true}return false};
+  if(!isLine)for(let x=0;x<w;x++){let y=0;while(y<h){if(!M[y*w+x]){y++;continue}let e=y;while(e+1<h&&M[(e+1)*w+x])e++;if(e-y>=5&&hz(x,y)&&hz(x,e))for(let q=y;q<=e;q++)M[q*w+x]=0;y=e+1}}}
+ // Formen (8er-Nachbarschaft)
+ const cid=new Int32Array(n).fill(-1),C=[],st=[];for(let j=0;j<n;j++){if(!M[j]||cid[j]>=0)continue;const o={n:0,x0:1e9,x1:-1,y0:1e9,y1:-1,px:[]};cid[j]=C.length;st.push(j);
+  while(st.length){const q=st.pop(),qx=q%w,qy=(q-qx)/w;o.n++;o.px.push(q);if(qx<o.x0)o.x0=qx;if(qx>o.x1)o.x1=qx;if(qy<o.y0)o.y0=qy;if(qy>o.y1)o.y1=qy;
+   for(let ey=-1;ey<=1;ey++)for(let ex2=-1;ex2<=1;ex2++){const nx=qx+ex2,ny=qy+ey;if(nx<0||ny<0||nx>=w||ny>=h)continue;const r=ny*w+nx;if(M[r]&&cid[r]<0){cid[r]=C.length;st.push(r)}}}C.push(o)}
+ // Gepunktete Linien (Preislinie des letzten Kurses): mindestens 5 winzige Punkte (bis 4 Pixel, höchstens 2 px hoch) auf einer Zeile (±1), Abstände bis 8 px
+ // und gleichmäßig (±1). Einzelne Balken ohne Bewegung (1 Pixel) liegen nie so in einer Reihe.
+ {const dt=C.filter(c=>c.n<=4&&c.y1-c.y0<=1&&c.x1-c.x0<=2).sort((a,b)=>a.y0-b.y0||a.x0-b.x0),by=new Map();dt.forEach(c=>{(by.get(c.y0)||by.set(c.y0,[]).get(c.y0)).push(c)});
+  by.forEach((L0,y)=>{const L=[...L0,...(by.get(y+1)||[])].sort((a,b)=>a.x0-b.x0);let i=0;while(i<L.length){let k=i;while(k+1<L.length&&L[k+1].x0-L[k].x0<=8&&L[k+1].x0-L[k].x0>=2)k++;
+   if(k-i+1>=5){const g=L.slice(i+1,k+1).map((c,t)=>c.x0-L[i+t].x0);if(Math.max(...g)-Math.min(...g)<=1)for(let t=i;t<=k;t++){L[t].px.forEach(j=>M[j]=0);L[t].txt=1}}i=k+1}})}
+ // Labels in Kreisen und Zeichen mit Loch (o, 0, 8, ④ …): Form etwa so breit wie hoch (6–40 px), in mindestens 30 % ihrer Spalten mehrere Striche
+ // übereinander (Lücke über 2 px). Kerzen haben je Spalte einen Strich. Formen, die mindestens zur Hälfte im Kreis liegen (Ziffer im Kreis), fallen mit weg.
+ {const mr=c=>{const by=new Map();c.px.forEach(j=>{const x=j%w;(by.get(x)||by.set(x,[]).get(x)).push((j-x)/w)});let k=0;for(const v of by.values()){v.sort((p,r)=>p-r);for(let t=1;t<v.length;t++)if(v[t]-v[t-1]>2){k++;break}}return k/by.size};
+  const rings=[];C.forEach(c=>{const cw=c.x1-c.x0+1,chh=c.y1-c.y0+1;if(cw>=6&&chh>=6&&cw<=40&&chh<=40&&cw>=chh*.5&&cw<=chh*2&&mr(c)>=.3){c.px.forEach(j=>M[j]=0);c.txt=1;rings.push(c)}});
+  if(rings.length)C.forEach(c=>{if(c.txt||c.n>400)return;const inR=j=>{const x=j%w,y=(j-x)/w;return rings.some(r=>x>=r.x0-1&&x<=r.x1+1&&y>=r.y0-1&&y<=r.y1+1)};if(c.px.filter(inR).length>=c.n*.5){c.px.forEach(j=>M[j]=0);c.txt=1}})} // Formen, die zur Hälfte im Kreis liegen (Ziffer, auf kleinen Bildern mit dem Label darunter verschmolzen)
+ // Verschmolzene Label-Stapel (kleine Bilder: Kreis, „(v)“, Kreis, darunter der Docht): in Formen mit Löchern fallen die Zeilen mit zwei getrennten Stücken auf Höhe der Löcher
+ // (Kreisbögen) samt 2 Zeilen Rand weg; der Docht darunter bleibt.
+ {const mr=c=>{const by=new Map();c.px.forEach(j=>{const x=j%w;(by.get(x)||by.set(x,[]).get(x)).push((j-x)/w)});let k=0;for(const v of by.values()){v.sort((p,r)=>p-r);for(let t=1;t<v.length;t++)if(v[t]-v[t-1]>2){k++;break}}return k/by.size};
+  C.forEach(c=>{if(c.txt)return;const cw=c.x1-c.x0+1,chh=c.y1-c.y0+1;if(cw<6||chh<6||cw>40||chh>150||mr(c)<.3)return;const rows=new Map();c.px.forEach(j=>{const x=j%w,y=(j-x)/w;(rows.get(y)||rows.set(y,[]).get(y)).push(x)});
+   const H=new Set(),by=new Map();c.px.forEach(j=>{const x=j%w;(by.get(x)||by.set(x,[]).get(x)).push((j-x)/w)});by.forEach(v=>{v.sort((p,q)=>p-q);for(let t=1;t<v.length;t++)if(v[t]-v[t-1]>2)for(let y=v[t-1];y<=v[t];y++)H.add(y)}); // Zeilen der Löcher (Kreis)
+   const B=new Set();rows.forEach((xs,y)=>{if(!H.has(y))return;xs.sort((p,q)=>p-q);for(let t=1;t<xs.length;t++)if(xs[t]-xs[t-1]>2){for(let d=-2;d<=2;d++)B.add(y+d);break}});if(B.size>=6)c.px.forEach(j=>{const x=j%w;if(B.has((j-x)/w))M[j]=0})})}
+ // Beschriftung in Kerzenfarbe: Kette von mindestens 4 kleinen Formen nebeneinander (Lücke bis 0,8 × Höhe), Mitte bzw. Ober- oder Unterkante auf einer Höhe
+ // (Kommas: kleine Form an der Unterkante). Formen in festem Abstand (Mitten ±1,5 px bzw. ±12 %) sind Kerzen einer ruhigen Strecke, keine Schrift.
+ {const TH=Math.max(16,h*.03),sm=C.map((c,i)=>i).filter(i=>{const c=C[i];return c.n>=2&&c.y1-c.y0+1<=TH&&c.x1-c.x0+1<=TH}).sort((a,b)=>C[a].x0-C[b].x0),used=new Set();
+  const link=(A,B)=>{const ah=Math.max(A.y1-A.y0+1,B.y1-B.y0+1),gap=B.x0-A.x1-1;if(gap<-1||gap>Math.max(3,.8*ah))return false;const sA=A.y1-A.y0<=4||B.y1-B.y0<=4;
+   return Math.abs(B.y0+B.y1-A.y0-A.y1)/2<=4&&(Math.abs(B.y0-A.y0)<=2||Math.abs(B.y1-A.y1)<=2)||sA&&Math.abs(B.y1-A.y1)<=3&&Math.abs(B.y0+B.y1-A.y0-A.y1)/2<=8};
+  sm.forEach(i=>{if(used.has(i))return;const ch=[i];let cur=i;for(;;){let nx=-1;for(const q of sm){if(q===cur||used.has(q)||ch.includes(q))continue;if(C[q].x0>C[cur].x1+TH)break;if(link(C[cur],C[q])){nx=q;break}}if(nx<0)break;ch.push(nx);cur=nx}
+   if(ch.length<4)return;const W=ch.map(q=>C[q].x1-C[q].x0+1),Gp=ch.slice(1).map((q,t)=>C[q].x0-C[ch[t]].x1-1),mh=Math.max(...ch.map(q=>C[q].y1-C[q].y0+1)),cw=C[ch[ch.length-1]].x1-C[ch[0]].x0+1;
+   const cx=ch.map(q=>(C[q].x0+C[q].x1)/2),dc=cx.slice(1).map((v,t)=>v-cx[t]),dm=[...dc].sort((p,q)=>p-q)[dc.length>>1],reg=dc.every(v=>Math.abs(v-dm)<=Math.max(1.5,dm*.12))&&dm>=3; /* Kerzen stehen im festen Abstand */const mr=q=>{const by=new Map();C[q].px.forEach(j=>{const x=j%w;(by.get(x)||by.set(x,[]).get(x)).push((j-x)/w)});for(const v of by.values()){v.sort((p,r)=>p-r);for(let t=1;t<v.length;t++)if(v[t]-v[t-1]>1)return true}return false},mf=ch.filter(mr).length/ch.length;if((reg&&mf<.3)||cw<2*mh)return; /* Ziffern mit Löchern (0, 4, 6, 8, %) haben mehrere Striche in einer Spalte, Kerzen nie */ch.forEach(q=>{used.add(q);C[q].px.forEach(j=>M[j]=0);C[q].txt=1})})}
+ const info={dbg,cols:cand.map(o=>o.col.map(Math.round)),Wb,el,lx,fc:+fc.toFixed(3),line:isLine};
+ if(el<(AX.r-AX.l)*.12||bits(sp)<10)return{fail:info};
+ // Kerzenabstand: Median der Abstände benachbarter Kerzen (Mitten der übrigen Formen)
+ const cxs=C.filter(c=>!c.txt&&c.x1-c.x0<=3*Wb+4).map(c=>(c.x0+c.x1)/2).sort((p,q)=>p-q),dd=cxs.slice(1).map((v,i)=>v-cxs[i]).filter(v=>v>=1).sort((p,q)=>p-q),P=dd.length?Math.max(2,Math.round(dd[dd.length>>1])):Math.max(2,Wb+1);info.P=P;
+ return{M,soft,Wb,P,info,line:isLine}}
+// Unsichere Bereiche ohne nachgezeichnete Spalten, und wie sicher die Erkennung insgesamt ist (Anteil der Spalten zwischen erstem und letztem Kurs-Stück)
+function ocUnsR(I){if(!I||!I.uns)return[];const o=[];I.uns.forEach(([a,b])=>{let s=-1;for(let x=a;x<=b+1;x++){const u=x<=b&&!I.path.man[x];if(u&&s<0)s=x;if(!u&&s>=0){o.push([s,x-1]);s=-1}}});return o}
+// Satz unter den Knöpfen (25.11.2026): wie sicher die Kerzensuche ist, und wo man nachzeichnen sollte
+function ocQS(I){const q=ocSure(I);if(q===null)return'';const u=ocUnsR(I).length;return'<p class="mut ocqs" id="ocqs"><span class="ocqsw"'+(u?'':' hidden')+'></span>Erkennung zu '+Math.floor(q*100)+' % sicher.'+(u?' Orange markierte Stellen: Prüf dort den Verlauf und zeichne ihn bei Bedarf nach.':'')+'</p>'}
+function ocSure(I){if(!I||!I.kz||!I.kz.ok)return null;let a=-1,b=-1;for(let x=0;x<I.w;x++)if(I.auto.hi[x]>=0||I.path.hi[x]>=0){if(a<0)a=x;b=x}if(a<0)return null;let u=0;ocUnsR(I).forEach(([p,q])=>u+=q-p+1);return Math.max(0,1-u/(b-a+1))}
 const Q_DRAW=.008; // Anteil der Bildfläche mit entfernten Zeichnungen, ab dem der Hinweis „Erkennung unsicher“ erscheint (25.11.2026)
-function ocPath(IMG){IMG.lp=0;IMG.bp=0;const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=c=>(D[c]>>4)<<8|(D[c+1]>>4)<<4|D[c+2]>>4;
+function ocPath(IMG){IMG.lp=0;IMG.bp=0;const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=c=>(D[c]>>4)<<8|(D[c+1]>>4)<<4|D[c+2]>>4,RMV=new Uint8Array(n); // RMV: als Zeichnung entfernte Pixel (Linien, Kästchen, Zonenrahmen), für die Kerzensuche (25.11.2026)
  const mode=(x0,y0,x1,y1,st)=>{const cnt=new Uint32Array(4096),sm=new Float64Array(12288);let bk=0;
   for(let y=y0;y<y1;y+=st)for(let x=x0;x<x1;x+=st){const c=(y*w+x)*4,k=Q(c);cnt[k]++;sm[k*3]+=D[c];sm[k*3+1]+=D[c+1];sm[k*3+2]+=D[c+2];if(cnt[k]>cnt[bk])bk=k}
   return cnt[bk]?[sm[bk*3]/cnt[bk],sm[bk*3+1]/cnt[bk],sm[bk*3+2]/cnt[bk]]:[0,0,0]};
@@ -2441,13 +2554,13 @@ function ocPath(IMG){IMG.lp=0;IMG.bp=0;const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=
   for(let ty=0;ty<zh;ty++){let tx=0;while(tx<zw){const c=zc[ty*zw+tx];if(!c){tx++;continue}let e=tx;while(e+1<zw&&same(zc[ty*zw+e+1],c))e++;if(e-tx+1>=4)for(let k=tx;k<=e;k++)zone[ty*zw+k]=zc[ty*zw+k];tx=e+1}}
   let nz=0;for(let y=0;y<h;y++)for(let x=0;x<w;x++){const j=y*w+x;if(!on[j])continue;const tx=Math.floor(x/ZT),ty=Math.floor(y/ZT);
    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const c=zone[(ty+dy)*zw+tx+dx];if(ty+dy<0||ty+dy>=zh||tx+dx<0||tx+dx>=zw||!c)continue;
-    if(Math.max(Math.abs(D[j*4]-c[0]),Math.abs(D[j*4+1]-c[1]),Math.abs(D[j*4+2]-c[2]))<=14){on[j]=0;nz++;dy=2;break}}}
+    if(Math.max(Math.abs(D[j*4]-c[0]),Math.abs(D[j*4+1]-c[1]),Math.abs(D[j*4+2]-c[2]))<=14){on[j]=0;RMV[j]=2;nz++;dy=2;break}}}
   // kleinere Zonen pixelweise: gleichfarbige Fläche (±10), waagerecht mindestens 40 px (bzw. 3 % der Breite) und senkrecht mindestens 8 px am Stück.
   // Ihre geraden Ränder (dünne Linie entlang der Zone) fallen mit weg, Dochte, die durch die Zone laufen, bleiben (sie reichen über die Zone hinaus).
   const sc=(a,b)=>Math.max(Math.abs(D[a]-D[b]),Math.abs(D[a+1]-D[b+1]),Math.abs(D[a+2]-D[b+2]))<=10,HZ=Math.max(40,Math.round(w*.03)),hs=new Uint16Array(n),zm=new Uint8Array(n);
   for(let y=0;y<h;y++){let x=0;while(x<w){const j=y*w+x;if(!on[j]){x++;continue}let e=x;while(e+1<w&&on[j+e+1-x]&&sc((y*w+e+1)*4,j*4))e++;const L=e-x+1;for(let k=x;k<=e;k++)hs[y*w+k]=L;x=e+1}}
   for(let x=0;x<w;x++){let y=0;while(y<h){const j=y*w+x;if(hs[j]<HZ){y++;continue}let e=y;while(e+1<h&&hs[(e+1)*w+x]>=HZ&&sc(((e+1)*w+x)*4,j*4))e++;if(e-y+1>=8)for(let k=y;k<=e;k++)zm[k*w+x]=1;y=e+1}}
-  for(let j=0;j<n;j++)if(zm[j]){on[j]=0;nz++}
+  for(let j=0;j<n;j++)if(zm[j]){on[j]=0;RMV[j]=2;nz++}
   // Ränder: in 3 px Abstand zur Zone dünne Pixel (senkrecht bzw. waagerecht höchstens 3 px dick)
   {const near=(x,y)=>{for(let d=1;d<=3;d++)for(const [dx,dy] of[[d,0],[-d,0],[0,d],[0,-d]]){const xx=x+dx,yy=y+dy;if(xx>=0&&yy>=0&&xx<w&&yy<h&&zm[yy*w+xx])return true}return false};
    const thin=(x,y)=>{let a=0,b=0;for(let k=-3;k<=3;k++){if(y+k>=0&&y+k<h&&on[(y+k)*w+x])a++;if(x+k>=0&&x+k<w&&on[y*w+x+k])b++}return a<=3||b<=3};
@@ -2499,7 +2612,7 @@ function ocPath(IMG){IMG.lp=0;IMG.bp=0;const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=
    for(let xx=x;xx<=e;xx++){const yc=yf(xx);let f=false;for(let q=Math.max(0,xx-3);q<=Math.min(w-1,xx+3)&&!f;q++)for(let y=Math.max(0,Math.round(yc-h*.5));y<Math.min(h,yc+h*.5);y++)if(on[y*w+q]&&Math.abs(y-yc)>hw+3&&!onSeg(o,q,y)){f=true;break}if(f)el++} /* nur in der Nähe (bis 50 % der Höhe): sonst zählte die Legende oben als Kurs */
      if(el>=L*.6)for(let xx=Math.max(0,xa-8);xx<=Math.min(w-1,xb+8);xx++){const yc=yf(xx);const y0=Math.round(yc-hw-.5),y1=Math.round(yc+hw+.5),O=(x,y)=>x>=0&&x<w&&y>=0&&y<h&&on[y*w+x],wide=y=>O(xx,y)&&O(xx-1,y)&&O(xx+1,y);
        // liegt die Linie auf einem Kerzenkörper (direkt darunter bzw. darüber breit, auf der anderen Seite frei), fällt sie auch dort weg; ein 1 px breiter Docht bleibt
-       const body=(wide(y1+1)&&!O(xx,y0-1))||(wide(y0-1)&&!O(xx,y1+1));for(let y=y0;y<=y1;y++){const j=y*w+xx;if(y>=0&&y<h&&on[j]&&(thin(j)||body)){on[j]=0;IMG.lp++}}}})}
+       const body=(wide(y1+1)&&!O(xx,y0-1))||(wide(y0-1)&&!O(xx,y1+1));for(let y=y0;y<=y1;y++){const j=y*w+xx;if(y>=0&&y<h&&on[j]&&(thin(j)||body)){on[j]=0;RMV[j]=1;IMG.lp++}}}})}
  // Kästchen (23.11.2026): Preis-Kästchen, Symbol-Kästchen und Hinweis-Kästchen sind Rechtecke (Rand oben, unten, links, rechts) mit Schrift
  // darin; sie fallen ganz weg, auch wenn sie den Kurs berühren. Ohne Schrift (hohle oder gefüllte Kerze) bleibt das Rechteck.
  {const RP=new Int32Array((w+1)*h);for(let y=0;y<h;y++){let a=0;for(let x=0;x<w;x++){a+=on[y*w+x];RP[y*(w+1)+x+1]=a}}const rc=(y,x0,x1)=>RP[y*(w+1)+x1+1]-RP[y*(w+1)+x0];
@@ -2524,9 +2637,9 @@ function ocPath(IMG){IMG.lp=0;IMG.bp=0;const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=
   for(let y=1;y<h-8;y++){let x=0;while(x<w){if(!on[y*w+x]){x++;continue}let e=x;while(e+1<w&&on[y*w+e+1])e++;const rx0=x,rx1=e;x=e+1;if(rx1-rx0+1<12)continue;
     const L=[rx0],R=[rx1];if(rx0>0&&ed(rx0-1,y,-1))L.push(rx0-1);if(rx1<w-1&&ed(rx1+1,y,1))R.push(rx1+1); /* Ecke fehlt: Kante eine Spalte daneben */for(let k=rx0+1;k<=rx1-11&&L.length<5;k++)if(ed(k,y,-1))L.push(k);for(let k=rx1-1;k>=rx0+11&&R.length<5;k--)if(ed(k,y,1))R.push(k);
     let ok=false;for(const a of L){for(const b of R)if(b-a>=11&&(box(a,b,y)||zbox(a,b,y))){ok=true;break}if(ok)break}}}
-  {const vr=vrun(),hr=hrun();zdel.forEach(([x0,y0,x1,y1])=>{for(const y of[y0-1,y0,y0+1,y1-1,y1,y1+1])if(y>=0&&y<h)for(let x=x0;x<=x1;x++){const j=y*w+x;if(on[j]&&vr[j]<=3){on[j]=0;IMG.bp++}}
-   for(const x of[x0-1,x0,x0+1,x1-1,x1,x1+1])if(x>=0&&x<w)for(let y=y0;y<=y1;y++){const j=y*w+x;if(on[j]&&hr[j]<=3&&vr[j]<=y1-y0+4){on[j]=0;IMG.bp++}}})}
-  del.forEach(([x0,y0,x1,y1])=>{for(let y=Math.max(0,y0-1);y<=Math.min(h-1,y1+1);y++)for(let x=Math.max(0,x0-1);x<=Math.min(w-1,x1+1);x++)if(on[y*w+x]){on[y*w+x]=0;IMG.bp++}})}
+  {const vr=vrun(),hr=hrun();zdel.forEach(([x0,y0,x1,y1])=>{for(const y of[y0-1,y0,y0+1,y1-1,y1,y1+1])if(y>=0&&y<h)for(let x=x0;x<=x1;x++){const j=y*w+x;if(on[j]&&vr[j]<=3){on[j]=0;RMV[j]=3;IMG.bp++}}
+   for(const x of[x0-1,x0,x0+1,x1-1,x1,x1+1])if(x>=0&&x<w)for(let y=y0;y<=y1;y++){const j=y*w+x;if(on[j]&&hr[j]<=3&&vr[j]<=y1-y0+4){on[j]=0;RMV[j]=3;IMG.bp++}}})}
+  del.forEach(([x0,y0,x1,y1])=>{for(let y=Math.max(0,y0-1);y<=Math.min(h-1,y1+1);y++)for(let x=Math.max(0,x0-1);x<=Math.min(w-1,x1+1);x++){RMV[y*w+x]=3;if(on[y*w+x]){on[y*w+x]=0;IMG.bp++}}})}
  // senkrechte Lücken bis 2 px schließen (dünne, unscharfe Dochte auf Fotos zerfallen sonst in Stücke)
  for(let x=0;x<w;x++)for(let y=1;y<h-1;y++){const j=y*w+x;if(!on[j]&&on[j-w]&&(on[j+w]||(y<h-2&&on[j+2*w]))){on[j]=1;if(!on[j+w])on[j+w]=1}}
  // zusammenhängende Formen (8er-Nachbarschaft)
@@ -2614,7 +2727,7 @@ function ocPath(IMG){IMG.lp=0;IMG.bp=0;const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=
    const cw=C[ch[ch.length-1]].x1-C[ch[0]].x0+1,chh=Math.max(...ch.map(q=>C[q].y1-C[q].y0+1));
    // oder (Foto, Buchstaben unscharf und gefüllt) mindestens 3 Formen, alle gleich hoch mit gleicher Ober- und Unterkante (±2 px, ab 7 px), eng (Abstand bis 0,5 × Höhe), zusammen 4 × so breit wie hoch
    const tC=ch.length>=3&&chh>=7&&cw>=4*chh&&ch.every((q,i)=>Math.abs(C[q].y0-C[ch[0]].y0)<=2&&Math.abs(C[q].y1-C[ch[0]].y1)<=2&&(!i||C[q].x0-C[ch[i-1]].x1-1<=Math.max(3,.5*chh)));
-   if(ch.length>=5&&ch.every(q=>C[q].y1<h*.25||C[q].x1-C[q].x0+1<=1.2*(C[q].y1-C[q].y0+1))||(chh>=7&&cw>=4*chh&&ch.every(q=>dens(C[q])<=.6))||tC)ch.forEach(q=>{used.add(q);C[q].band=1})})}
+   if(ch.length>=5&&ch.every(q=>C[q].y1<h*.25||C[q].x1-C[q].x0+1<=1.2*(C[q].y1-C[q].y0+1))||(chh>=7&&cw>=4*chh&&ch.every(q=>dens(C[q])<=.6))||tC)ch.forEach(q=>{used.add(q);C[q].band=1;C[q].tl=1})})}
  // unten und rechts: die Grenze nächst am Rand (Lücken zwischen Kerzen sind auch leere Spalten); rechts seit 23.11.2026 weiter nach innen, solange es die
  // Achse ist (ein schmaler Streifen am Rand stoppte sonst vor der Preisachse); vor dem ersten Treffer wie bisher die nächste Grenze probieren
  bands(Math.round(h*.18),i=>rowE(h-1-i)).reverse().some(b=>cut(c=>c.y0>h-1-b,'x'));
@@ -2622,8 +2735,16 @@ function ocPath(IMG){IMG.lp=0;IMG.bp=0;const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=
  // Strangwahl je Spalte (Kontinuität): zusammenhängende senkrechte Stränge (Lücken bis 3 px überbrückt; mehr verband Legende und Kerzen). Gewählt wird der
  // Strang auf dem günstigsten Weg durch alle Spalten (kräftige Stränge, kleine Sprünge; Pixel in
  // Kerzenfarbe zählen doppelt). Weit abseits (über 25 % der Höhe) und nur Schrift o. Ä.: die Spalte bleibt leer statt eines Ausreißers.
+ const zoneN=()=>{let c=0;for(let j=0;j<n;j++)if(RMV[j]===2)c++;return c>n*.003};
+ // Kerzensuche (25.11.2026): Findet ocKerzen Kerzen, bilden nur ihre Säulen die Stränge; sonst (Linienchart) wie bisher
+ const KR=ocKerzen({D,w,h,n,AX,G,T,p98,n9,exG:j=>RMV[j]>1||(cid[j]>=0&&!!C[cid[j]].band&&(!C[cid[j]].tl||C[cid[j]].y1<h*.25)),ex:j=>RMV[j]||(cid[j]>=0&&!!C[cid[j]].band&&(!C[cid[j]].tl||C[cid[j]].y1<h*.25)) /* Textzeilen im Bild prüft die Kerzensuche selbst (die Regel hier hielt ruhige Kerzenreihen für Schrift); im oberen Viertel (Legende) gelten sie */}),KZ=KR&&KR.M&&!(KR.line&&!zoneN())?KR:null; /* Linienchart: nur mit gefüllten Zonen über die Farbmaske, sonst wie bisher (Trend- und Fib-Linien in Linienfarbe) */IMG.kz=KR?KR.info||KR.fail:null;if(IMG.kz)IMG.kz.ok=!!KZ;
+ // Labels nach der alten Regel (kleine Gruppe direkt über bzw. unter dem Kurs), die überwiegend nicht Kerzenfarbe haben (blaue Wellen-Labels mit Farbsaum):
+ // ihre Pixel fallen aus der Kerzenmaske. Kerzen, die die alte Regel für Labels hielt, bestehen fast ganz aus Kerzenfarbe und bleiben.
+ if(KZ){const tc=new Map();for(let j=0;j<n;j++){const k=cid[j];if(k<0||C[k].n<4)continue;const g=Gs[root(k)];if(g.keep)continue;let e=tc.get(g);if(!e)tc.set(g,e=[0,0]);e[0]++;if(KZ.M[j])e[1]++}
+  for(let j=0;j<n;j++){if(!KZ.M[j])continue;const k=cid[j];if(k<0||C[k].n<4)continue;const e=tc.get(Gs[root(k)]);if(e&&e[1]<e[0]*.5)KZ.M[j]=0}}
  const GAP=3,RU=[];
- for(let x=0;x<w;x++){let L=[];let cur=null;for(let y=0;y<h;y++){const j=y*w+x;if(!kept(j))continue;const pc=pcol(j),pw=pc?2:1;
+ if(KZ)for(let x=0;x<w;x++){const L=[];let cur=null;for(let y=0;y<h;y++){if(!KZ.M[y*w+x])continue;if(cur&&(y-cur.b-1<=GAP||y-cur.b-1<=10&&(()=>{for(let q=cur.b+1;q<y;q++)if(RMV[q*w+x]!==1&&dv[q*w+x]<T*.5)return false;return true})())){ /* Lücke bis 10 px ohne Hintergrund (eine Linie kreuzt den Balken, auf Fotos unscharf): überbrücken; Abstand zu einem Label ist Hintergrund */cur.b=y;cur.n+=2}else{cur={a:y,b:y,n:2,p:1};L.push(cur)}}RU.push(L)}
+ else for(let x=0;x<w;x++){let L=[];let cur=null;for(let y=0;y<h;y++){const j=y*w+x;if(!kept(j))continue;const pc=pcol(j),pw=pc?2:1;
    if(cur&&y-cur.b-1<=GAP){cur.b=y;cur.n+=pw;cur.p+=pc}else{cur={a:y,b:y,n:pw,p:+pc};L.push(cur)}}if(palS)L=L.filter(r=>r.p>0);RU.push(L)} // nur Stränge in Kursfarbe
  const WN=Math.max(10,Math.round(w/60)),med=a=>{const v=a.filter(q=>q!==null).sort((p,q)=>p-q);return v.length?v[v.length>>1]:null};
  // Weg durch alle Spalten (Viterbi, 23.11.2026): je Spalte ein Strang, kräftige Stränge leicht bevorzugt (bis 6 Pixel, Kerzenfarbe doppelt), jeder Sprung zwischen den Strängen benachbarter
@@ -2631,9 +2752,11 @@ function ocPath(IMG){IMG.lp=0;IMG.bp=0;const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=
  let pick=RU.map(()=>null);
  // Seit 23.11.2026 (Plausibilität): Eine Spalte darf auch ausgelassen werden (kostet 6, bis 24 Spalten mit Strängen am Stück). So springt der Weg
  // nicht auf eine Zeichnung, nur weil zwischen dünnen Balken in einigen Spalten nur sie liegt; jede gewählte Spalte hängt mit den Nachbarn zusammen.
- {const SP=6,KW=24,JC=g=>g<=3?0:.6*(g-3),NX=[];for(let x=0;x<w;x++)if(RU[x].length)NX.push(x);const cst=[],from=[];
+ // Kerzensuche (25.11.2026): Lücken zwischen Kerzen sind normal (Auslassen kostet nur 2), lange Säulen zählen mehr (bis 30 Pixel): sonst gewann ein
+ // Kreis-Label, das in jeder Spalte ein paar Pixel hat, gegen die dünnen Dochte daneben
+ {const KM=KZ&&!KZ.line,SP=KM?2:6,RW=KM?30:6,KW=24,JC=g=>g<=3?0:.6*(g-3),NX=[];for(let x=0;x<w;x++)if(RU[x].length)NX.push(x);const cst=[],from=[];
   NX.forEach((x,k)=>{const L=RU[x];cst.push(L.map((r,i)=>{let bv=SP*k,bj=null;for(let q=Math.max(0,k-KW);q<k;q++){const P=RU[NX[q]],pc=cst[q],sk=SP*(k-q-1);
-     P.forEach((o,j)=>{const v=pc[j]+sk+JC(Math.max(0,r.a-o.b,o.a-r.b));if(v<bv){bv=v;bj=[q,j]}})}from[k]=from[k]||[];from[k][i]=bj;return bv-Math.min(r.n,6)}))}); // Belohnung je Spalte begrenzt: sonst schlägt ein kräftiges Label den dünnen Docht
+     P.forEach((o,j)=>{const v=pc[j]+sk+JC(Math.max(0,r.a-o.b,o.a-r.b));if(v<bv){bv=v;bj=[q,j]}})}from[k]=from[k]||[];from[k][i]=bj;return bv-Math.min(KM?r.b-r.a+1:r.n,RW)}))}); // Belohnung je Spalte begrenzt: sonst schlägt ein kräftiges Label den dünnen Docht
   let bv=1e18,bk=null;cst.forEach((c,k)=>c.forEach((v,i)=>{const t=v+SP*(NX.length-1-k);if(t<bv){bv=t;bk=[k,i]}}));
   while(bk){const [k,i]=bk;pick[NX[k]]=RU[NX[k]][i];bk=from[k][i]}}
  // Inseln: kurze Stücke ohne Anschluss nach links und rechts (Abstand über 10 % der Höhe, zusammen unter 5 % der Spalten), z. B. Schrift in
@@ -2646,15 +2769,33 @@ function ocPath(IMG){IMG.lp=0;IMG.bp=0;const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=
  {const cen=pick.map(r=>r?(r.a+r.b)/2:null);pick=pick.map((r,x)=>{if(!r)return null;const m=med(cen.slice(Math.max(0,x-WN),x+WN+1));const d=m<r.a?r.a-m:m>r.b?m-r.b:0;return d>h*.25?null:r})}
  const hi=new Int16Array(w).fill(-1),lo=new Int16Array(w).fill(-1);
  for(let x=0;x<w;x++){const r=pick[x];if(!r)continue;hi[x]=r.a;lo[x]=r.b;
+  if(KZ){for(let z=0;z<6&&hi[x]>AX.t&&KZ.soft((hi[x]-1)*w+x);z++)hi[x]--;for(let z=0;z<6&&lo[x]<AX.b-1&&KZ.soft((lo[x]+1)*w+x);z++)lo[x]++;continue} // blasse Spitze in Kerzenfarbe (nicht in die Füllung einer Box)
   for(let z=0;z<6&&hi[x]>AX.t&&dv[(hi[x]-1)*w+x]>=TW;z++)hi[x]--;for(let z=0;z<6&&lo[x]<AX.b-1&&dv[(lo[x]+1)*w+x]>=TW;z++)lo[x]++} // blasse Spitze
+ // Kerzensuche: dünn besetzte Stellen fallen weg (im Fenster ±5 Kerzenabstände unter 30 % der mittleren Dichte des Kurses an Spalten mit Verlauf), z. B. Klammern einer
+ // Fib-Beschriftung rechts hinter der letzten Kerze; Kerzen stehen dichter (auch am Rand des Kurses, dort zählt die eine Seite)
+ if(KZ&&!KZ.line){const R=Math.max(10,5*KZ.P),cs=new Int32Array(w+1);for(let x=0;x<w;x++)cs[x+1]=cs[x]+(hi[x]>=0);
+  const dd=x=>Math.max(cs[Math.min(w,x+R+1)]-cs[x],cs[x+1]-cs[Math.max(0,x-R)])/(R+1);let fa=-1,fb=-1;for(let x=0;x<w;x++)if(hi[x]>=0){if(fa<0)fa=x;fb=x}const D0=fa<0?0:cs[fb+1]/(fb-fa+1)*.3,drop=[];for(let x=0;x<w;x++)if(hi[x]>=0&&dd(x)<D0)drop.push(x);drop.forEach(x=>{hi[x]=-1;lo[x]=-1;pick[x]=null})}
  // Kerzenbreite im Original (24.11.2026, Lenny, für die Kerzen-Darstellung): Spalten je Kerze aus der Zahl der Stücke mit Verlauf (Kerzen und Balken
  // mit Lücke dazwischen); ohne solche Lücken (dichte Kerzen, Linie) etwa 250 Kerzen über die Breite
  {let runs=0,a=-1,b=-1;for(let x=0;x<w;x++)if(hi[x]>=0){if(a<0)a=x;b=x;if(x===0||hi[x-1]<0)runs++}const span=b-a+1,cw=runs>=20?span/runs:0;
   IMG.cw=cw>=2&&cw<=40?cw:Math.max(2,span/250)}
+ // Lücken und unsichere Stellen (Kerzensuche, 25.11.2026): Fehlt mindestens eine Kerze (Lücke über 1,6 × Kerzenabstand, z. B. unter einem Label),
+ // wird die Lücke zwischen den Nachbarkerzen ergänzt (Hoch und Tief linear, nie aus Box-Pixeln geraten; bis 14 Kerzen bzw. 5 % der Breite) und als
+ // unsicher markiert (IMG.ip je Spalte, IMG.uns = Bereiche [von, bis]). Unsicher sind auch Stellen, an denen eine zweite Säule weit abseits liegt
+ // (Konkurrenz für die Strangwahl). Größere Lücken bleiben leer, aber markiert.
+ IMG.ip=null;IMG.uns=[];let unsA=0;
+ if(KZ&&!KZ.line){const st=[];for(let x=0;x<w;x++)if(hi[x]>=0&&(x===0||hi[x-1]<0))st.push(x);const P=KZ.P; // Kerzenabstand aus der Kerzensuche
+  const ip=new Uint8Array(w),un=new Uint8Array(w),GMX=Math.max(P*14,w*.05);let pv=-1,fa=-1,fb=-1;
+  for(let x=0;x<w;x++){if(hi[x]<0)continue;if(fa<0)fa=x;fb=x;if(pv>=0){const g=x-pv-1;if(g>Math.max(P*1.6,P+2)){for(let q=pv+1;q<x;q++)un[q]=1;
+     if(g<=GMX)for(let q=pv+1;q<x;q++){const t=(q-pv)/(x-pv);hi[q]=Math.round(hi[pv]+(hi[x]-hi[pv])*t);lo[q]=Math.round(lo[pv]+(lo[x]-lo[pv])*t);ip[q]=1}}}pv=x}
+  const DJ=Math.max(8,h*.06),ct=new Uint8Array(w);for(let x=0;x<w;x++){const r=pick[x];if(r&&RU[x].some(o=>o!==r&&o.b-o.a+1>=Math.max(5,(r.b-r.a+1)*.5)&&Math.max(o.a-r.b,r.a-o.b)>DJ))ct[x]=1}
+  for(let x=0;x<w;x++)if(ct[x]){let c=0;for(let q=Math.max(0,x-2*P);q<=Math.min(w-1,x+2*P);q++)c+=ct[q];if(c>=3)for(let q=Math.max(fa,x-P);q<=Math.min(fb,x+P);q++)un[q]=1}
+  let a=-1;for(let x=0;x<=w;x++){if(x<w&&un[x]){if(a<0)a=x;continue}if(a>=0){const L=IMG.uns[IMG.uns.length-1];if(L&&a-L[1]<=2*P)L[1]=x-1;else IMG.uns.push([a,x-1]);a=-1}}
+  IMG.uns.forEach(([p,q])=>unsA+=q-p+1);unsA/=Math.max(1,fb-fa+1);IMG.ip=ip}
  // Qualität (25.11.2026): Anteil der 6 Spalten breiten Abschnitte mit Verlauf zwischen erstem und letztem Kurs-Stück, dazu die Zahl entfernter
  // Zeichnungen als Anteil der Bildfläche (entfernte Pixel von Linien, Kästchen und Zonen). Unsicher, wenn unter 80 % abgedeckt oder Zeichnungen ab Q_DRAW.
  {let a=-1,b=-1;for(let x=0;x<w;x++)if(hi[x]>=0){if(a<0)a=x;b=x}let wn=0,wc=0;for(let x=a;a>=0&&x+5<=b;x+=6){wn++;for(let k=x;k<x+6;k++)if(hi[k]>=0){wc++;break}}
-  const cov=wn?wc/wn:0,dr=(IMG.lp+IMG.bp+(IMG.nz||0))/n;IMG.q={cov:+cov.toFixed(3),draw:+dr.toFixed(4),low:cov<.8||dr>=Q_DRAW}}
+  const cov=wn?wc/wn:0,dr=(IMG.lp+IMG.bp+(IMG.nz||0))/n;IMG.q={cov:+cov.toFixed(3),draw:+dr.toFixed(4),sure:+(1-unsA).toFixed(3),low:cov<.8||dr>=Q_DRAW||unsA>.12}}
  IMG.path={hi,lo,man:new Uint8Array(w)};IMG.auto={hi:hi.slice(),lo:lo.slice()};return IMG.path}
 const OCMAX=2000; // längste Seite des zugeschnittenen Bilds in Pixeln (größere werden verkleinert, damit Einrasten und Export flüssig bleiben)
 const OCNOTE='<p class="mut ocnote">Die App prüft deine Zählung nach dem Regelwerk. Sie erkennt keine Wellen selbst und gibt keine Kursprognose oder Anlageempfehlung.</p>';
@@ -2682,8 +2823,9 @@ function ocSuggest(im){try{const iw=im.naturalWidth,ih=im.naturalHeight,f=Math.m
   const sg=[];let cur=null,lx=-1e9;for(let x=0;x<w;x++){if(hi[x]<0)continue;const gap=lx>=0?Math.max(0,hi[x]-lo[lx],hi[lx]-lo[x]):0;if(!cur||x-lx>w*.015||gap>h*.1){cur={a:x,b:x,n:0,t:1e9,u:-1};sg.push(cur)}cur.b=x;cur.n++;cur.t=Math.min(cur.t,hi[x]);cur.u=Math.max(cur.u,lo[x]);lx=x}
   const mn=sg.reduce((p,q)=>!p||q.n>p.n?q:p,null),pad=mn?(mn.u-mn.t)*.05:0,keep=sg.filter(q=>q===mn||(q.n>=w*.03&&q.u>=mn.t-pad&&q.t<=mn.u+pad));
   keep.forEach(q=>{for(let x=q.a;x<=q.b;x++)if(hi[x]>=0){xs.push(x);tops.push(hi[x]);bots.push(lo[x])}});
+  // oben/unten der 0,3-%-Wert statt des Extrems (seit 25.11.2026): ein Label über dem Hoch zieht den Rahmen nicht in die Legende, der Rand von 8 % deckt das Hoch
   let l=ax.l,t=ax.t,r=ax.r,b=ax.b;if(xs.length>w*.2){tops.sort((p,q)=>p-q);bots.sort((p,q)=>p-q);const q=(a,p)=>a[Math.min(a.length-1,Math.max(0,Math.round(p*(a.length-1))))];
-   const top=tops[0],bot=bots[bots.length-1],rg=Math.max(10,bot-top);t=Math.max(t,top-rg*.08);b=Math.min(b,bot+rg*.08);l=Math.max(l,q(xs,.003)-w*.01);r=Math.min(r,q(xs,.997)+w*.02)}
+   const top=q(tops,.003),bot=q(bots,.997),rg=Math.max(10,bot-top);t=Math.max(t,top-rg*.08);b=Math.min(b,bot+rg*.08);l=Math.max(l,q(xs,.003)-w*.01);r=Math.min(r,q(xs,.997)+w*.02)}
   if(r-l<w*.3||b-t<h*.3)return null;return{x:l/f,y:t/f,w:(r-l)/f,h:(b-t)/f}}catch(e){return null}}
 function ocCrop(im,u){const iw=im.naturalWidth,ih=im.naturalHeight;let r={x:0,y:0,w:iw,h:ih},full=true;const sg=ocSuggest(im);let sug=!!sg;if(sg){r=sg;full=false}
  $('#view').innerHTML='<p class="kick">Eigenen Chart prüfen</p><p class="task"><b>Zuschneiden.</b> '+(sg?'Der Rahmen ist ein Vorschlag: nur der Chart, ohne Preis- und Zeitachse, Legende, Menüs und Werkzeugleisten. Passt er, tippe auf Weiter. Sonst Ecken und Kanten anpassen oder einen neuen Rahmen ziehen.':'Zieh einen Rahmen um den Chartbereich, ohne Preis- und Zeitachse, Menüs und Werkzeugleisten. An den Ecken und Kanten kannst du ihn anpassen.')+'</p>'+

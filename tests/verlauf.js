@@ -35,7 +35,9 @@ const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, 
         // Kurs nach Farbe: je Spalte oberstes und unterstes Pixel in Kursfarbe (Originalbild, ganzes Bild hochgeladen: f = 1 bzw. verkleinert)
         let nah = null, weg = [], verb = 0; if (c.kurs) { const Dd = I.data, K = c.kurs, isK = j => { const r = Dd[j * 4], g = Dd[j * 4 + 1], b = Dd[j * 4 + 2];
             return K.hell ? Math.min(r, g, b) >= K.hell : K.farben.some(q => Math.max(Math.abs(r - q[0]), Math.abs(g - q[1]), Math.abs(b - q[2])) <= K.tol); };
-          const rt = new Array(I.w).fill(-1), rb = new Array(I.w).fill(-1); for (let x = a; x <= b; x++) for (let y = Math.ceil(c.oben * f); y < Math.min(h, c.unten * f); y++) if (isK(y * I.w + x) && (isK((y - 1) * I.w + x) || isK((y + 1) * I.w + x))) { if (rt[x] < 0) rt[x] = y; rb[x] = y; } // nur Teil eines senkrechten Strichs (keine Punkte einer gepunkteten Linie)
+          // Seit 25.11.2026 zählt auch ein einzelnes Pixel als Kurs (Balken ohne Bewegung, Hoch = Tief), wenn keine 3 Kurspixel derselben Zeile innerhalb ±12 Spalten liegen (gepunktete Linie)
+          const dot = (x, y) => { let k = 0; for (let q = x - 12; q <= x + 12; q++) if (q !== x && q >= 0 && q < I.w && isK(y * I.w + q) && !isK((y - 1) * I.w + q) && !isK((y + 1) * I.w + q)) k++; return k < 2; };
+          const rt = new Array(I.w).fill(-1), rb = new Array(I.w).fill(-1); for (let x = a; x <= b; x++) for (let y = Math.ceil(c.oben * f); y < Math.min(h, c.unten * f); y++) if (isK(y * I.w + x) && (isK((y - 1) * I.w + x) || isK((y + 1) * I.w + x) || dot(x, y))) { if (rt[x] < 0) rt[x] = y; rb[x] = y; } // Teil eines senkrechten Strichs oder einzelner Balken (keine Punkte einer gepunkteten Linie)
           let n1 = 0, n2 = 0; for (let x = a; x <= b; x++) { if (hi[x] < 0) continue; if (rt[x] >= 0) { n1++; if (Math.abs(hi[x] - rt[x]) <= 3 && Math.abs(lo[x] - rb[x]) <= 3) n2++; }
             const nt = rt.slice(Math.max(0, x - 4), x + 5).filter(v => v >= 0), nb = rb.slice(Math.max(0, x - 4), x + 5).filter(v => v >= 0);
             if (!nt.length || hi[x] < Math.min(...nt) - 8 || lo[x] > Math.max(...nb) + 8) weg.push(x); }
