@@ -56,7 +56,7 @@ const CHECK = () => { const I = PGS.img, PA = I.path, G = PGS.ocG(), g = documen
       await page.evaluate(v => localStorage.setItem('waveChecker.ocFade', String(v)), fade);
       await page.evaluate(() => ownChart()); await page.waitForSelector('#ocfile', { state: 'attached' });
       await page.setInputFiles('#ocfile', B.file || { name: 'c.png', mimeType: 'image/png', buffer: B.buf });
-      await page.waitForSelector('#occv'); await page.waitForTimeout(80); await page.click('#ocok'); await page.waitForSelector('#svg.pgsvg');
+      await page.waitForSelector('#occv'); await page.waitForTimeout(80); await page.click('#ocall'); await page.click('#ocok'); /* ganzes Bild statt Zuschnitt-Vorschlag (seit 25.11.2026) */ await page.waitForSelector('#svg.pgsvg');
       await page.evaluate(() => { const c = document.querySelector('#ocsh'); if (c && !c.checked) c.click(); });
       const st = await page.evaluate(CHECK);
       ok(!st.fehlt && !st.zick, 'Kerzen fehlen oder Zickzack-Linie noch da');

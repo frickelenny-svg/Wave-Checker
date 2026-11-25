@@ -30,7 +30,7 @@ const LUM = `const lum=c=>{const m=c.match(/[\\d.]+/g).map(Number),f=v=>{v/=255;
     const G = await page.evaluate(MKC, theme);
     const open = async () => { await page.evaluate(() => ownChart()); await page.waitForSelector('#ocfile', { state: 'attached' });
       await page.setInputFiles('#ocfile', { name: 'chart.png', mimeType: 'image/png', buffer: Buffer.from(G.url.split(',')[1], 'base64') });
-      await page.waitForSelector('#occv'); await page.waitForTimeout(80); await page.click('#ocok'); await page.waitForSelector('#svg.pgsvg'); };
+      await page.waitForSelector('#occv'); await page.waitForTimeout(80); await page.click('#ocall'); await page.click('#ocok'); /* ganzes Bild statt Zuschnitt-Vorschlag (seit 25.11.2026) */ await page.waitForSelector('#svg.pgsvg'); };
     await open();
     // Zählung setzen (Impuls auf dem erkannten Verlauf)
     await page.evaluate(piv => { const I = PGS.img, P = I.path; piv.forEach((q, k) => { const x0 = Math.round(q.x * I.crop.f); let best = null;

@@ -1,5 +1,5 @@
 {
-  "_anleitung": "Feste Testbilder für den erkannten Kursverlauf (tests/verlauf.js). datei: Bild in diesem Ordner. bereich: Spalten [von, bis] mit Kursverlauf. oben/unten: Zeilen, über bzw. unter denen kein Verlauf liegen darf (Legende, Zeitachse). abdeckung: Anteil der 6 Spalten breiten Abschnitte im Bereich mit Verlauf. quelle: Herkunft. Seit 23.11.2026 optional: kurs = Farben des Kurses ({farben:[[r,g,b]...], tol} oder {hell: Mindesthelligkeit}); dann muss der Verlauf je Spalte in mindestens nah (Anteil) der Spalten bis 3 px am obersten bzw. untersten Kurspixel (Pixel mit Nachbar in Kursfarbe darüber oder darunter) liegen und darf höchstens 0,5 % der Spalten mehr als 8 px über bzw. unter dem Kurs der Nachbarspalten (±4) liegen (Zeichnungen, Kästchen). verboten: Rechtecke [x0,y0,x1,y1], in denen kein Verlauf liegen darf.",
+  "_anleitung": "Feste Testbilder für den erkannten Kursverlauf (tests/verlauf.js). datei: Bild in diesem Ordner. bereich: Spalten [von, bis] mit Kursverlauf. oben/unten: Zeilen, über bzw. unter denen kein Verlauf liegen darf (Legende, Zeitachse). abdeckung: Anteil der 6 Spalten breiten Abschnitte im Bereich mit Verlauf. quelle: Herkunft. Seit 23.11.2026 optional: kurs = Farben des Kurses ({farben:[[r,g,b]...], tol} oder {hell: Mindesthelligkeit}); dann muss der Verlauf je Spalte in mindestens nah (Anteil) der Spalten bis 3 px am obersten bzw. untersten Kurspixel (Pixel mit Nachbar in Kursfarbe darüber oder darunter) liegen und darf höchstens 0,5 % der Spalten mehr als 8 px über bzw. unter dem Kurs der Nachbarspalten (±4) liegen (Zeichnungen, Kästchen). verboten: Rechtecke [x0,y0,x1,y1], in denen kein Verlauf liegen darf. Seit 25.11.2026 optional: vorschlag = {innen:[x0,y0,x1,y1], rechts, unten, oben, links} für den Zuschnitt-Vorschlag, hinweis = true/false (Hinweis „Erkennung unsicher“). ausschlaege = erlaubte senkrechte Ausschläge (Standard 0).",
   "faelle": [
     {
       "datei": "legende-oben.png",
@@ -7,7 +7,8 @@
       "oben": 22,
       "unten": 330,
       "abdeckung": 0.85,
-      "quelle": "Screenshot von Lenny, 23.11.2026: TradingView dunkel, Legende oben, Preisachse mit Preis-Kästchen rechts, Zeitachse unten, eingezeichnete Labels. Vorher senkrechte Balken bis zum oberen Rand. Die blaue Linie der App aus dem Screenshot ist herausgerechnet."
+      "quelle": "Screenshot von Lenny, 23.11.2026: TradingView dunkel, Legende oben, Preisachse mit Preis-Kästchen rechts, Zeitachse unten, eingezeichnete Labels. Vorher senkrechte Balken bis zum oberen Rand. Die blaue Linie der App aus dem Screenshot ist herausgerechnet.",
+      "hinweis": false
     },
     {
       "datei": "lumen-trendlinien.png",
@@ -26,7 +27,8 @@
       "verboten": [
         [1560, 0, 1607, 863]
       ],
-      "quelle": "Screenshot von Lenny, 23.11.2026 (Original): TradingView dunkel, OHLC-Balken weiß/grau und dünn, zwei lila Trendlinien (Dreieck), Wellen-Labels, E-Symbol, Preisachse mit Kästchen 6.49. Vorher lag der Verlauf auf der oberen Trendlinie."
+      "quelle": "Screenshot von Lenny, 23.11.2026 (Original): TradingView dunkel, OHLC-Balken weiß/grau und dünn, zwei lila Trendlinien (Dreieck), Wellen-Labels, E-Symbol, Preisachse mit Kästchen 6.49. Vorher lag der Verlauf auf der oberen Trendlinie.",
+      "hinweis": false
     },
     {
       "datei": "paypal-preiskaestchen.png",
@@ -42,7 +44,43 @@
         [1130, 505, 1234, 545],
         [1160, 0, 1234, 810]
       ],
-      "quelle": "Screenshot von Lenny, 23.11.2026 (Original): PayPal, TradingView dunkel, dünne weiße Kerzen, gepunktete Preislinie, Kästchen PYPL und 52.84 auf Kurshöhe, Kästchen 44.31, Preisachse mit Rand, E/D-Symbole, Wellen-Labels. Vorher lief der Verlauf über das Kästchen PYPL bis zum Rand."
+      "quelle": "Screenshot von Lenny, 23.11.2026 (Original): PayPal, TradingView dunkel, dünne weiße Kerzen, gepunktete Preislinie, Kästchen PYPL und 52.84 auf Kurshöhe, Kästchen 44.31, Preisachse mit Rand, E/D-Symbole, Wellen-Labels. Vorher lief der Verlauf über das Kästchen PYPL bis zum Rand.",
+      "hinweis": false
+    },
+    {
+      "datei": "coreweave-zeichnungen-ganz.png",
+      "bereich": [195, 1270],
+      "oben": 100,
+      "unten": 857,
+      "abdeckung": 0.85,
+      "verboten": [
+        [1278, 0, 1348, 895],
+        [0, 858, 1348, 895],
+        [0, 0, 1348, 13],
+        [0, 0, 11, 895],
+        [12, 14, 180, 110]
+      ],
+      "vorschlag": {
+        "innen": [195, 170, 1060, 780],
+        "rechts": 1280,
+        "unten": 860,
+        "oben": 90
+      },
+      "hinweis": true,
+      "quelle": "Discord-Feedback vom 25.11.2026 (über Lenny): TradingView dunkel, CoreWeave 8h, ohne Zuschnitt (Oberfläche, Legende, Kästchen VERKAUF/KAUF, Preis- und Zeitachse), voller Zeichnungen (Fibonacci-/Zielzonen, Linien, Labels in Kreisen). Vorher lag der Verlauf auf der Datumszeile.",
+      "ausschlaege": 2
+    },
+    {
+      "datei": "coreweave-zeichnungen.png",
+      "bereich": [56, 1130],
+      "oben": 2,
+      "unten": 700,
+      "abdeckung": 0.85,
+      "verboten": [
+        [1140, 0, 1137, 702]
+      ],
+      "hinweis": true,
+      "quelle": "Ausschnitt aus coreweave-zeichnungen-ganz.png, wie ihn der Zuschnitt-Vorschlag liefert (139, 154, 1138 × 703)."
     }
   ]
 }

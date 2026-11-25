@@ -55,7 +55,7 @@ if (require.main === module) (async () => {
       const G = await page.evaluate(GEN, o).catch(e => { fail('Generator: ' + e.message); return null; }); if (!G) continue;
       await page.evaluate(() => ownChart()); await page.waitForSelector('#ocfile', { state: 'attached' });
       await page.setInputFiles('#ocfile', { name: 'chart.' + (o.photo ? 'jpg' : 'png'), mimeType: o.photo ? 'image/jpeg' : 'image/png', buffer: Buffer.from(G.url.split(',')[1], 'base64') });
-      await page.waitForSelector('#occv'); await page.waitForTimeout(100); await page.click('#ocok'); await page.waitForSelector('#svg.pgsvg'); if (process.env.OCF) await page.evaluate(v => PGS.setOCF(+v), process.env.OCF);
+      await page.waitForSelector('#occv'); await page.waitForTimeout(100); await page.click('#ocall'); await page.click('#ocok'); /* ganzes Bild statt Zuschnitt-Vorschlag (seit 25.11.2026) */ await page.waitForSelector('#svg.pgsvg'); if (process.env.OCF) await page.evaluate(v => PGS.setOCF(+v), process.env.OCF);
       // große Welle an den bekannten Wendepunkten zählen: Spalte des Wendepunkts, Preis aus dem erkannten Verlauf (wie beim Einrasten)
       const set = await page.evaluate(([piv, z]) => { const I = PGS.img, P = I.path, f = I.crop.f; let ok = true;
         piv.forEach((q, k) => { const x0 = Math.round(q.x * f); let best = null; for (let x = Math.max(0, x0 - 3); x <= Math.min(I.w - 1, x0 + 3); x++) { const r = q.hl === 'h' ? P.hi[x] : P.lo[x]; if (r < 0) continue; if (!best || (q.hl === 'h' ? r < best.r : r > best.r)) best = { x, r }; }

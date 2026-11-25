@@ -40,7 +40,7 @@ const ST = () => { const I = PGS.img, v = PGS.view(), im = document.querySelecto
     await page.goto('http://localhost:' + PORT + '/'); await page.evaluate(() => { localStorage.setItem('waveChecker.guide', '1'); sessionStorage.setItem('waveChecker.intro', '1'); localStorage.setItem('waveChecker.pgTools', '1'); localStorage.setItem('waveChecker.ocFade', '0'); }); await page.reload();
     await page.evaluate(() => ownChart()); await page.waitForSelector('#ocfile', { state: 'attached' });
     await page.setInputFiles('#ocfile', path.join(__dirname, 'faelle', 'paypal-preiskaestchen.png'));
-    await page.waitForSelector('#occv'); await page.waitForTimeout(80); await page.click('#ocok'); await page.waitForSelector('#svg.pgsvg');
+    await page.waitForSelector('#occv'); await page.waitForTimeout(80); await page.click('#ocall'); await page.click('#ocok'); /* ganzes Bild statt Zuschnitt-Vorschlag (seit 25.11.2026) */ await page.waitForSelector('#svg.pgsvg');
     await page.evaluate(() => { document.querySelector('#pgc').scrollIntoView({ block: 'center' }); }); await page.waitForTimeout(150);
     const cdp = touch ? await ctx.newCDPSession(page) : null;
     const box = async () => page.evaluate(() => { const b = document.querySelector('#svg').getBoundingClientRect(); return { x: b.left, y: b.top }; });

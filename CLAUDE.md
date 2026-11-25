@@ -65,8 +65,15 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
 - Insel unten im Hauptmenü (neben „Wie geht es weiter?“), Station am Handy-Pfad zwischen Prognose und Rängen (`STN` id `own`),
   Schritt im Wegführer. Hinweistext `OCNOTE` („prüft deine Zählung nach dem Regelwerk … keine Kursprognose oder Anlageempfehlung“)
   auf Hochladen, Zählen und Ergebnis.
-- Hochladen: Dateifeld bzw. Ziehen (PNG/JPG), Bild bleibt im Browser (Blob-URL, Canvas). Zuschneiden (`ocCrop`): Rahmen ziehen,
+- Hochladen: Dateifeld bzw. Ziehen (PNG/JPG), Bild bleibt im Browser (Blob-URL, Canvas). Darunter der Tipp „Beste Ergebnisse: In TradingView vorher
+  alle Zeichnungen ausblenden (Augen-Symbol links) …“ (`.octip`, seit 25.11.2026). Zuschneiden (`ocCrop`): Rahmen ziehen,
   Ecken/Kanten anpassen, im Rahmen verschieben, „Ganzes Bild“. Ausschnitt höchstens 2000 px lange Seite (`OCMAX`).
+  Zuschnitt-Vorschlag (seit 25.11.2026 nach Discord-Feedback, `ocSuggest`): `ocPath` auf einer Kopie (höchstens 1600 px; kleiner werden die
+  Achsenziffern zu blass), Rahmen = erkannter Oberflächenrand und Achsen (`IMG.ax`), oben/unten bis 8 % der Kursspanne über bzw. unter dem Kurs
+  (Legende, Leisten weg), links/rechts bis zum Kurs. Kurs = größtes zusammenhängendes Stück des Verlaufs (Lücke über 1,5 % der Breite bzw. Sprung über
+  10 % der Höhe trennt) plus Stücke ab 3 % der Breite in seiner Höhenspanne; kleine Stücke abseits (Kästchen, Logo) zählen nicht. Der Rahmen ist
+  vorgewählt (Text „Der Rahmen ist ein Vorschlag …“), Weiter übernimmt ihn; Kanten anpassen oder neu ziehen (nicht verschieben). Tests klicken vor
+  Weiter „Ganzes Bild“, wenn sie fertig zugeschnittene Bilder hochladen.
 - Zählen = `progn({img:IMG},'schwer')`: dieselbe Bedienung wie Schwer (Zählweisen, Zeichnen/Auswählen, Unterteilungen, Löschen,
   Zoom). `IMG` = {cv, data, w, h, url, fade, crop:{x,y,f}}. Zeit = Bildspalte, Preis = Pixelhöhe von unten (`h - Zeile - 0,5`),
   immer linear (auch bei log-Charts, ohne Hinweis). Keine Zukunftszone, keine Zeiteinheiten.
@@ -88,21 +95,35 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Bei 100 % ist die ganze Chartfläche weiß, auch im dunklen Design (Klasse `.ocw` am `#pgc` setzt die Farben des hellen Designs, Kontrast ≥ 4,5:1),
   der Verlauf ist immer zu sehen (Kästchen wird eingeschaltet, auch im Ergebnis und im Export-Bild). Labels mit Hintergrund (`.pglbg`).
   Test: `node tests/bild-blasser.js` (Playwright, Handy/PC, hell/dunkel, 0/50/100 %: Deckkraft, weiße Fläche, Kontrast, Verlauf, Export, Neuladen).
+- Prüfen gesperrt: darunter immer der konkrete Grund (`ocWhy`, `#pgwhy`, seit 25.11.2026): Nachzeichnen läuft, noch keine Punkte (mit Hinweis auf das
+  Werkzeug Zeichnen, wenn Auswählen aktiv ist), wie viele Labels der großen Zählung fehlen. Ursache der Discord-Meldung „Prüfen geht nicht“: keine Punkte,
+  Werkzeug Auswählen aktiv. „Nachzeichnen beenden“ schaltet wieder auf Zeichnen. Nachzeichnen ersetzt nur die gezeichneten Spalten (`man`).
+  Hinweis „Viele Zeichnungen im Bild, die Erkennung ist unsicher“ mit Tipp (`.ocq`), wenn `IMG.q.low`: Verlauf in unter 80 % der 6-Spalten-Abschnitte
+  oder entfernte Zeichnungen (Linien-, Kästchen- und Zonenpixel) ab `Q_DRAW` = 0,8 % der Bildfläche (`IMG.q` = {cov, draw, low}).
+  Test: `node tests/pruefen-nachzeichnen.js` (Playwright, Handy/iPad/PC: Tipp, Vorschlag, Gründe, Nachzeichnen nur dort, danach Zeichnen, Punkte, Prüfen).
 - Kursverlauf (seit 23.11.2026, `ocPath`, direkt nach dem Zuschneiden): je Bildspalte höchstes und tiefstes Pixel von Kerzen bzw.
   Linie → `IMG.path` = {hi, lo (Zeile, -1 = nichts), man (nachgezeichnet)}, `IMG.auto` = erkannte Werte. Hintergrund je Kachel (48 px,
-  häufigste Farbe), Schwelle nach Kontrast. Schutzstufen (überarbeitet 23.11.2026 nach senkrechten Balken bis zur Legende):
+  häufigste Farbe, nur aus Pixeln innerhalb des Rahmens), Schwelle nach Kontrast. Schutzstufen (überarbeitet 23.11.2026 nach senkrechten Balken bis zur Legende):
+  0. Rahmen und Zonen (seit 25.11.2026, CoreWeave-Bild aus dem Discord): Leisten der Oberfläche am Bildrand (Zeilen/Spalten zu unter 35 % in
+     Charthintergrund, bis 25 % tief, `AX`) zählen nie; gefüllte Zonen (Fibonacci-/Zielzonen): Kacheln 16 px mit gleicher Nicht-Hintergrundfarbe
+     (ab 45 %, mind. 4 nebeneinander) bzw. pixelweise gleichfarbige Flächen ab 40 px breit und 8 px hoch gelten als Hintergrund, ihre dünnen Ränder
+     fallen mit weg; große Rahmen ohne Schrift (ab 60 px bzw. 5 % breit, `zbox`) verlieren ihre dünnen Kanten. Achsen an ausgerichteter Schrift:
+     Preisachse = mind. 5 kleine Formen mit gleicher linker bzw. rechter Kante rechts (ab 82 % der Breite) über 40 % der Höhe, gleichmäßige Abstände
+     (±35 %), dahinter nur Schrift (lange dünne Striche, gefüllte Kästchen und Formen über 6 % Breite ausgenommen), linke Kante über angrenzende Zeichen;
+     Zeitachse = mind. 5 Formen mit gleicher Unterkante unten (ab 85 % der Höhe) über 40 % der Breite, dahinter in der Datumszeile nur Schrift. Alles
+     dahinter fällt weg (`IMG.ax`), auch blasse Dochtspitzen werden nicht darüber hinaus verlängert.
   1. Linien: waagerecht ab 35 % Breite, senkrecht ab 90 % Höhe (Gitter, Fadenkreuz; lange echte Dochte bleiben), bis 5 px dick, Kreuzungen
      mit Kerzen bleiben; gestrichelte Linien (Gruppen bis 3 px hoch), Volumen am unteren Rand neben dem Hauptchart.
   1a. Gezeichnete Linien (seit 23.11.2026 nach Lennys Lumen-Bild: Trendlinien, Kanäle, Fibonacci, gepunktete Preislinie), waagerecht und schräg
      bis 58°, auch in Kursfarbe: dünne Pixel (senkrechter Lauf bis 4 px, bzw. bis 8 px bei mindestens so langem waagerechtem Lauf) stimmen für
      Geraden ab (Hough); jede Kandidatin wird mit einer Ausgleichsgeraden nachgemessen (Dicke = Median der Läufe). Linie = ab 12 % der Breite
-     (mind. 50 px) mit Treffern in mind. 35 % der Spalten (gepunktet 20 % bei 20 % Breite; Lücken bis 16 Spalten; Treffer nur frei stehend, nicht
+     (mind. 50 px; seit 25.11.2026 6 % bzw. mind. 40 px für kurze Fibonacci- und Trendlinien) mit Treffern in mind. 35 % der Spalten (gepunktet 20 % bei 20 % Breite; Lücken bis 16 Spalten; Treffer nur frei stehend, nicht
      an Kerzen hängend). Entfernt nur, wenn der Kurs in mind. 60 % ihrer Spalten woanders liegt (sonst ist die Gerade selbst der Kurs, gerades Stück
      im Linienchart; seit 24.11.2026 werden erst alle Linien gesucht, Pixel auf anderen gefundenen Linien und weiter als 50 % der Höhe entfernte
      Pixel, etwa die Legende, zählen nicht als Kurs). Entfernt wird bis 8 Spalten über die Treffer hinaus und unter berührender Schrift hindurch; über einem Kerzenkörper fällt
      die Linie auch dort weg, ein 1 px breiter Docht bleibt.
   1b. Kästchen (seit 23.11.2026 nach Lennys PayPal-Bild): Rechtecke 12 px bis 35 % breit, 7–45 px hoch, Oberkante frei, Unterkante (auf Fotos
-     unscharf) und beide Seiten zu mind. 85 %, mit Schrift innen (hohl: 3–70 % Pixel innen; gefüllt: andersfarbige Pixel ab 4 %); auch ohne sichtbare
+     unscharf; seit 25.11.2026 ab 70 % für runde Ecken) und beide Seiten zu mind. 70 %, mit Schrift innen (hohl: 3–70 % Pixel innen; gefüllt: andersfarbige Pixel ab 4 %); auch ohne sichtbare
      Unterkante (beide Seiten gleich lang) und wenn Kurs oder Balken links bzw. rechts angrenzen (Kante im Lauf, fehlende Ecke). Sie fallen ganz
      weg (Preis-, Symbol-, Hinweis-Kästchen). Rechtecke ohne Schrift (hohle oder gefüllte Kerzen) bleiben.
   2. Labels: kleine Gruppe (bis 110 × 44 px), unter bzw. über deren Mitte (4–60 px) der Kurs liegt (Hauptchart oder eine größere Form über
@@ -187,7 +208,9 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
 - Fall-Test: `node tests/subwellen.js [Durchläufe]` (Playwright, Handy/iPad/PC): gebaute Linien-Charts, Welle 3 je Fall dreiteilig, fünfteilig
   mit Regelbruch (IMP-3), unruhig, sauber, dazu ein harter Verstoß: Text je Befund, Überschrift (orange/grün/rot), Reihenfolge, Hervorhebung,
   Antippen blinkt, Export. Nach Änderungen an `ocSub`, `imgVerify` oder den Texten laufen lassen.
-- Verlauf auf festen Bildern: `node tests/verlauf.js` (Playwright, Handy/iPad/PC). Bilder und Erwartungen in `tests/faelle/faelle.json`
+- Verlauf auf festen Bildern (seit 25.11.2026 auch `coreweave-zeichnungen-ganz.png` = Discord-Screenshot ohne Zuschnitt, voller Zeichnungen, und
+  `coreweave-zeichnungen.png` = dessen vorgeschlagener Ausschnitt; Felder `vorschlag`, `hinweis`, `ausschlaege`; der zweite Discord-Screenshot zeigte
+  nur die App und ist kein Testbild): `node tests/verlauf.js` (Playwright, Handy/iPad/PC). Bilder und Erwartungen in `tests/faelle/faelle.json`
   (Bereich, kein Verlauf über `oben`/unter `unten`, keine senkrechten Ausschläge, Abdeckung je 6 Spalten). `legende-oben.png` = Lennys
   Screenshot vom 23.11.2026 (TradingView dunkel, Legende, Preisachse, Labels; blaue App-Linie herausgerechnet). `lumen-trendlinien.png` =
   Lennys Original (dünne weiße OHLC-Balken, lila Trendlinien, Kästchen 6.49), `paypal-preiskaestchen.png` = Lennys Original (dünne weiße

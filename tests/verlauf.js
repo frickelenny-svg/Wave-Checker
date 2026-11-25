@@ -4,6 +4,8 @@
 // (Hoch einer Spalte mehr als 18 % der Bildhöhe über dem Median der Nachbarspalten), genug Verlauf (Anteil der 6 Spalten breiten Abschnitte), keine Fehler in der Konsole.
 // Seit 23.11.2026 mit Kursfarbe (kurs): Der Verlauf folgt dem Kurs (oberstes und unterstes Kurspixel je Spalte, bis 3 px) und liegt nicht auf
 // Zeichnungen oder Kästchen (mehr als 8 px über bzw. unter dem Kurs der Nachbarspalten); verboten: Rechtecke ohne Verlauf (Preisachse, Kästchen).
+// Seit 25.11.2026: vorschlag = Zuschnitt-Vorschlag (ocSuggest) muss das Rechteck innen enthalten und darf höchstens bis rechts/unten bzw. erst ab oben
+// reichen; hinweis = ob „Viele Zeichnungen im Bild, die Erkennung ist unsicher“ erscheint.
 const { chromium } = require('playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..'), PORT = 8792, F = JSON.parse(fs.readFileSync(path.join(__dirname, 'faelle', 'faelle.json'), 'utf8')).faelle;
@@ -20,8 +22,12 @@ const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, 
     page.on('pageerror', e => errs.push(e.message)); page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
     await page.goto('http://localhost:' + PORT + '/'); await page.evaluate(() => { localStorage.setItem('waveChecker.guide', '1'); sessionStorage.setItem('waveChecker.intro', '1'); localStorage.setItem('waveChecker.pgTools', '1'); }); await page.reload();
     for (const c of F) {
+      if (c.vorschlag) { const v = c.vorschlag, sg = await page.evaluate(async d => { const im = new Image(); await new Promise(r => { im.onload = r; im.src = '/tests/faelle/' + d; }); return ocSuggest(im); }, c.datei);
+        if (!sg) fail(c.datei + ': kein Zuschnitt-Vorschlag'); else { const r = [sg.x, sg.y, sg.x + sg.w, sg.y + sg.h].map(Math.round); console.log('   Vorschlag ' + r);
+          if (v.innen && !(r[0] <= v.innen[0] && r[1] <= v.innen[1] && r[2] >= v.innen[2] && r[3] >= v.innen[3])) fail(c.datei + ': Vorschlag schneidet Kurs ab (' + r + ' statt mind. ' + v.innen + ')');
+          if ((v.rechts && r[2] > v.rechts) || (v.unten && r[3] > v.unten) || (v.oben && r[1] < v.oben) || (v.links && r[0] < v.links)) fail(c.datei + ': Vorschlag enthält Achse, Legende oder Leiste (' + r + ')'); } }
       await page.evaluate(() => ownChart()); await page.waitForSelector('#ocfile', { state: 'attached' }); await page.setInputFiles('#ocfile', path.join(__dirname, 'faelle', c.datei));
-      await page.waitForSelector('#occv'); await page.waitForTimeout(80); await page.click('#ocok'); await page.waitForSelector('#svg.pgsvg');
+      await page.waitForSelector('#occv'); await page.waitForTimeout(80); await page.click('#ocall'); await page.click('#ocok'); /* ganzes Bild statt Zuschnitt-Vorschlag (seit 25.11.2026) */ await page.waitForSelector('#svg.pgsvg');
       const r = await page.evaluate(c => { const I = PGS.img, hi = Array.from(I.path.hi), lo = Array.from(I.path.lo), h = I.h, f = I.crop.f, [a, b] = c.bereich.map(v => Math.round(v * f));
         let cov = 0, top = 0, bot = 0, sp = []; for (let x = a; x <= b; x++) { if (hi[x] < 0) continue; cov++; if (hi[x] < c.oben * f) top++; if (lo[x] > c.unten * f) bot++;
           const nb = hi.slice(Math.max(0, x - 8), x + 9).filter(v => v >= 0).sort((p, q) => p - q), m = nb[nb.length >> 1]; if (m - hi[x] > .18 * h) sp.push(x); }
@@ -35,9 +41,10 @@ const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, 
             if (!nt.length || hi[x] < Math.min(...nt) - 8 || lo[x] > Math.max(...nb) + 8) weg.push(x); }
           nah = n2 / Math.max(1, n1); }
         (c.verboten || []).forEach(([x0, y0, x1, y1]) => { for (let x = Math.round(x0 * f); x <= Math.min(I.w - 1, Math.round(x1 * f)); x++) if (hi[x] >= 0 && lo[x] >= y0 * f && hi[x] <= y1 * f) verb++; });
-        return { cov: wc / Math.max(1, wn), top, bot, sp, nah, weg, verb }; }, c);
+        return { cov: wc / Math.max(1, wn), top, bot, sp, nah, weg, verb, hinweis: !!document.querySelector('.ocq') }; }, c);
+      if (c.hinweis !== undefined && r.hinweis !== c.hinweis) fail(c.datei + ': Hinweis „Erkennung unsicher“ ' + (c.hinweis ? 'fehlt' : 'erscheint ohne Grund'));
       console.log(name + ': ' + c.datei + ' Abdeckung ' + (100 * r.cov).toFixed(0) + ' %, in der Legende ' + r.top + ', in der Zeitachse ' + r.bot + ', Ausschläge ' + r.sp.length);
-      if (r.cov < c.abdeckung) fail(c.datei + ': zu wenig Verlauf erkannt'); if (r.top || r.bot) fail(c.datei + ': Verlauf in Legende bzw. Zeitachse'); if (r.sp.length) fail(c.datei + ': senkrechte Ausschläge in Spalte ' + r.sp.slice(0, 5));
+      if (r.cov < c.abdeckung) fail(c.datei + ': zu wenig Verlauf erkannt'); if (r.top || r.bot) fail(c.datei + ': Verlauf in Legende bzw. Zeitachse'); if (r.sp.length > (c.ausschlaege || 0)) fail(c.datei + ': senkrechte Ausschläge in Spalte ' + r.sp.slice(0, 5));
       if (r.nah !== null) { console.log('   am Kurs ' + (100 * r.nah).toFixed(1) + ' %, abseits (Zeichnung, Kästchen) ' + r.weg.length + ' Spalten'); if (r.nah < c.nah) fail(c.datei + ': Verlauf folgt dem Kurs zu selten'); if (r.weg.length > (c.bereich[1] - c.bereich[0]) * .005) fail(c.datei + ': Verlauf abseits des Kurses in Spalte ' + r.weg.slice(0, 8)); }
       if (r.verb) fail(c.datei + ': Verlauf in einem verbotenen Bereich (' + r.verb + ' Spalten)');
     }

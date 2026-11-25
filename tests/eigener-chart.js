@@ -127,6 +127,7 @@ if (require.main === module) (async () => {
       await page.waitForSelector('#occv'); await page.waitForTimeout(150);
       const cb = await page.evaluate(() => { const c = document.querySelector('#occv'); c.scrollIntoView({ block: 'center', behavior: 'instant' }); const b = c.getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height }; });
       const S = cb.w / img.W, m = 3 / S; // 3 Bildpixel innerhalb des Plotbereichs
+      await page.click('#ocall'); // erst ganzes Bild, dann den Rahmen neu ziehen (der Zuschnitt-Vorschlag hat sonst Kanten, die man greift; seit 25.11.2026)
       await drag(cb.x + (img.plot.x0 + m) * S, cb.y + (img.plot.y0 + m) * S, cb.x + (img.plot.x1 + (o.axis ? 85 * img.sc : 0) - m) * S, cb.y + (img.plot.y1 - m) * S);
       await page.click('#ocok'); await page.waitForSelector('#svg.pgsvg'); await page.waitForTimeout(200);
       const crop = await page.evaluate(() => ({ ...PGS.img.crop, w: PGS.img.w, h: PGS.img.h }));

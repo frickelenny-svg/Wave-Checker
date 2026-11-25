@@ -57,6 +57,9 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
   das Bild wird stufenlos blasser zu Weiß hin. Bei 100 % ist das Bild ausgeblendet: Chartfläche #FFFFFF auch im dunklen Design, darin die Farben
   des hellen Designs (`.ocw`), der erkannte bzw. nachgezeichnete Verlauf wird eingeblendet; das Export-Bild übernimmt die Einstellung. Text-Labels mit Hintergrund (`.pglbg`: `--surface` 92 %, Rand `--line`, Ecken 6 px),
   große Labels wie immer im Kreis.
+- Hochladen: unter dem Knopf der Tipp zum Ausblenden der Zeichnungen (`.octip`, `--muted`). Zuschneiden: Vorschlag als vorgewählter blauer Rahmen,
+  Text „Der Rahmen ist ein Vorschlag …“. Zählen: Hinweis „Viele Zeichnungen im Bild, die Erkennung ist unsicher“ als Kasten `.ocq` (`--warn-bg`,
+  `--warn-text`, Warn-Icon 18 px, Ecken 12 px) über dem Hinweistext. Unter gesperrtem „Prüfen“ immer der konkrete Grund (`.pghint`, `#pgwhy`).
 - Erkannter bzw. nachgezeichneter Kursverlauf (seit 24.11.2026 als Kerzen, vorher Zickzack-Linie aus Hoch und Tief): Kerzen in `--accent`,
   Docht 1,2 px, steigend gefüllt (`.occu`), fallend als Umriss ohne Füllung (`.occd`, 1,2 px). Breite der Kerze 70 % ihres Abstands; in der
   Start-Ansicht etwa so breit wie im Original, mindestens 2 Bildschirmpixel, beim Hineinzoomen feiner, beim Herauszoomen gröber. Nur beim Zählen

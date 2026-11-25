@@ -42,7 +42,7 @@ const MKC = o => { const hard = o.fall === 'hart';
       const o = { fall, w3: W3[fall], theme: (r + fall.length) % 2 ? 'dark' : 'light' }, G = await page.evaluate(MKC, o), d = fall + ' (' + o.theme + ')';
       await page.evaluate(() => ownChart()); await page.waitForSelector('#ocfile', { state: 'attached' });
       await page.setInputFiles('#ocfile', { name: 'chart.png', mimeType: 'image/png', buffer: Buffer.from(G.url.split(',')[1], 'base64') });
-      await page.waitForSelector('#occv'); await page.waitForTimeout(80); await page.click('#ocok'); await page.waitForSelector('#svg.pgsvg');
+      await page.waitForSelector('#occv'); await page.waitForTimeout(80); await page.click('#ocall'); await page.click('#ocok'); /* ganzes Bild statt Zuschnitt-Vorschlag (seit 25.11.2026) */ await page.waitForSelector('#svg.pgsvg');
       const set = await page.evaluate(piv => { const I = PGS.img, P = I.path; piv.forEach((q, k) => { const x0 = Math.round(q.x * I.crop.f); let best = null;
         for (let x = Math.max(0, x0 - 3); x <= Math.min(I.w - 1, x0 + 3); x++) { const v = q.hl === 'h' ? P.hi[x] : P.lo[x]; if (v < 0) continue; if (!best || (q.hl === 'h' ? v < best.v : v > best.v)) best = { x, v }; }
         if (best) PGS.fadd('N', k, best.x, I.h - best.v - .5); }); return PGS.FR().pts.length === piv.length; }, G.piv);
