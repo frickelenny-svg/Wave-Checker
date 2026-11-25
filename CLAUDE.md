@@ -62,6 +62,7 @@ Gilt für „Chart durchzählen“, „Muster erkennen – Schwer“, Tagesaufga
 
 ## „Eigenen Chart prüfen“ (seit 20.11.2026, Funktionen `ownChart`, `ocCrop`, `progn({img})`)
 Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI und ohne Server, Grundlage nur das Regelwerk.
+**Übersicht zum Weiterarbeiten (Ablauf, Erkennung, probierte Ansätze, Testbilder, offene Probleme): [docs/eigener-chart.md](docs/eigener-chart.md).**
 - Insel unten im Hauptmenü (neben „Wie geht es weiter?“), Station am Handy-Pfad zwischen Prognose und Rängen (`STN` id `own`),
   Schritt im Wegführer. Hinweistext `OCNOTE` („prüft deine Zählung nach dem Regelwerk … keine Kursprognose oder Anlageempfehlung“)
   auf Hochladen, Zählen und Ergebnis.
