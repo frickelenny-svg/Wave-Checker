@@ -51,8 +51,9 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
 - Zuschneiden: Bild auf Fläche wie der Chart, außerhalb des Rahmens Navy 55 % abgedunkelt, Rahmen 2 px `--accent`, weiße Eck-Griffe.
 - Zählen: wie Schwer, aber Werkzeuge waagerecht links und Zoom rechts in einem 54 px hohen Streifen über dem Bild (nichts verdeckt
   das Bild); rechts in der Zoom-Gruppe zuerst der Knopf „Ansicht zurücksetzen“ (Pfeil im Kreis, 18 px). Unter dem Bild ein 26 px hoher
-  Streifen mit Trennlinie `--line` und dem Hinweis „↔ Zeitachse ziehen“ (11 px, `--muted`, Mauszeiger ew-resize). Das Bild startet
-  unverzerrt und lässt sich wie ein Chart waagerecht strecken bzw. stauchen; darüber eine weiße Fläche (Regler „Bild blasser“ unter dem Chart, 0–100 % mit Prozentanzeige, Start 25 %),
+  Streifen mit Trennlinie `--line` und dem Hinweis „↔ Zeitachse ziehen“ (11 px, `--muted`, Mauszeiger ew-resize). Das Bild füllt in der
+  Startansicht die ganze Chartfläche (seit 25.11.2026, kein Rand, kein leerer Raum) und lässt sich wie ein Chart strecken bzw. zoomen, aber nie
+  kleiner als die Fläche und nie über seine Kanten hinaus verschieben; darüber eine weiße Fläche (Regler „Bild blasser“ unter dem Chart, 0–100 % mit Prozentanzeige, Start 25 %),
   das Bild wird stufenlos blasser zu Weiß hin. Bei 100 % ist das Bild ausgeblendet: Chartfläche #FFFFFF auch im dunklen Design, darin die Farben
   des hellen Designs (`.ocw`), der erkannte bzw. nachgezeichnete Verlauf wird eingeblendet; das Export-Bild übernimmt die Einstellung. Text-Labels mit Hintergrund (`.pglbg`: `--surface` 92 %, Rand `--line`, Ecken 6 px),
   große Labels wie immer im Kreis.

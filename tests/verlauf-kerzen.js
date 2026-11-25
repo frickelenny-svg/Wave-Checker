@@ -6,7 +6,7 @@
 //  - Hoch und Tief jeder Kerze = genaues Extrem ihrer Bildspalten (PGS.ocG() Spalten je Kerze), Schluss = Mitte der letzten Spalte,
 //    Eröffnung = Schluss der Kerze davor; steigend gefüllt, fallend hohl
 //  - Zahl der Kerzen in der Start-Ansicht ungefähr wie im Original (Bildbreite / IMG.cw, höchstens eine je 2 Bildschirmpixel; Faktor 0,4–2,5)
-//  - hineingezoomt feiner (weniger Spalten je Kerze), herausgezoomt gröber
+//  - hineingezoomt feiner (weniger Spalten je Kerze), wieder herausgezoomt gröber (höchstens bis zur Startansicht)
 //  - Einrasten nutzt die einzelnen Spalten: Tipp neben ein Hoch (das höchste in 60 Bildschirmpixeln) trifft genau das Extrem der Spalte
 //  - bei 100 % gut sichtbar (Kontrast der Kerzenfarbe auf Weiß mindestens 3:1), keine Fehler in der Konsole
 const { chromium } = require('playwright');
@@ -73,7 +73,7 @@ const CHECK = () => { const I = PGS.img, PA = I.path, G = PGS.ocG(), g = documen
       ok(zi.G < g0 || g0 === 1, 'hineingezoomt nicht feiner (' + g0 + ' → ' + zi.G + ' Spalten je Kerze)');
       ok(zi.bad === 0 && zi.bodyBad === 0, 'hineingezoomt ungenau (' + zi.bad + '/' + zi.bodyBad + ')');
       await page.evaluate(m => PGS.zoom(1 / 9, m[0], m[1]), mid); const zo = await page.evaluate(CHECK);
-      ok(zo.G > g0, 'herausgezoomt nicht gröber (' + g0 + ' → ' + zo.G + ')');
+      ok(zo.G > zi.G && zo.G === g0, 'herausgezoomt nicht gröber bzw. nicht bis zur Startansicht (' + zi.G + ' → ' + zo.G + ', Start ' + g0 + ')'); // seit 25.11.: nicht kleiner als die Startansicht
       ok(zo.bad === 0 && zo.bodyBad === 0, 'herausgezoomt ungenau (' + zo.bad + '/' + zo.bodyBad + ')');
       // Einrasten auf die Spalte, nicht auf die Kerze: deutliches Hoch im mittleren Drittel, Tipp 6 px daneben
       await page.evaluate(m => PGS.zoom(3, m[0], m[1]), mid);

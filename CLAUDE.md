@@ -75,11 +75,15 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   staucht nur die Zeitachse um die Maus (Seite scrollt nicht), Strg/Cmd + Mausrad und + / − zoomen in alle Richtungen. Ziehen verschiebt
   waagerecht und senkrecht (im Bild auch mit einem Finger, die Seite scrollt dann nicht); ein Klick mit Bewegung unter 5 px (Maus; Finger 8 px)
   setzt im Werkzeug Zeichnen einen Punkt, nach dem Verschieben nie. Streifen „↔ Zeitachse ziehen“ unter dem Bild (`BP` 26 px, `.ocax`):
-  Ziehen streckt/staucht (vor allem für Handy/iPad), Doppeltipp setzt zurück. Knopf „Ansicht zurücksetzen“ (`[data-zr]`, links neben −) und
-  Doppelklick auf die Chartfläche (nicht im Werkzeug Zeichnen, dort setzt ein Klick einen Punkt; nicht auf einem Punkt) stellen die
-  Startansicht her. Bild (`<image>` mit preserveAspectRatio none), Kerzen, Punkte und Labels hängen alle an X/Y, verzerren also gemeinsam.
-  Test: `node tests/bild-steuerung.js` (Playwright, Handy/iPad/PC: Mausrad, Strg + Mausrad, Ziehen vs. Klick, Streifen, + / −, Zurücksetzen,
-  Bild, Kerzen und Punkte deckungsgleich).
+  Ziehen streckt/staucht (Modus `ax`, vor allem für Handy/iPad); ein Tipp dort wirkt seit 25.11.2026 wie ein Tipp in den Chart (Tiefs am unteren
+  Bildrand). Knopf „Ansicht zurücksetzen“ (`[data-zr]`, links neben −) und Doppelklick auf die Chartfläche (nicht im Werkzeug Zeichnen, dort setzt
+  ein Klick einen Punkt; nicht auf einem Punkt) stellen die Startansicht her.
+  Bild fixiert (seit 25.11.2026, `imFit` = W/Bildbreite, `imClamp` in `pic()`, `clampSc`): Die Startansicht füllt die Chartfläche ganz (Höhe nach
+  Seitenverhältnis, bei sehr hohen bzw. flachen Bildern leicht gestreckt), dort bewegt Ziehen nichts. Verschieben nur, wo durch Zoom bzw. Strecken
+  mehr Bild da ist (nach reinem Strecken nur waagerecht), bis zur Bildkante; die Kanten rutschen nie in die Fläche. Rauszoomen und Stauchen höchstens
+  bis zur Startansicht. Bild (`<image>` mit preserveAspectRatio none), Kerzen, Punkte und Labels hängen alle an X/Y, verzerren also gemeinsam.
+  Test: `node tests/bild-steuerung.js` (Playwright, Handy/iPad/PC: Mausrad, Strg + Mausrad, Ziehen vs. Klick, Streifen (Ziehen und Tipp), + / −,
+  Zurücksetzen, Startansicht fest, Grenzen an allen Kanten, nie leerer Raum, nicht kleiner als die Startansicht, Bild, Kerzen und Punkte deckungsgleich).
   Regler „Bild blasser“ 0–100 % (seit 23.11.2026; weiße Fläche über dem Bild, stufenlos, Anzeige `#ocfv`, `localStorage` `waveChecker.ocFade`).
   Bei 100 % ist die ganze Chartfläche weiß, auch im dunklen Design (Klasse `.ocw` am `#pgc` setzt die Farben des hellen Designs, Kontrast ≥ 4,5:1),
   der Verlauf ist immer zu sehen (Kästchen wird eingeschaltet, auch im Ergebnis und im Export-Bild). Labels mit Hintergrund (`.pglbg`).
