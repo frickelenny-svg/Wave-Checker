@@ -8,7 +8,7 @@ const http = require('http'), fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..'), PORT = 8794, N = +process.argv[2] || 4;
 const server = http.createServer((q, s) => { let p = decodeURIComponent(q.url.split('?')[0]); if (p === '/') p = '/index.html';
   const f = path.join(ROOT, p); if (!f.startsWith(ROOT) || !fs.existsSync(f)) { s.writeHead(404); return s.end(); }
-  s.writeHead(200, { 'Content-Type': p.endsWith('.html') ? 'text/html; charset=utf-8' : p.endsWith('.json') ? 'application/json; charset=utf-8' : 'application/octet-stream', 'Cache-Control': 'no-store' }); fs.createReadStream(f).pipe(s); });
+  s.writeHead(200, { 'Content-Type': require('./typ')(p), 'Cache-Control': 'no-store' }); fs.createReadStream(f).pipe(s); });
 // richtige Antwort je Regel (Impuls), unabhängig von der Richtung des Charts
 const OK = { 'IMP-1': 'Welle 2 korrigiert mehr als 100 % von Welle 1', 'IMP-2': 'Welle 3 ist die kürzeste', 'IMP-3': 'Welle 4 überlappt Welle 1', 'W4-3': 'Welle 2 und Welle 4 sind gleich',
   'DRE-1': 'Hier steht ein Dreieck', 's:IMP-1': 'Die (2) retraced mehr als 100 % der (1)', 's:IMP-2': 'Die (3) ist die kürzeste', 's:IMP-3': 'Die (4) überlappt die (1)', 's:IMP-4': 'Die Welle ist nur dreiteilig' };

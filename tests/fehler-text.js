@@ -1,10 +1,13 @@
 // Test für „Fehler finden“ Schwer (seit 14.11.2026, Lenny): Freitext-Prüfung per Schlüsselwörtern.
-// Aufruf im Repo-Ordner: node tests/fehler-text.js   (ohne Browser; führt den Block FFT-START … FFT-END aus index.html aus)
+// Aufruf im Repo-Ordner: node tests/fehler-text.js   (ohne Browser; führt den Block FFT-START … FFT-END aus js/modi/fehler-text.js aus)
 // Für jede Regel, die der Generator verletzen kann: mindestens 5 richtige Formulierungen (verschiedene Wörter, Tippfehler, Zahlwörter)
 // und 3 falsche. Zusätzlich: Jede Regel aus findSub steht in fehler-schluesselwoerter.json und hat einen Text „einfach“.
 const fs = require('fs'), path = require('path'), ROOT = path.resolve(__dirname, '..');
-const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-const code = html.slice(html.indexOf('// FFT-START'), html.indexOf('// FFT-END'));
+// Seit 26.11.2026 ist index.html aufgeteilt: FFT steht in js/modi/fehler-text.js, die Muster (viol) in js/regeln/ und js/modi/.
+const jsFiles = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => e.isDirectory() ? jsFiles(path.join(d, e.name)) : e.name.endsWith('.js') ? [path.join(d, e.name)] : []);
+const html = jsFiles(path.join(ROOT, 'js')).map(f => fs.readFileSync(f, 'utf8')).join('\n');
+const ft = fs.readFileSync(path.join(ROOT, 'js/modi/fehler-text.js'), 'utf8');
+const code = ft.slice(ft.indexOf('// FFT-START'), ft.indexOf('// FFT-END'));
 const FFT = new Function(code + '\nreturn FFT;')();
 const J = JSON.parse(fs.readFileSync(path.join(ROOT, 'fehler-schluesselwoerter.json'), 'utf8'));
 
@@ -152,11 +155,11 @@ const C = [
     no: ['Welle 2 ist dreiteilig', 'Welle 2 ist zu tief', 'Welle 2 ist kein Impuls'] }
 ];
 
-// Seit 15.11.2026: beteiligte Wellen. Partner je Regel wie ffInv in index.html (für die Testrunden fest gewählt).
+// Seit 15.11.2026: beteiligte Wellen. Partner je Regel wie ffInv in js/modi/fehler-finden.js (für die Testrunden fest gewählt).
 const PART = { 'IMP-1': ['1'], 'IMP-2': ['1'], 'IMP-3': ['1'], 'DIAG-2': ['1'], 'ZZ-2': ['A'], 'FR-2': ['A'], 'FE-2': ['A'], 'FRU-2': ['A'], 'ZZ-3': ['A'], 'FR-3': ['A'], 'FE-3': ['A'], 'FRU-3': ['A'],
   'DL-4': ['1'], 'DL-8': ['3'], 'DB-10': ['3'], 'DB-4': ['1'], 'DE-9': ['3'], 'WX-2': ['W'], 'WX-2b': ['Y'], 'W4-3': ['2'] };
 const partOf = (id, w) => id === 'DRE-7' || id === 'DRE-8' ? ['ABCDE'['ABCDE'.indexOf(w) - 1]] : id === 'DE-3' ? [w === '5' ? '3' : '1'] : (PART[id] || []);
-const BEZ = { 'IMP-2': ['1', '5'], 'DL-4': ['1', '5'] }; // wie FFPS in index.html
+const BEZ = { 'IMP-2': ['1', '5'], 'DL-4': ['1', '5'] }; // wie FFPS in js/modi/fehler-finden.js
 C.forEach(c => { c.o = { partner: partOf(c.id, c.o.welle), bezug: BEZ[c.id] || PART[c.id] || [], gewaehlt: c.o.welle, ...c.o }; });
 // Blickwinkel: gewählt ist die Partnerwelle bzw. die Welle der Regel ohne Nummer im Text. Je Blickwinkel mindestens 3 richtige.
 const PV = [

@@ -1,7 +1,70 @@
 # Wave-Checker
 
-Lern-App für Elliott-Wellen (Deutsch). Alles steckt in einer Datei: `index.html` (HTML, CSS, JS, ohne Build-Schritt).
-Veröffentlicht wird über `main` (GitHub Pages). Gestaltungsregeln: `DESIGN.md`. Lerninhalte: `lernen/` (Regelwerk-Lernversion + Abbildungen), Quiz: `quiz/`, Tutorial-Texte: `tutorials.json`.
+Lern-App für Elliott-Wellen (Deutsch). Statische Seite ohne Build-Schritt und ohne Framework: `index.html` (nur Gerüst), `css/app.css`,
+`js/…` (seit 26.11.2026 aufgeteilt, vorher alles in `index.html`). Veröffentlicht wird über `main` (Vercel, https://elliott-wellen-checker.vercel.app,
+ohne Einstellungen). Gestaltungsregeln: `DESIGN.md`. Lerninhalte: `lernen/` (Regelwerk-Lernversion + Abbildungen), Quiz: `quiz/`, Tutorial-Texte: `tutorials.json`.
+
+**Lies nur die Dateien, die für die Aufgabe nötig sind.** Die Übersicht unten sagt, wo was liegt; `grep` nach dem Funktionsnamen findet den Rest.
+
+## Wo liegt was (seit 26.11.2026)
+Alle Skripte sind normale Skripte (`<script src>`, kein `type="module"`, kein import/export), geladen in fester Reihenfolge am Ende von
+`index.html`. Sie teilen sich einen gemeinsamen globalen Bereich wie früher der eine Skriptblock: Funktionen, `const` und `let` einer Datei
+sind in allen anderen sichtbar, Knöpfe rufen Funktionen per `onclick="home()"` auf, Tests lesen `PGS`, `TUTS` usw. direkt.
+- **Ladereihenfolge beachten:** Code, der beim Laden sofort läuft (z. B. `PAT.fr=flatPat(…)`, `const X=f()`), darf nur Dinge aus *früheren*
+  Dateien bzw. weiter oben in derselben Datei nutzen. Was erst bei Bedienung läuft (Funktionsrümpfe), darf alles nutzen. `js/start.js` ist
+  immer das letzte Skript (legt den Hauptmenü-Knopf um die Modus-Funktionen und startet die App).
+- **Neue Datei:** in `index.html` an passender Stelle vor `js/start.js` eintragen. Neuer Spielmodus mit eigenem Menü-Einstieg: Funktionsname
+  in die Liste in `js/start.js`, falls der Knopf „← Hauptmenü“ erscheinen soll.
+- **Namen sind global:** Ein neuer Name auf oberster Ebene darf in keiner anderen Datei schon vorkommen (sonst Fehler beim Laden).
+- Kopfkommentar jeder Datei sagt, wofür sie da ist.
+
+| Bereich | Datei |
+|---|---|
+| Gerüst (Kopfzeile, `#view`), Design sofort setzen, Liste der Skripte | `index.html` |
+| Alle Styles, Design-Tokens (CSS-Variablen hell/dunkel in `:root`) | `css/app.css` |
+| Regeln Impuls, Zigzag + Grundlagen (`L`, `FLIP`, `mt`, `pct`, `PAT`) | `js/regeln/impuls-zigzag.js` |
+| Regeln Flats / Dreiecke / Diagonalen / komplexe Korrekturen | `js/regeln/flat.js`, `dreieck.js`, `diagonale.js`, `kombination.js` |
+| Prüffunktionen `check`, `hardFails`, `warns`, `norm`, `tag` | `js/regeln/pruefen.js` |
+| Chart-Generator (`genImp` … `genCx`, `makeRound`, `partF`, `PAT.*.recog/subs/ctx`) | `js/generator/muster.js` |
+| Runden mit Subwellen (`makeSubRound`, `pickAlt`) | `js/generator/subwellen.js` |
+| Kursdaten „Wie geht es weiter?“ (`PGK`, `PGSUB`, `PGTF`, `pgData`, `pgFr`, `PGLINE`) | `js/generator/prognose-kurs.js` |
+| Kleiner Chart der Übungsmodi (`draw`, `chartSize`, `startDrag`, `ordHint`, `labX`) | `js/chart/zeichnen.js` |
+| Punkte setzen/ziehen im kleinen Chart (`bindPoints`) | `js/chart/punkte.js` |
+| Spielstand, localStorage: Punkte/Serie, Fortsetzen, Pfad, Tagesaufgabe-Speicher, Ränge (`exSolved`, `rankCheck`, `rnPush`) | `js/speicher.js` |
+| Bausteine: `$`, Icons (`ico`, `ICON`), `stufe`, `lvlNote`, `stats`, `isl`, `toast`, Weiter-Knopf in die Leiste | `js/ui/bausteine.js` |
+| Startseite, Handy-Pfad, Fortsetzen-Karte (`home`, `STN`, `wpDraw`, `resume`) | `js/ui/startseite.js` |
+| Wegführer, Intro, Hintergrund-Chart, Fortschritt zurücksetzen | `js/ui/wegfuehrer.js` |
+| Musterwahl nach Stufen (`pick`, `go`, `STUFEN`) | `js/ui/menue.js` |
+| Kopfzeile: hell/dunkel (`themeBtn`), Knöpfe Lernen | `js/ui/kopfzeile.js` |
+| Ränge anzeigen (`ranks`, `ranksOpen`, `rankUp`, `rnBadge`, `rnPop`) | `js/ui/raenge.js` |
+| Lernbereich (`learn`, `showLearn`, `mdToHtml`, `peek`, Bild-Zoom) | `js/ui/lernen.js` |
+| Kurz-Tutorials (`TUTDEF`, `tutCtx`, `tutStart`, `tutTick`, `tutEnd`) | `js/ui/tutorial.js` |
+| „Chart durchzählen“ (`count`) | `js/modi/durchzaehlen.js` |
+| „Muster erkennen“ Leicht/Schwer (`recogNormal`, `recogHard`, `fitPts`) | `js/modi/muster-erkennen.js` |
+| „Subwellen zählen“ (`sub`, `pickSub`, `drawS`) | `js/modi/subwellen.js` |
+| „Fehler finden“ (`find`, `findSub`, `FFPS`, `ffInv`, `roundFails`, `findOk`, `fehlerTexte`) | `js/modi/fehler-finden.js` |
+| Freitext-Prüfung „Fehler finden“ Schwer (`FFT`, Block FFT-START … FFT-END) | `js/modi/fehler-text.js` |
+| „Blitz“ (`blitz`, `BZLV`, `blitzKap`) | `js/modi/blitz.js` |
+| Tagesaufgabe (`daily`, `seeded`, `dailyKey`, `dailyRound`, Kalender, Teilen) | `js/modi/tagesaufgabe.js` |
+| Quiz (`quizMenu`, `quizStart`, `quizAsk`) | `js/modi/quiz.js` |
+| „Wie geht es weiter?“ und Zählen/Prüfen in „Eigenen Chart prüfen“ (`progn`) | `js/modi/prognose.js` |
+| „Eigenen Chart prüfen“: Hochladen, Zuschneiden (`ownChart`, `ocSuggest`, `ocCrop`) | `js/modi/eigener-chart.js` |
+| „Eigenen Chart prüfen“: Bilderkennung (`ocKerzen`, `ocPath`, `ocSure`) | `js/modi/eigener-chart-erkennung.js` |
+| Start der App, Menü-Knopf um die Modus-Funktionen, `TUTS` | `js/start.js` |
+
+`js/modi/prognose.js` ist eine einzige Funktion `progn` (rund 920 Zeilen), weil alle Teile denselben Zustand teilen (Ansicht, Punkte, Bild);
+eine weitere Aufteilung wäre ein echter Umbau. Darin der Reihe nach: Ansicht und Zoom (`zoomAt`, `zoomX`, `clampSc`), Bild (`imFit`, `imClamp`,
+`ocG`, `ocCandles`), Einrasten (`imgSnap`, `snapPt`, `wantOf`), Unterteilung prüfen (`ocZig`, `ocFit`, `ocSub`), Zeichnen (`pic`, `render`),
+Gesten (`bindChart`), Prüfung (`frCheck`, `frSeries`, `imgVerify`), Export (`ocPng`), Zählen (`frAdd`, `frStartSub`, `frTap`, `frDel`),
+Oberfläche (`frRender`, `toolBar`, `tipUI`, `verify`). Mit `grep -n "const name="` direkt hinspringen.
+
+localStorage-Schlüssel (nie umbenennen, sonst gehen Spielstände verloren): `waveChecker.progress`, `.resume`, `.path`, `.daily`, `.ranks`,
+`.rankNew` (`js/speicher.js`), `.quiz` (`js/modi/quiz.js`), `.blitz…` (`js/modi/blitz.js`), `.findLvl`, `.fehlerTexte` (`js/modi/fehler-finden.js`),
+`.guide`, `.intro` (`js/ui/wegfuehrer.js`), `.tutSeen` (`js/ui/tutorial.js`), `.pgTools`, `.ocFade` (`js/modi/prognose.js`, `eigener-chart.js`),
+`.theme` (`index.html`, `js/ui/kopfzeile.js`).
+
+Test-Server: Die Playwright-Tests liefern Dateien mit dem Typ aus `tests/typ.js` aus (JS und CSS brauchen den richtigen Typ, sonst lädt der
+Browser die Styles nicht). Neue Tests verwenden `'Content-Type': require('./typ')(p)`.
 
 ## Arbeitsweise
 - Texte in der App auf Deutsch, Anrede „du“. Kommentare im Code ebenfalls Deutsch, mit Datum und „Lenny“ bei Umbauten.
@@ -46,7 +109,7 @@ Gilt für „Chart durchzählen“, „Muster erkennen – Schwer“, Tagesaufga
   `blitz`, `progn`, `progn-schwer`, `quiz` (Schlüssel je nach Schwierigkeit). Gestaltung: DESIGN.md, Abschnitt „Tutorial“.
 - Texte nur in `tutorials.json` (Anleitung oben in der Datei): je Modus `titel` und `schritte` (`id` + `text`, höchstens zwei Sätze, du,
   keine Regel-IDs). Reihenfolge und Auswahl der Schritte kommen aus der Datei, unbekannte ids werden übersprungen.
-- Technik in `index.html` (Block „Kurz-Tutorials“ direkt vor dem App-Start): Jeder Spielbildschirm meldet sich mit
+- Technik in `js/ui/tutorial.js` (bis 26.11.2026 Block „Kurz-Tutorials“ in `index.html`): Jeder Spielbildschirm meldet sich mit
   `tutCtx(key, neueRunde, daten)` an (count, findSub, recogNormal, recogHard, sub, blitz/show, progn, quizAsk). `TUTDEF[key]` legt je
   Schritt das echte Ziel-Element fest (`el`), bei Handlungen `hand` (wohin die Hand zeigt), `done`/`click` (wann es weitergeht), `opt`
   (nur wenn es passt, z. B. Tipp-Knopf, Bonusfrage). Fehlt ein Element, wird der Schritt übersprungen, nie blockiert.

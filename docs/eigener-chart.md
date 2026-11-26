@@ -4,7 +4,7 @@ Kurzfassung für einen neuen Chat. Details zu Regeln und Schwellen stehen in CLA
 
 ## Aufbau und Ablauf
 
-Kein Spielmodus (keine Punkte, Serie, Ränge, Tutorials), ohne KI und ohne Server. Das Bild bleibt im Browser. Alles steckt in `index.html`.
+Kein Spielmodus (keine Punkte, Serie, Ränge, Tutorials), ohne KI und ohne Server. Das Bild bleibt im Browser. Code (seit 26.11.2026 aufgeteilt): Hochladen/Zuschneiden in `js/modi/eigener-chart.js`, Bilderkennung (`ocKerzen`, `ocPath`) in `js/modi/eigener-chart-erkennung.js`, Zählen, Einrasten, Prüfen und Export in `progn` (`js/modi/prognose.js`).
 
 | Schritt | Funktion | Was passiert |
 |---|---|---|
