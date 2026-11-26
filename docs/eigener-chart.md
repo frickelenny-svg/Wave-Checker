@@ -1,4 +1,4 @@
-# „Eigenen Chart prüfen“ – Übergabe (Stand 25.11.2026)
+# „Eigenen Chart prüfen“ – Übergabe (Stand 26.11.2026)
 
 Kurzfassung für einen neuen Chat. Details zu Regeln und Schwellen stehen in CLAUDE.md (Abschnitt „Eigenen Chart prüfen“), Gestaltung in DESIGN.md.
 
@@ -36,6 +36,28 @@ Anlass: Discord-Feedback (CoreWeave in Originalgröße, `tests/faelle/coreweave-
 7. **Ränder (26.11.2026):** Die Zeitachse zählt nur mit gleich hohen Formen (Ziffern), sonst schnitt eine Reihe Kerzenstücke an der gepunkteten Preislinie den Kurs unten ab. Graue Kerzen ab s 0,42, Dochte über Zonenränder hinweg, dünne Balken auf kleinen Bildern sind keine Schrift. Randtest in `tests/verlauf.js` (`rand`, auch mit Zuschnitt-Vorschlag).
 
 Messung (40 Generatorbilder, Skript nur im Arbeitsordner): Kerzen/OHLC 97 % genau statt 92 %, Ausschlag-Spalten 435 statt 1539.
+
+Weitere Filter (26.11.2026): Farbsaum (Kerzenpixel, umgeben von mehr als dreimal so vielen kräftigen andersfarbigen Pixeln), alte Label-Gruppen mit mehr kräftigen Fremdpixeln als Kerzenpixeln, Legende in Kerzenfarbe (Säulen ganz über der Unterkante der Legendenschrift `LT`), Textzeilen der alten Regel nur im oberen Viertel. Lücken in einer Säule bis 10 px ohne Hintergrund (Linie kreuzt) bzw. bis 20 px aus Zonenpixeln werden überbrückt. s 0,42 nur für unbunte Kerzen auf Screenshots.
+
+## Kerzen 1:1 (`IMG.cdl`, seit 26.11.2026)
+
+- `ocPath` baut im Kerzenmodus je erkannter Kerze {a, b, xc (Docht), hi, lo, o, c, up}. Kerze = zusammenhängende Spalten mit Verlauf (ohne ergänzte).
+- **Kerzenabstand:** aus der Regelmäßigkeit der Hoch/Tief-Sprünge zwischen Spalten (kleinste Verschiebung 2–40 mit mind. 85 % der stärksten Selbstähnlichkeit), sonst aus den Formen ab 3 px Höhe (`KZ.P`). Lange Stücke werden im Abstand geteilt.
+- **Dichte Charts** (PayPal: mehrere Kerzen je Bildspalte, Hoch/Tief ändern sich fast jede Spalte, keine Regelmäßigkeit, lückenlos): schmale Kerzen fester Breite 2 Spalten (`d:1`), Docht = Extrem, Körper aus erster/letzter Spalte. Nie Sammelkerzen über mehrere Wellen.
+- **Körper:** Zeilen mit mind. 2 Spalten Kerzenfarbe; OHLC: Eröffnung = Strich links, Schluss = Strich rechts. **Richtung:** grünere Farbe steigend; unbunt: kräftiger steigend.
+- `ocCandles` zeichnet jede Kerze genau einmal; Zoom/Strecken ändern nur Breite und Abstand. Rückfall (keine Kerzen, Linienchart) und Nachgezeichnetes: Spaltengruppen mit fester Breite `ocG()` = `IMG.G0`.
+- `imgSnap` setzt einen Treffer in einer erkannten Kerze auf deren Docht und Hoch/Tief.
+
+## Prüfung von Unterteilungen (Stand 26.11.2026)
+
+- **Selbst gezählt (`frCheck`):** Unterteilungen, die nur aus dem Start bestehen (Welle antippen + Zählweise, dann nichts), werden nicht geprüft; vorher meldeten sie „beginnt in die falsche Richtung“. Text der Richtungsprüfung: „Die erste Teilwelle läuft gegen die Welle. Sie muss in dieselbe Richtung laufen wie die Welle selbst.“ Befunde markieren die Welle rot (`.pgeb`, `m.ew`) und alle Punkte der Unterteilung. Bei einem Regelbruch werden alle erlaubten Teilmuster mit Grund genannt.
+- **Automatisch (`ocSub`/`ocFit`):** immer alle Muster, die `PGSUB` an der Stelle erlaubt; nur Warnsignal („Automatisch erkannt, kein Regelverstoß“), nie harte Regel. Messtoleranz `OCTOL` = 1,5 px (`ocFails`): Ein Muster passt auch mit einem Wendepunkt bis 1,5 px höher bzw. tiefer. Anlass: (b) pixelgenau auf dem Start, Regular und Expanded Flat scheiterten beide.
+- **Meldungen:** Teilwellen mit Ebene (`subRule`: „Teilwelle (b) in Welle B überschreitet den Start von Teilwelle (a)“), Liste „Geprüft: als Zigzag nicht (…); als Regular Flat nicht (…)“ (Feld `tried`; bei nur einem Muster mit Regelbruch ohne Liste).
+- Korrekturwellen finden fast immer ein erlaubtes Muster (oft Double Zigzag), Warnsignale dort sind selten; das ist nach dem Regelwerk richtig.
+
+## Farben der Wellengrößen (seit 26.11.2026, DESIGN.md)
+
+Groß: Kreis `#1E5EFF`, Schrift weiß. Mittel: Feld `#6F97FF`, Schrift `#0B1B3A` (Weiß nur 2,8:1). Klein: Feld `#C9D8FF`, Schrift `#0B1B3A`. Punkte (`.wpt1–3`), Labels (`lab()` mit Feld `lv`, Klassen `.wlv1–3`, `.wt1–3`) und Legende (`.wlg1–3`); Schreibweise ①, (1), 1 bleibt. Gilt in „Wie geht es weiter?“ und hier; Fehler bleiben rot ohne Farbfeld.
 
 ## Chart-Erkennung (`ocPath`) – bisheriger Weg (liefert Rahmen, Achsen, Legende, Kästchen und Linien; Rückfall ohne Kerzen)
 
@@ -95,7 +117,7 @@ Feste Bilder liegen in `tests/faelle/`, die Erwartungen in `tests/faelle/faelle.
 |---|---|
 | `legende-oben.png` | TradingView dunkel, Legende, Preisachse, Labels (App-Linie herausgerechnet) |
 | `lumen-trendlinien.png` | Original: dünne weiße OHLC-Balken, lila Trendlinien, Kästchen |
-| `paypal-preiskaestchen.png` | Original: Kästchen PYPL/52.84/44.31, gepunktete Preislinie, E/D-Symbole |
+| `paypal-preiskaestchen.png` | Original: Kästchen PYPL/52.84/44.31, gepunktete Preislinie, E/D-Symbole; dichter Chart (`dicht`, Wendepunkte (a), (b), iii, v) |
 | `coreweave-zeichnungen-ganz.png` | Discord: ohne Zuschnitt, voller Zeichnungen, Zonen, Kästchen VERKAUF/KAUF |
 | `coreweave-zeichnungen.png` | dessen vorgeschlagener Ausschnitt |
 | `coreweave-original.png` | derselbe Screenshot in Originalgröße (1921 × 1276), Anlass der Kerzensuche |
@@ -104,13 +126,13 @@ Tests (alle Playwright, `NODE_PATH` und `PWCH=msedge` siehe Memory bzw. CLAUDE.m
 
 | Test | Prüft |
 |---|---|
-| `tests/verlauf.js` | feste Bilder: Verlauf am Kurs, keine Ausschläge, verbotene Bereiche, Vorschlag, Hinweis |
+| `tests/verlauf.js` | feste Bilder: Verlauf am Kurs, keine Ausschläge, verbotene Bereiche, Vorschlag, Hinweis, Ränder (`rand`, auch im vorgeschlagenen Ausschnitt), Wendepunkte (`wendepunkte`, PayPal) |
 | `tests/eigener-chart.js [Runden]` | Zufallsbilder (Generator `MK`: Kerzen/OHLC/Linie, hell/dunkel, Foto, Legende, Labels, Zeichnungen): Verlauf, Einrasten, Ziehen, Nachzeichnen, Prüfen, Export |
 | `tests/struktur.js` | Unterteilungsprüfung: Fehlalarme, Erkennung dreiteiliger Welle 3 |
 | `tests/subwellen.js` | Warnsignal-Texte, Überschrift, Hervorhebung |
 | `tests/unterteilung-muster.js` | automatische Prüfung mit allen erlaubten Mustern: Screenshot-Fall (Expandierendes Dreieck, (b) genau auf dem Start), Zigzag/Flat/Dreieck ohne Warnsignal, Texte mit Ebene und Musterliste, Farben |
 | `tests/unterteilung-richtung.js` | Zählung aus dem Discord-Screenshot (W-X-Y mit Unterteilungen, angefangene Unterteilungen nur mit Start): keine falsche Richtungsmeldung; Gegenprobe mit Text und Hervorhebung |
-| `tests/verlauf-kerzen.js` | Kerzen-Darstellung genau, Zoom feiner/gröber |
+| `tests/verlauf-kerzen.js` | Kerzen 1:1: jede Kerze einmal, Anzahl bei Zoom/Strecken gleich, deckungsgleich mit bekannten Kerzen, höchstens 10 Spalten je Kerze (dicht 4), Wendepunkte als Hoch/Tief einer Kerze, Rückfall mit fester Breite |
 | `tests/bild-steuerung.js` | Mausrad, Ziehen vs. Klick, Streifen, Grenzen, Deckungsgleichheit |
 | `tests/bild-blasser.js` | Regler 0/50/100 %, Kontrast, Export |
 | `tests/pruefen-nachzeichnen.js` | Tipp, Vorschlag, Grund unter „Prüfen“, Nachzeichnen, danach Prüfen |
@@ -121,16 +143,14 @@ Für feste Vergleiche gab es ein Skript `bench2.js` (144 Generatorbilder: Verlau
 
 ## Bekannte offene Probleme
 
-- **Kerzensuche:** Reste hinter der letzten Kerze (Kreis-Labels, Klammern von Fib-Beschriftungen) bleiben im Verlauf, liegen aber in orange markierten Bereichen. Fotos mit überlappenden Zonen haben weiter Ausschläge. Auf stark verkleinerten Bildern sind Kreis-Labels fast kerzenfarbig. Kerzen werden als Hohlkerzen (TradingView „Hollow candles“) nicht getestet. Laufzeit rund 0,3–1 s für 2000-px-Bilder.
-
-- **CoreWeave (viele Zeichnungen):**
-  - Der Verlauf hängt noch an Kanten der Zone „b“, an zwei kurzen blauen Linien, an Zonenkanten unten rechts und am Logo unten links.
-  - `zbox` greift dort nicht, weil die Zonenfüllung zu blass ist.
-  - Auf dem unbeschnittenen Bild bleibt eine Ausschlag-Spalte (erlaubt per `ausschlaege` in `faelle.json`).
-- **Zufallstest streut:** `tests/eigener-chart.js` reißt immer wieder knapp einzelne Grenzen (Einrasten 95 % bzw. 88 % mit Zeichnungen, Ausschläge 0,4 % bzw. 2 %, „Ziehen ins Leere“). Das tut auch der Stand vor den Umbauten. Kein fester Fehler gefunden.
-- **Fotos:** Legende nah an den Kerzen und Beschriftungen, die von Linien durchkreuzt werden, erzeugen einzelne Ausschläge.
-- **Unterteilungsprüfung:** Eine dreiteilige Welle 3 wird nur in rund 20–35 % erkannt (bewusst vorsichtig wegen der Fehlalarme).
-- **Achsenerkennung:** setzt ausgerichtete Schrift mit regelmäßigen Abständen voraus. Andere Plattformen als TradingView sind kaum getestet.
-- **Leichte Verzerrung:** Bei sehr hohen bzw. flachen Bildern ist das Bild leicht gestreckt, weil die Chartfläche in der Höhe begrenzt ist.
-- **Laufzeit:** `ocPath` braucht am PC rund 0,2–0,7 s (2000-px-Bilder); auf alten Handys spürbar.
-- **Weiteres Material:** Ein Originalscreenshot zu `legende-oben.png` fehlt; weitere echte Problembilder in `tests/faelle` aufnehmen.
+- **Zufallstest streut:** `tests/eigener-chart.js 6` reißt in jedem Lauf einige Grenzen (zuletzt 3–7 Fehler; der Stand vor der Kerzensuche hatte mit den Zonen-Charts 10). Am häufigsten: Einrasten knapp unter 95 % bzw. 88 % mit Zeichnungen auf einem Gerät, einzelne Ausschläge, „Ziehen ins Leere“. `tests/struktur.js` liegt bei Fehlalarmen zwischen 0 und 6 % (Grenze 5 %), je nach Stichprobe.
+- **Tipp auf vorhandene Labels:** schwankt zwischen rund 56 und 100 % je Lauf und Gerät; auch Liniencharts über den alten Weg betroffen.
+- **Fotos mit weißen OHLC-Balken, Zonen und Zeichnungen:** die schwerste Gruppe (neu 86–100 % der Kerzen, alt 74–84 %), weiter Ausschläge; ebenso Foto-Liniencharts mit Zonen.
+- **Reste hinter der letzten Kerze** (Kreis-Labels, Klammern von Fib-Beschriftungen) bleiben im Verlauf, liegen aber in orange markierten Bereichen.
+- **Dochtspitzen direkt an Box-Kanten** werden teils abgeschnitten (Zonen-Chart in `verlauf-kerzen.js`: 92 % statt 95 % deckungsgleich).
+- **Kreis-Labels in fast Kerzenfarbe** auf stark verkleinerten Bildern; Hohlkerzen (TradingView „Hollow candles“) nicht getestet.
+- **Unterteilungsprüfung:** eine dreiteilige Welle 3 wird nur in rund 20–35 % erkannt (bewusst vorsichtig).
+- **Achsenerkennung:** setzt ausgerichtete Schrift voraus; andere Plattformen als TradingView kaum getestet.
+- **Leichte Verzerrung** bei sehr hohen bzw. flachen Bildern (Chartfläche in der Höhe begrenzt).
+- **Laufzeit:** `ocPath` mit Kerzensuche rund 0,3–1 s für 2000-px-Bilder; auf alten Handys spürbar.
+- **Material:** Originalscreenshot zu `legende-oben.png` fehlt; neue echte Problembilder in `tests/faelle` aufnehmen.
