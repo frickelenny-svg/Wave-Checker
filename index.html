@@ -291,7 +291,13 @@ body.tut-on .tutbtn{visibility:hidden}
 .pgmh{display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0}.pgmh button{margin:0;min-height:32px;padding:2px 12px}
 .pgcd line{stroke:var(--accent);stroke-width:1}.pgcd rect.u{fill:var(--accent)}.pgcd rect.d{fill:var(--surface);stroke:var(--accent);stroke-width:1}.pgfc line{stroke:var(--accent);stroke-width:1;stroke-dasharray:2 2;opacity:.8}.pgfc rect{fill:none;stroke:var(--accent);stroke-width:1.1;stroke-dasharray:3 2;opacity:.9}.pgfc rect.u{fill:var(--accent);fill-opacity:.12}
 .pgc .lab.ax{font-size:11px;font-weight:500;fill:var(--mut)}
-.pgc1{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}.pgc .lab.l1{font-weight:800;font-size:12px}
+.pgc1{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}
+/* Farben der Wellengrößen (26.11.2026, Lenny, DESIGN.md): groß #1E5EFF mit weißer Schrift, mittel #6F97FF und klein #C9D8FF mit dunkler Schrift #0B1B3A
+   (Weiß auf #6F97FF nur 2,8:1); dazu bleibt die Schreibweise ①, (1), 1. Gilt für Label-Kreise/-Felder, Punkte und Legende. */
+.pgc1.wlv1{fill:#1E5EFF;stroke:#1E5EFF}.wlv2{fill:#6F97FF}.wlv3{fill:#C9D8FF;stroke:#6F97FF;stroke-width:1}.lab.wt1{fill:#fff}.lab.wt2,.lab.wt3{fill:#0B1B3A}
+.wpt1{fill:#1E5EFF}.wpt2{fill:#6F97FF}.wpt3{fill:#C9D8FF;stroke:#1E5EFF}
+.wlg{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;font-weight:800;font-size:12px;line-height:1;vertical-align:1px}
+.wlg1{background:#1E5EFF;color:#fff;border-radius:50%;padding:0}.wlg2{background:#6F97FF;color:#0B1B3A}.wlg3{background:#C9D8FF;color:#0B1B3A}.pgc .lab.l1{font-weight:800;font-size:12px}
 .pgcut{stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 4;opacity:.7}.pgc .lab.pgcutt{text-anchor:start;font-size:12px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:3px}
 .pgfoc{fill:var(--accent);opacity:.1}
 .pgnx .pgendc{font-size:12px;padding:3px 8px;min-height:0;margin-left:6px}
@@ -1693,6 +1699,11 @@ function progn(arg,lvl){
   for(let ch=true;ch;){ch=false;for(let i=1;i<z.length-1;i++){const a=z[i].p-z[i-1].p,b=z[i+1].p-z[i].p;if(!a||!b||Math.sign(a)===Math.sign(b)){z.splice(i,1);ch=true;break}}
    if(!ch&&z.length>2&&Math.abs(z[z.length-1].p-z[z.length-2].p)<thr*.5){z.splice(z.length-2,1);ch=true}}
   return z};
+ // Toleranz der Messung (26.11.2026, Lenny, Screenshot: Expandierendes Dreieck, Welle B): Auf einem Bild sind Wendepunkte nur pixelgenau. Endet eine
+ // Teilwelle genau auf Höhe eines anderen Punkts (z. B. (b) auf dem Start von (a)), scheiterten Regular Flat („unter dem Start“) und Expanded Flat
+ // („über dem Start“) beide. Ein Muster passt, wenn seine harten Regeln mit den Punkten oder mit einem Punkt bis OCTOL px höher bzw. tiefer gelten.
+ const OCTOL=1.5,ocFails=(D,q)=>{const t=u=>D.struct&&!D.struct(u)?['struct']:hardFails(D,u);let f=t(norm(D,q));if(!f.length)return f;
+  for(let i=1;i<q.length;i++)for(const e of[OCTOL,-OCTOL]){const r=q.slice();r[i]+=e;const g=t(norm(D,r));if(!g.length)return g}return f};
  const ocFit=(z,allow,d,minL)=>{const q=z.map(x=>x.p),n0=q.length-1;
   const tl=minL*.375,clean=(i,j)=>{const lo=Math.min(q[i],q[j]),hi=Math.max(q[i],q[j]);for(let k=i+1;k<j;k++)if(q[k]<lo-tl||q[k]>hi+tl)return false;return true}; // Toleranz 3 % der Welle (Rauschen auf Fotos)
   // eine Größenordnung: jede nicht gewählte Gegenbewegung innerhalb einer Teilwelle ist höchstens OCF-mal so groß wie die kleinste gewählte
@@ -1704,7 +1715,7 @@ function progn(arg,lvl){
     for(let idx=prev+1;idx<=n0;idx+=2){if(lastStep&&idx!==n0)continue;if(!lastStep&&idx===n0)break;
      if(Math.abs(q[idx]-q[prev])<minL||Math.sign(q[idx]-q[prev])!==(j%2?-d:d)||!clean(prev,idx))continue;
      sel.push(idx);let ok=false;
-     if(lastStep){const u=norm(D,sel.map(i=>q[i]));ok=(!D.struct||D.struct(u))&&!hardFails(D,u).length&&scale(sel)}else ok=dfs(j+1,idx);
+     if(lastStep){ok=!ocFails(D,sel.map(i=>q[i])).length&&scale(sel)}else ok=dfs(j+1,idx);
      sel.pop();if(ok)return true}
     return false};
    if(dfs(0,0))return true}
@@ -1721,7 +1732,7 @@ function progn(arg,lvl){
    // Befund je Schwelle (23.11.2026, Lenny): Zahl der Teilwellen; ist sie für die Welle erlaubt, das am besten passende Teilmuster
    // und seine verletzte Regel. Passt bei einer Schwelle genau eine regelkonforme Unterteilung, gibt es kein Warnsignal.
    const res=OCZZ.map(f=>ocZig(ta,tb,a.p,b.p,f*L)),ev=res.map((z,i)=>{const n=z.length-1,q=z.map(x=>x.p);if(n<1||Math.sign(q[1]-q[0])!==d)return{z,n,i,bad:true};let best=null;
-    for(const key of allow){const D=PAT[key];if(D.labels.length!==n+1)continue;const u=norm(D,q),f=D.struct&&!D.struct(u)?['struct']:hardFails(D,u);if(!f.length)return{z,n,i,ok:true};if(!best||f.length<best.f.length)best={D,f,q}}
+    for(const key of allow){const D=PAT[key];if(D.labels.length!==n+1)continue;const f=ocFails(D,q);if(!f.length)return{z,n,i,ok:true};if(!best||f.length<best.f.length)best={D,f,q}}
     return{z,n,i,best}});
    if(ev.some(e=>e.ok))continue;
    const five=allow.every(key=>PAT[key].labels.length===6),three=allow.every(key=>PAT[key].labels.length===4),need=five?5:three?3:0;
@@ -1730,12 +1741,15 @@ function progn(arg,lvl){
    const rb=ev.filter(e=>e.best&&(!need||e.n===need)).sort((x,y)=>x.best.f.length-y.best.f.length||y.i-x.i)[0],
     other=need?ev.filter(e=>!e.bad&&e.n===(need===5?3:5)).sort((x,y)=>y.i-x.i)[0]:null;
    let kind,txt2,rule=null,z;
-   if(rb){kind='regel';z=rb.z;rule=rb.best.f[0];const fl=FLIP;FLIP=rb.best.D.sign(rb.best.q)<0;
-    txt2=': Die gefundenen '+rb.n+' Teilwellen verletzen eine Regel ('+(rule==='struct'?'die Richtungen der Teilwellen passen nicht':mt(rb.best.D.rules[rule].name))+')';FLIP=fl}
+   // Seit 26.11.2026 (Lenny): Teilwellen mit ihrer Ebene benennen („Teilwelle (b) in Welle B …“) und jedes erlaubte Muster mit seinem Grund nennen
+   const wk=frHtml(S.lev,S.z,k),sub=(D,q,id)=>subRule(D,q,id,S.lev,wk);
+   const tried=allow.map(key=>{const D=PAT[key],m=D.labels.length-1;let bb=null;ev.forEach(e=>{if(e.bad||e.n!==m)return;const q=e.z.map(x=>x.p),f=ocFails(D,q);if(!bb||f.length<bb.f.length)bb={f,q}});
+    return{key,t:D.title,why:!bb?'keine '+m+' Teilwellen gefunden':bb.f.length?sub(D,bb.q,bb.f[0]):'nicht in einer Größenordnung'}});
+   if(rb){kind='regel';z=rb.z;rule=rb.best.f[0];txt2=': Die gefundenen '+rb.n+' Teilwellen verletzen eine Regel ('+sub(rb.best.D,rb.best.q,rule)+')'}
    else if(other){kind=other.n===3?'drei':'fuenf';z=other.z;txt2=', sie wirkt eher '+(other.n===3?'dreiteilig':'fünfteilig')}
    else{kind='unruhig';z=ev.filter(e=>!e.bad&&e.n>1).sort((x,y)=>Math.abs(x.n-(need||5))-Math.abs(y.n-(need||5)))[0];z=z?z.z:zf;txt2=', sie wirkt unruhiger, mit mehr Teilwellen'}
    out.push({k,need,n:z.length-1,kind,rule,t0:a.t,t1:b.t,pts:z.map(q=>({t:q.t,p:q.p})),
-    txt:'In Welle '+frHtml(S.lev,S.z,k)+' finde ich '+(five?'keine regelkonforme Fünfer-Unterteilung':three?'keine regelkonforme dreiteilige Unterteilung':'keine regelkonforme Unterteilung')+txt2+'. Prüf das mal genauer.'})}
+    tried,txt:'In Welle '+wk+' finde ich '+(five?'keine regelkonforme Fünfer-Unterteilung':three?'keine regelkonforme dreiteilige Unterteilung':'keine regelkonforme Unterteilung')+txt2+(tried.length>1||kind!=='regel'?'. Geprüft: '+tried.map(x=>'als '+x.t+' nicht ('+x.why+')').join('; '):'')+'. Prüf das mal genauer.'})}
   return out};
  const snapPt=(px,py,o)=>{o=o||{};const rad=o.touch?40:15,t=Tof(px),yc=Math.max(6,Math.min(H-BP-2,py));
   if(o.alt)return{t:Math.max(0,Math.min(ZE,t)),p:Pof(yc),kind:'free'};
@@ -1802,7 +1816,7 @@ function progn(arg,lvl){
   // die größte außen (Hoch: größere darüber, Tief: größere darunter). Der Stapel wird als Ganzes platziert.
   // Große Wellen (c) kommen zuerst und sind immer sichtbar; kleinere Labels, die auch versetzt noch überlappen, werden ausgeblendet.
   LBX=[];
-  const labs=[],lab=(x,py,up,t,st,c,stk,rank,gap,id)=>{if(x>-30&&x<W+30)labs.push({x,py,up,t,st,c,stk,rank:rank||0,gap,id})},put=()=>{const done=[],hit=(a,w)=>done.some(b=>Math.abs(b.x-a.x)<(w+b.w)/2+3&&Math.abs(b.y-a.y)<(a.c||b.c?22:17));
+  const labs=[],lab=(x,py,up,t,st,c,stk,rank,gap,id,lv)=>{if(x>-30&&x<W+30)labs.push({x,py,up,t,st,c,stk,rank:rank||0,gap,id,lv})},put=()=>{const done=[],hit=(a,w)=>done.some(b=>Math.abs(b.x-a.x)<(w+b.w)/2+3&&Math.abs(b.y-a.y)<(a.c||b.c?22:17));
    const U={},ord=[];labs.forEach((a,i)=>{const k=a.stk!==undefined?'s'+a.stk:'#'+i;if(!U[k]){U[k]=[];ord.push(k)}U[k].push(a)});
    const units=ord.map(k=>U[k].sort((a,b)=>a.rank-b.rank)).sort((A,B)=>(B.some(a=>a.c)?1:0)-(A.some(a=>a.c)?1:0));
    const wOf=a=>a.c?24:String(a.t).replace(/<[^>]*>/g,'').length*7.6,inY=y=>y>=16&&y<=H-BP-4;
@@ -1816,12 +1830,12 @@ function progn(arg,lvl){
      ys=lay(A,up,Math.max(0,ok));ys=ys.map(y=>Math.max(16,Math.min(H-BP-4,y)));
      A.forEach((a,i)=>{a.y=ys[i];a.w=wOf(a);done.push(a);const hs=a.id!==undefined&&FR&&FR.sel===a.id&&!FR.done; // gewähltes Label hervorgehoben
       if(a.id!==undefined)LBX.push({id:a.id,x:a.x,y:a.y-4,w:Math.max(20,a.w),h:a.c?20:16});
-      if(a.c)s+='<circle class="pgc1'+(hs?' pgls':'')+'" cx="'+a.x+'" cy="'+(a.y-4)+'" r="10"/>';else{if(IMG)s+='<rect class="pglbg" x="'+(a.x-a.w/2-4)+'" y="'+(a.y-15)+'" width="'+(a.w+8)+'" height="20" rx="6"/>';if(hs)s+='<rect class="pglsr" x="'+(a.x-a.w/2-4)+'" y="'+(a.y-15)+'" width="'+(a.w+8)+'" height="20" rx="6"/>'}s+='<text class="lab'+(a.c?' l1':'')+'"'+(a.st?' style="'+a.st+'"':'')+' x="'+a.x+'" y="'+a.y+'">'+a.t+'</text>'});break}})};
+      if(a.c)s+='<circle class="pgc1'+(a.lv?' wlv1':'')+(hs?' pgls':'')+'" cx="'+a.x+'" cy="'+(a.y-4)+'" r="10"/>';else{if(a.lv)s+='<rect class="wlv'+a.lv+'" x="'+(a.x-a.w/2-4)+'" y="'+(a.y-15)+'" width="'+(a.w+8)+'" height="20" rx="6"/>';else if(IMG)s+='<rect class="pglbg" x="'+(a.x-a.w/2-4)+'" y="'+(a.y-15)+'" width="'+(a.w+8)+'" height="20" rx="6"/>';if(hs)s+='<rect class="pglsr" x="'+(a.x-a.w/2-4)+'" y="'+(a.y-15)+'" width="'+(a.w+8)+'" height="20" rx="6"/>'}s+='<text class="lab'+(a.c?' l1':'')+(a.lv?' wt'+a.lv:'')+'"'+(a.st?' style="'+a.st+'"':'')+' x="'+a.x+'" y="'+a.y+'">'+a.t+'</text>'});break}})};
   const upAt=(i,list)=>{const p=list[i].p,a=list[i-1],b=list[i+1];return a?p>=a.p:(b?p>b.p:true)};
   const dot=(x,y)=>'<circle cx="'+x+'" cy="'+y+'" r="2.5" fill="var(--mut)"/>'; // Start einer Zählung bzw. zu schmale Welle: nur ein kleiner Marker
   if(m.shown)for(let k=cut0+1;k<R.mp.length;k++){const i=R.mp[k],up=R.pr[i]>=R.pr[R.mp[k-1]];lab(X(i),Y(R.pr[i]),up,pgLab(P.key,k),'fill:var(--mut)',1)}
   if(CNT){ // gezählter sichtbarer Teil: Ebene 1 im Kreis, darunter Ebenen 2 und 3 je nach Zeiteinheit. Start (0) nur als Marker.
-   const L=CNT.t.map((t,k)=>({t,p:CNT.p[k]}));L.forEach((q,k)=>{const up=upAt(k,L);if(!k){s+=dot(X(q.t),Y(q.p));return}lab(X(q.t),Y(q.p),up,pgLab(CNT.key0,k),'',1,'t'+q.t,9)});
+   const L=CNT.t.map((t,k)=>({t,p:CNT.p[k]}));L.forEach((q,k)=>{const up=upAt(k,L);if(!k){s+=dot(X(q.t),Y(q.p));return}lab(X(q.t),Y(q.p),up,pgLab(CNT.key0,k),'',1,'t'+q.t,9,undefined,undefined,1)});
    // Sichtbarkeit je Zählung (Gruppe g), nicht je Label: alle Labels einer Unterteilung erscheinen gemeinsam, sobald ihre Wellen im
    // Schnitt breit genug sind. So folgt z. B. die (5) auf demselben Pivot wie ① derselben Regel wie (1) bis (4).
    const G={};CNT.sub.forEach(q=>{const o=G[q.g]=G[q.g]||{n:0,t0:q.t0,t1:q.t0,ps:[]};o.n++;o.t1=Math.max(o.t1,q.t);o.ps.push(q)});
@@ -1829,7 +1843,7 @@ function progn(arg,lvl){
    const upMain={};L.forEach((q,k)=>upMain[q.t]=upAt(k,L));
    CNT.sub.forEach(q=>{const o=G[q.g],big=(o.t1-o.t0)/o.n*BW/tf>=(q.lev===2?20:16);
     if(!big){s+=dot(X(q.t),Y(q.p));return}const j=o.ps.indexOf(q),nb=o.ps[j-1]||o.ps[j+1],up=upMain[q.t]!==undefined?upMain[q.t]:(!nb||(o.ps[j-1]?q.p>=nb.p:q.p>nb.p));
-    lab(X(q.t),Y(q.p),up,q.l,q.lev===3?'font-size:11px;fill:var(--mut)':'',0,'t'+q.t,3-q.lev,[8,16])})}
+    lab(X(q.t),Y(q.p),up,q.l,q.lev===3?'font-size:11px':'',0,'t'+q.t,3-q.lev,[8,16],undefined,q.lev)})}
    else if(FR){ // Schwer: frei gesetzte Punkte; Fehler rot, ausgewählter Punkt mit Ring.
     // Wellengröße (lev) je Zählung steht fest (FR.cm). Sichtbarkeit je Zählung: alle Labels einer Zählung oder keins (laufende und
     // ausgewählte Zählung immer). Gemeinsame Pivots: größte Welle außen.
@@ -1842,11 +1856,11 @@ function progn(arg,lvl){
     byT.forEach(q=>{const nb=byT.filter(o=>o.c===q.c&&o!==q).sort((a,b)=>Math.abs(a.t-q.t)-Math.abs(b.t-q.t))[0],up=!nb||q.p>=nb.p,k=key(q);if(q.i>0&&(!upK[k]||upK[k].lev>q.lev))upK[k]={lev:q.lev,up}});
     byT.forEach(q=>{const x=X(q.t),y=Y(q.p),er=FR.err[q.id],sl=FR.sel===q.id,big=vis[q.id];
      if(selC!==undefined&&q.c===selC&&!sl)s+='<circle cx="'+x+'" cy="'+y+'" r="8" fill="var(--accent)" opacity=".22"/>';
-     s+='<circle cx="'+x+'" cy="'+y+'" r="'+(sl?7:big&&q.i?4.5:2.5)+'" fill="'+(er?'var(--dn)':'var(--accent)')+'" stroke="'+(sl?'var(--ink)':'var(--surface)')+'" stroke-width="'+(sl?2:1.5)+'"/>';
+     s+='<circle class="'+(er?'':'wpt'+Math.min(3,q.lev||1))+'" cx="'+x+'" cy="'+y+'" r="'+(sl?7:big&&q.i?4.5:2.5)+'" fill="'+(er?'var(--dn)':'var(--accent)')+'" stroke="'+(sl?'var(--ink)':'var(--surface)')+'" stroke-width="'+(sl?2:1.5)+'"/>';
      if(er)s+='<circle cx="'+x+'" cy="'+y+'" r="11" fill="none" stroke="var(--dn)" stroke-width="2"/>';
      if(!q.i)return; // Start einer Zählung: kein Label (0), nur der Punkt
      const k=key(q),up=upK[k]?upK[k].up:true;
-     if(big||er)lab(x,y,up,frTxt(q.lev,q.z,q.i),(er?'fill:var(--dn);':'')+(q.lev===3?'font-size:11px;':''),q.lev===1?1:0,k,3-q.lev,[12,20],q.id)})}
+     if(big||er)lab(x,y,up,frTxt(q.lev,q.z,q.i),(er?'fill:var(--dn);':'')+(q.lev===3?'font-size:11px;':''),q.lev===1?1:0,k,3-q.lev,[12,20],q.id,er?0:q.lev)})}
   // geplante Fortsetzung: grüne Punkte, Ebene 2 in Klammern, Ende der Hauptwelle im Kreis (außen am selben Pivot)
   if(CNT){const all=[{x:CNT.t[CNT.cut],p:CNT.p[CNT.cut]}].concat(m.pts);
    if(m.pts.length)s+='<polyline fill="none" stroke="var(--up)" stroke-width="2" stroke-dasharray="6 4" points="'+all.map(q=>X(q.x)+','+Y(q.p)).join(' ')+'"/>';
@@ -1877,7 +1891,7 @@ function progn(arg,lvl){
  const SUBS='mittlere Wellen: (1)–(5), (a)–(c), (a)–(e), (w)–(y) oder (w)–(z)';
  const tfBar=()=>(IMG?'':'<div class="pgtf" role="group" aria-label="Zeiteinheit">'+PGTF.map(([n,h])=>'<button data-tf="'+h+'" class="'+(h===tf?'on':'')+'" aria-pressed="'+(h===tf)+'">'+n+'</button>').join('')+'</div>')+
   '<div class="pgzm" role="group" aria-label="Zoom">'+(IMG?'<button data-zr aria-label="Ansicht zurücksetzen" title="Ansicht zurücksetzen">'+ICON.reset+'</button>':'')+'<button data-zm="-" aria-label="Herauszoomen">−</button><button data-zm="+" aria-label="Hineinzoomen">+</button></div>';
- const legend='<p class="pglg" aria-label="Beschriftung der Wellengrößen"><span class="c1">1</span> große Welle · <b>(1)</b> mittlere · <span class="mut">1</span> kleine <span class="mut">· Labels kleiner Wellen erscheinen beim Hineinzoomen</span></p>';
+ const legend='<p class="pglg" aria-label="Beschriftung der Wellengrößen"><span class="wlg wlg1">1</span> große Welle · <span class="wlg wlg2">(1)</span> mittlere · <span class="wlg wlg3">1</span> kleine <span class="mut">· Labels kleiner Wellen erscheinen beim Hineinzoomen</span></p>';
  const wn=k=>pgLab(fam()[0].key,k);
  // Ansicht einrichten (Breite am fertigen Rahmen messen; beim ersten Mal Zeiteinheit und Kerzenbreite wählen)
  const initView=()=>{size();
@@ -2058,6 +2072,10 @@ function progn(arg,lvl){
  // Liegt eine Zählung ganz in einer Welle einer anderen, ist sie eine Wellengröße kleiner. Die Beschriftung folgt automatisch
  // (größte ①, mittlere (1), kleinste 1) und stellt sich um, wenn später eine größere Zählung dazukommt.
  const frSeq=z=>PAT[PGZL[z]].labels; // Labels 0..n einer Zählweise
+ // Regelname eines Teilmusters mit Ebene (26.11.2026, Lenny): „Welle B überschreitet den Start von Welle A“ → „Teilwelle (b) in Welle B überschreitet
+ // den Start von Teilwelle (a)“ (die erste Nennung mit der übergeordneten Welle)
+ const subRule=(D,q,id,lev,wk)=>{if(id==='struct')return'die Richtungen der Teilwellen passen nicht';const fl=FLIP;FLIP=D.sign(q)<0;let first=true;
+  const t=mt(D.rules[id].name).replace(/Welle[\s\u00a0]+([A-Z]|\d)\d?(?![\w])/g,(m0,l)=>{const r='Teilwelle '+pgTxt(Math.min(3,lev+1),l)+(first?' in Welle '+wk:'');first=false;return r});FLIP=fl;return t};
  const frTxt=(lev,z,i)=>pgTxt(lev,pgLab(PGZL[z],i)),frHtml=(lev,z,i)=>!i?'Start':lev===1?C1(frTxt(lev,z,i)):frTxt(lev,z,i); // Start (0) ohne Label (seit 12.11.2026)
  const SIZE=['','große Welle','mittlere Welle','kleine Welle'];
  // Zählungen mit Wellengröße. Je Zählung: own = eigene Punkte (nach Zeit), ps = Punkte ab Start 0 (fehlender Start bzw. fehlendes letztes Label
@@ -2145,8 +2163,8 @@ function progn(arg,lvl){
      // (alle Labels der Zählweise, z. B. ZZ-1/WC-1: Welle C fünfteilig). Hört sie vorher auf, bleibt sie als angefangene Zählung erlaubt.
      if(k<=last&&!x.complete){const lp=x.C.pts[x.C.pts.length-1],nC=frSeq(z).length-1,miss=[];for(let j=lp.i+1;j<=nC;j++)miss.push(frHtml(x.C.lev,z,j));
       if(lp.t>=ps[k].t-1e-6&&miss.length){e={st:4,pid:lp.id,msg:(lp.t>ps[k].t+1e-6?'Die Unterteilung von Welle '+wn2+' läuft über das Ende dieser Welle hinaus und ist noch nicht vollständig: Es '+(miss.length>1?'fehlen':'fehlt'):'Welle '+wn2+' endet hier, ihre Unterteilung braucht noch')+' Welle '+miss.join(miss.length===2?' und ':', ').replace(/, ([^,]*)$/,' und $1')+'. Eine Welle, die als '+PGK[z].t+' gezählt wird, ist erst mit dem letzten Label fertig.',...hl,pid:lp.id};break}}
-     const lk=fp.length-1,good=V[k-1].filter(d=>PGKOF[d]===z||(z==='ABC'&&PGKOF[d]==='WXY')).some(d=>{const D=PAT[d],u=norm(D,fp);return!Object.keys(D.rules).some(id=>{const r=D.rules[id],mx=pgRuleMax(r);return r.hard&&(x.complete||mx<=lk?!r.ok(u):!pgCanHold(r,u,lk,mx))})});
-     if(!good){e={st:4,pid,msg:'Die Unterteilung von Welle '+wn2+' als '+PGK[z].t+' verletzt eine harte Regel des Teilmusters (z. B. Länge oder Überlappung der Teilwellen).',...hl};break}}
+     const lk=fp.length-1,cands=V[k-1].filter(d=>PGKOF[d]===z||(z==='ABC'&&PGKOF[d]==='WXY')),why=cands.map(d=>{const D=PAT[d],u=norm(D,fp),f=Object.keys(D.rules).find(id=>{const r=D.rules[id],mx=pgRuleMax(r);return r.hard&&(x.complete||mx<=lk?!r.ok(u):!pgCanHold(r,u,lk,mx))});return{t:D.title,f:f?subRule(D,fp,f,S.lev,wn2):null}}),good=why.some(q=>!q.f);
+     if(!good){e={st:4,pid,msg:'Die Unterteilung von Welle '+wn2+' als '+PGK[z].t+' verletzt eine harte Regel des Teilmusters: '+why.map(q=>'als '+q.t+' nicht ('+q.f+')').join('; ')+'.',...hl};break}} // seit 26.11.2026 jedes erlaubte Muster mit Grund
     if(!e&&Q.key==='imp'){const a=kids(2).find(x=>x.complete),b=kids(4).find(x=>x.complete);
      if(a&&b){const r2=reads(V[1],a.C.z,a.full.map(q=>q.p)).filter(x=>x.s&&!x.f.length),r4=reads(V[3],b.C.z,b.full.map(q=>q.p)).filter(x=>x.s&&!x.f.length);
       if(r2.length&&r4.length&&!r2.some(p=>r4.some(q=>p.D!==q.D)))e={st:5,pid:b.C.pts[0].id,msg:'Alternation: Welle '+nm(4)+' bildet dasselbe Korrekturmuster wie Welle '+nm(2)+'. Welle 4 muss ein anderes Muster sein.'}}}

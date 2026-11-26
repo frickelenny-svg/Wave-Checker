@@ -2,7 +2,7 @@
 // Aufruf im Repo-Ordner: node tests/subwellen.js [Durchläufe]   (Playwright nötig; PWCH=msedge bzw. PWCH=chrome). Handy (iPhone), iPad (Touch), PC (Maus).
 // Gezielt gebaute Charts (Linie, hell/dunkel, als Bild hochgeladen): ein regelkonformer Impuls, dessen Welle 3 je Fall anders unterteilt ist.
 //  drei     Welle 3 hat nur 3 Teilwellen                → „Prüfe die Subwellen“ (orange), „… sie wirkt eher dreiteilig.“
-//  regel    Welle 3 hat 5 Teilwellen, 4 überschneidet 1 → „… Die gefundenen 5 Teilwellen verletzen eine Regel (Welle 4 überschneidet Welle 1).“
+//  regel    Welle 3 hat 5 Teilwellen, 4 überschneidet 1 → „… Die gefundenen 5 Teilwellen verletzen eine Regel (Teilwelle (4) in Welle 3 überschneidet Teilwelle (1)).“ (seit 26.11.2026 mit Ebene)
 //  unruhig  Welle 3 hat 9 Teilwellen                     → „… sie wirkt unruhiger, mit mehr Teilwellen.“
 //  sauber   Welle 3 ist ein regelkonformer Impuls        → grün „Deine Zählung ist regelkonform“, kein Warnsignal
 //  hart     Welle 4 läuft ins Gebiet von Welle 1         → rot „verstößt gegen …“ (Vorrang vor allem anderen)
@@ -16,7 +16,7 @@ const server = http.createServer((q, s) => { let p = decodeURIComponent(q.url.sp
   s.writeHead(200, { 'Content-Type': p.endsWith('.html') ? 'text/html; charset=utf-8' : p.endsWith('.json') ? 'application/json' : 'application/octet-stream', 'Cache-Control': 'no-store' }); fs.createReadStream(f).pipe(s); });
 const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 3 }], ['iPad', { viewport: { width: 820, height: 1180 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 }], ['PC', { viewport: { width: 1366, height: 800 } }]];
 const W3 = { drei: [0, 60, 35, 100], regel: [0, 40, 25, 70, 20, 100], unruhig: [0, 30, 5, 35, 10, 40, 15, 45, 20, 100], sauber: [0, 30, 15, 70, 55, 100], hart: [0, 30, 15, 70, 55, 100] };
-const EXP = { drei: /sie wirkt eher dreiteilig\./, regel: /Die gefundenen 5 Teilwellen verletzen eine Regel \(Welle 4 überschneidet Welle 1\)/, unruhig: /sie wirkt unruhiger, mit mehr Teilwellen\./ };
+const EXP = { drei: /sie wirkt eher dreiteilig\./, regel: /Die gefundenen 5 Teilwellen verletzen eine Regel \(Teilwelle \(4\) in Welle 3 überschneidet Teilwelle \(1\)\)/, unruhig: /sie wirkt unruhiger, mit mehr Teilwellen\./ };
 // Chart zeichnen: Linie durch alle Wendepunkte, Dauer je Teilwelle nach ihrer Länge
 const MKC = o => { const hard = o.fall === 'hart';
   const W = [[0, 20, 12, 34, 28, 40], [40, 28, 34, 24], o.w3.map(v => 24 + v), hard ? [124, 90, 105, 36] : [124, 108, 116, 100], hard ? [36, 60, 50, 95, 85, 120] : [100, 115, 108, 130, 122, 150]];

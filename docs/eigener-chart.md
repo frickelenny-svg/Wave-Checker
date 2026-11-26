@@ -82,6 +82,7 @@ Reihenfolge im Code:
 | Kerzen je Zoom aus Spaltengruppen (`ocG` je Ansicht) | Anzahl änderte sich beim Strecken, verwirrend (Video Lenny) → Kerzen 1:1 aus `IMG.cdl` |
 | Kerzenabstand aus den Formen bei dicht stehenden Kerzen | Formen hängen zusammen, Abstand 39 statt 1 Spalte, 56 Spalten breite Sammelkerzen über mehrere Wellen (PayPal, Screenshot Lenny) → Abstand aus der Regelmäßigkeit der Hoch/Tief-Sprünge, dichte Charts als schmale Kerzen fester Breite |
 | Kerzenabstand aus allen Formen | Punkte und Splitter machten ihn zu klein, OHLC-Balken wurden zweigeteilt → nur Formen ab 3 px Höhe |
+| Flat-Regeln ohne Toleranz („unter“ bzw. „über“ dem Start) | (b) pixelgenau auf dem Start: Regular und Expanded Flat scheitern beide, Warnsignal mit FR-2 (Discord) → 1,5 px Toleranz (`ocFails`) |
 | Engere Farbtoleranz gegen Kreis-Labels | kostete auf Fotos Kerzen (91 → 69 %) |
 | Strangwahl mit Auslassen 6 und Belohnung bis 6 | Kreis-Label mit Pixeln in jeder Spalte gewann gegen dünne Dochte (Allzeithoch fehlte) → im Kerzenmodus 2 bzw. 30 |
 | Bild frei verschiebbar, nicht randfüllend | Bild ließ sich aus der Fläche schieben (Video Lenny) → fixiert |
@@ -107,6 +108,7 @@ Tests (alle Playwright, `NODE_PATH` und `PWCH=msedge` siehe Memory bzw. CLAUDE.m
 | `tests/eigener-chart.js [Runden]` | Zufallsbilder (Generator `MK`: Kerzen/OHLC/Linie, hell/dunkel, Foto, Legende, Labels, Zeichnungen): Verlauf, Einrasten, Ziehen, Nachzeichnen, Prüfen, Export |
 | `tests/struktur.js` | Unterteilungsprüfung: Fehlalarme, Erkennung dreiteiliger Welle 3 |
 | `tests/subwellen.js` | Warnsignal-Texte, Überschrift, Hervorhebung |
+| `tests/unterteilung-muster.js` | automatische Prüfung mit allen erlaubten Mustern: Screenshot-Fall (Expandierendes Dreieck, (b) genau auf dem Start), Zigzag/Flat/Dreieck ohne Warnsignal, Texte mit Ebene und Musterliste, Farben |
 | `tests/unterteilung-richtung.js` | Zählung aus dem Discord-Screenshot (W-X-Y mit Unterteilungen, angefangene Unterteilungen nur mit Start): keine falsche Richtungsmeldung; Gegenprobe mit Text und Hervorhebung |
 | `tests/verlauf-kerzen.js` | Kerzen-Darstellung genau, Zoom feiner/gröber |
 | `tests/bild-steuerung.js` | Mausrad, Ziehen vs. Klick, Streifen, Grenzen, Deckungsgleichheit |

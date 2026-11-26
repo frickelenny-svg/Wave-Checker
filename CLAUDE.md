@@ -203,6 +203,8 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
      `tests/eigener-chart.js` toleriert bis 0,4 % Ausschlag-Spalten (mit Zeichnungen 2 %, Einrasten ab 88 %). Liegt nur etwas über 25 % der Höhe daneben, bleibt die Spalte leer (kein Ausreißer). Echte lange Dochte
      hängen am Kerzenkörper und bleiben. Blasse Dochtspitzen werden bis 6 px verlängert.
   Was dann noch nicht passt, überzeichnet man mit „Verlauf nachzeichnen“.
+- Farben der Wellengrößen (seit 26.11.2026, siehe DESIGN.md): groß Kreis `#1E5EFF` mit weißer Schrift, mittel Feld `#6F97FF`, klein Feld `#C9D8FF`,
+  beide mit Schrift `#0B1B3A`; Punkte und Legende ebenso; `lab()` hat dafür das Feld `lv`. Gilt in „Wie geht es weiter?“ und „Eigenen Chart prüfen“.
 - Kerzen 1:1 zum Original (seit 26.11.2026, Lenny, nach Video): `ocPath` baut im Kerzenmodus `IMG.cdl` = je erkannter Kerze {a, b (Spalten), xc (Docht =
   Spalte mit dem längsten Strich), hi, lo, o, c (Zeilen; null = kein Körper erkannt), up}. Kerze = zusammenhängende Spalten mit Verlauf ohne ergänzte
   (`IMG.ip`); dicht an dicht stehende werden im Kerzenabstand `KZ.P` geteilt (P nur aus Formen ab 3 px Höhe, sonst teilten Punkte und Splitter OHLC-Balken).
@@ -259,6 +261,14 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   (`.pgeb`, `m.ew`) und alle Punkte der Unterteilung (`pids`). Eine Unterteilung, die nur aus dem Start besteht (Welle antippen + Zählweise, dann
   nichts weiter), wird weder geprüft noch hält sie die automatische Prüfung der Welle ab.
   nur eine Welle ohne Gegenbewegung (ZigZag 4 % mit weniger als 3 Teilwellen).
+  Seit 26.11.2026 (Discord-Screenshot: Expandierendes Dreieck, Warnsignal zu Welle B): Toleranz der Messung `OCTOL` = 1,5 px (`ocFails`): Ein Muster passt,
+  wenn seine harten Regeln mit den Wendepunkten oder mit einem Punkt bis 1,5 px höher bzw. tiefer gelten. Vorher endete (b) pixelgenau auf dem Start von (a);
+  Regular Flat verlangt „unter“, Expanded Flat „über“ dem Start, beide scheiterten, gemeldet wurde FR-2. Meldungen nennen Teilwellen mit Ebene
+  (`subRule`: „Teilwelle (b) in Welle B überschreitet den Start von Teilwelle (a)“) und jedes erlaubte Muster mit seinem Grund („Geprüft: als Zigzag nicht
+  (…); als Regular Flat nicht (…)“; bei nur einem Muster mit Regelbruch ohne Liste), Feld `tried` = [{key, t, why}]. Selbst gezählte Unterteilungen
+  (`frCheck`): „verletzt eine harte Regel des Teilmusters: als … nicht (…); …“. Geprüft werden immer alle Muster, die `PGSUB` an der Stelle erlaubt.
+  Test: `node tests/unterteilung-muster.js` (Playwright, Handy/iPad/PC, rund 20 s): der Screenshot-Fall, Expanded Flat in B, Zigzag in 2, Regular Flat
+  und kontrahierendes Dreieck in 4 ohne Warnsignal; Welle 3 mit Regelbruch (Text mit Ebene), Welle 1 dreiteilig (Musterliste); Farben der Wellengrößen.
 - Ergebnis-Überschrift (seit 23.11.2026, `PGS.res.state`): harter Regelverstoß rot (Vorrang), sonst bei Warnsignalen zur Unterteilung orange
   mit Warn-Icon „Prüfe die Subwellen“ und „Die Hauptwellen sind regelkonform, aber in Welle 1 und 3 passt die innere Struktur nicht sicher.“,
   nur ohne sie grün „Deine Zählung ist regelkonform“ (Export-Bild ebenso). Hinweise immer sortiert: harte Fehler → Warnsignale zur
