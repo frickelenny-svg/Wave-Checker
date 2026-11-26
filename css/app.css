@@ -22,6 +22,11 @@ main{max-width:800px;margin:0 auto;padding:12px 16px 120px}
 /* Chart-Bildschirme mit großer Leiste unten (Schwer: Prüfen, Löschen, Zurück, Neu setzen und Hinweis, am Handy rund 175 px): fester größerer Abstand,
    damit die Leiste nichts verdeckt (z. B. die Legende der Wellengrößen). Fest statt gemessen, sonst verrutscht die Seite beim Tippen (27.11.2026, Lenny). */
 @media(max-width:839px){main:has(#pgc){padding-bottom:calc(210px + env(safe-area-inset-bottom))}}
+/* Touch-Geräte, Chart-Bildschirme (26.11.2026, Lenny, Video iPhone/Safari: Seite wackelt beim Runterscrollen): War die Seite nur wenig länger
+   als der Bildschirm, schrumpfte der Scrollweg beim Ausblenden der Safari-Leiste fast auf null, die Seite sprang zurück, die Leiste kam wieder.
+   Darum mindestens die große Fensterhöhe (100lvh; vh = lvh in Safari) plus Reserve. Kein Gummiband-Ziehen der ganzen Seite, Chart hält Gesten. */
+@media(hover:none){main:has(#view .chart){min-height:calc(100vh + 120px);min-height:calc(100lvh + 120px)}html:has(#view .chart){overscroll-behavior-y:none}}
+#view .chart{overscroll-behavior:contain}.kvsp{display:block}
 main:has(.home){max-width:none;padding:12px 0 0}
 @media(min-width:900px){main{padding:16px 48px 130px}}
 /* Kopfzeile: Logo bzw. „← Hauptmenü“, daneben Lernen, Level, Punkte, Serie */
@@ -92,7 +97,7 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .fftl{display:block;margin-top:10px}.ffta{display:block;width:100%;box-sizing:border-box;margin:6px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--text);font:inherit;font-size:16px;line-height:1.4;min-height:64px;resize:vertical}
 .ffta:focus{outline:2px solid var(--accent);outline-offset:1px}.ffta:disabled{opacity:.8}
 .fftgo{display:none}#view.fft-typing .fftgo{display:block;width:100%;margin:8px 0 0;min-height:44px}
-#view.fft-typing .kick,#view.fft-typing .task,#view.fft-typing .dock{display:none}#view.fft-typing{padding-bottom:100vh} /* Platz, damit der Chart ganz nach oben scrollen kann */
+#view.fft-typing .kick,#view.fft-typing .task,#view.fft-typing .dock{display:none}#view.fft-typing{padding-bottom:100vh;padding-bottom:100lvh} /* Platz, damit der Chart ganz nach oben scrollen kann */
 #view.fft-typing .chart svg{max-height:calc(var(--vvh,100vh)*.3)}#view.fft-typing .ffw{padding:8px 12px}#view.fft-typing .ffw button[data-w]{min-height:32px;padding:3px 10px;margin:2px 4px 2px 0}#view.fft-typing .fftl{margin-top:4px}
 .ffb{display:flex;flex-wrap:wrap;gap:8px}.ffb button{margin:0}.ffitem{border-top:1px solid var(--line-soft);padding:6px 0}.ffitem p{margin:4px 0}
 .dock>*{margin:0}.dock p{flex:1 1 100%;margin:0}.dock button[hidden]{display:none}
@@ -178,7 +183,7 @@ svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:n
 .lb img{display:block;max-width:none;height:auto;margin:0 auto}.lb p{position:sticky;left:0;color:#fff;font-size:14px;margin:10px auto 0;text-align:center;max-width:760px}
 .lb .lbx{position:fixed;top:12px;right:12px;z-index:51;min-height:44px;background:var(--surface);color:var(--text)}
 /* ===== Startseite: Inseln an den Bildschirmrändern, Hintergrund-Chart ===== */
-.home{position:relative;display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"c c" "l r" "b b";grid-template-rows:auto auto 1fr;column-gap:10px;row-gap:14px;min-height:calc(100vh - 70px);overflow:hidden}
+.home{position:relative;display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"c c" "l r" "b b";grid-template-rows:auto auto 1fr;column-gap:10px;row-gap:14px;min-height:calc(100vh - 70px);min-height:calc(100svh - 70px);overflow:hidden}
 .hbg{position:absolute;inset:0;z-index:0;pointer-events:none}.hbg svg{width:100%;height:100%}.hbg .wn{display:none}
 .hc{grid-area:c;position:relative;z-index:1;text-align:center;padding:0 16px}
 .lead{font-size:38px;font-weight:800;line-height:1.05;margin:6px 0 14px;letter-spacing:-.01em}.lead span{color:var(--accent-text)}
@@ -243,7 +248,7 @@ body.tut-on .tutbtn{visibility:hidden}
 .hreset{grid-column:1/-1;text-align:center;margin:0;position:relative;z-index:1}
 @media(min-width:700px){.lead{font-size:48px}.isl b{font-size:17px}.isl .d{font-size:14px}.home{column-gap:24px}}
 @media(min-width:1000px){
- .home{grid-template-columns:minmax(240px,1fr) minmax(440px,600px) minmax(240px,1fr);grid-template-areas:"l c r" "b b b";grid-template-rows:1fr auto;column-gap:32px;min-height:calc(100vh - 90px)}
+ .home{grid-template-columns:minmax(240px,1fr) minmax(440px,600px) minmax(240px,1fr);grid-template-areas:"l c r" "b b b";grid-template-rows:1fr auto;column-gap:32px;min-height:calc(100vh - 90px);min-height:calc(100svh - 90px)}
  .lead{font-size:64px}.hc{padding-top:20px}.hbg .wn{display:block}
  .isl{padding:16px 20px}.isl b{font-size:20px}.isl .d{font-size:14px}.isl .ico svg{width:28px;height:28px}
  .hl,.hrr{gap:18px;padding-top:24px}.mob{display:none!important}.desk{display:flex!important}

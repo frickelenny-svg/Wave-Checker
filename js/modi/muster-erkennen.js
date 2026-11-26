@@ -63,13 +63,14 @@ function recogHard(D,fb0,k0){ // D: Tagesaufgabe (fester Chart, höchstens 3 Ver
   m={z:D&&D.z!=null?D.z:null,sel:D&&D.sel?D.sel.slice():[],tips:D?D.tips:0,failed:D?D.tries>0:false,done:false};
  const Z=()=>ZW[m.z],pic=()=>draw({...R,P:{labels:Z()?Z().labels:[]}},m.sel,false,null);tutCtx(D?'daily':'recog-schwer',D?daily:()=>recogHard(),{R,m,P}); // nackter Chart, Beschriftung nur an gesetzten Punkten
  const fail=html=>{m.failed=true;m.sig=JSON.stringify([m.z,m.sel]);if(st.streak)st.streak=0,stats();if(D){D.tries++;D.save()}return html}; // m.sig: Prüfen bleibt gesperrt, bis sich etwas ändert (Doppeltipp kostet keinen Versuch) // Tagesaufgabe: jeder Fehlversuch zählt
- const render=(fb)=>{
+ const render=fb=>keepView(m,()=>render0(fb)),render0=(fb)=>{ // keepView: kein Verrutschen beim Punktsetzen (26.11.2026)
   const z=Z(),n=z?z.labels.length:0;
   if(D&&!m.done){D.z=m.z;D.sel=m.sel.slice();D.fb=(fb||'').replace(/<button id="tip">[^<]*<\/button>/,'');D.save()} // Stand der Tagesaufgabe merken
   $('#view').innerHTML='<p class="kick">'+(D?'Tagesaufgabe #'+D.no+' · Versuch '+Math.min(3,D.tries+1)+' von 3':'Muster erkennen · Schwer')+'</p><p class="task">'+(D?'':'Zähle den Chart selbst. ')+(z?'Zählweise '+z.name+': Tippe nacheinander die Punkte '+z.labels.map(L0).join(', ')+' auf den Chart. Gesetzte Punkte kannst du anfassen und verschieben. Nächster Punkt: <span class="nextpt">'+(m.sel.length<n?L0(z.labels[m.sel.length]):'fertig')+'</span>':'Wähle zuerst die Zählweise.')+'</p>'+
    '<div class="chart">'+pic()+'</div><div class="card"><b>Zählweise</b><br>'+ZW.map((w,i)=>'<button data-z="'+i+'" class="'+(m.z===i?'on':'')+'" '+(m.done?'disabled':'')+'>'+w.name+' · '+w.hint+'</button>').join('')+'</div>'+
    (z?'<div class="dock"><button class="p" id="chk" '+(m.sel.length<n||m.done||m.sig===JSON.stringify([m.z,m.sel])?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div>':'')+
    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
+  taskMin(ZW.map(w=>(D?'':'Zähle den Chart selbst. ')+'Zählweise '+w.name+': Tippe nacheinander die Punkte '+w.labels.map(L0).join(', ')+' auf den Chart. Gesetzte Punkte kannst du anfassen und verschieben. Nächster Punkt: <span class="nextpt">fertig</span>')); // Höhe des längsten Texts (26.11.2026)
   if(m.done)return;
   // Neue Zählweise: Punkte bleiben nur, wenn die Punktanzahl gleich bleibt
   document.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{const i=+b.dataset.z;if(!z||ZW[i].labels.length!==n)m.sel=[];m.z=i;render()});

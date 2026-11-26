@@ -23,7 +23,7 @@ function sub(key){
  const fx=()=>m.fixed.map(q=>q.sub?q:{...q,far:m.s>0}); // Hauptbeschriftung rückt in den Subwellen-Schritten nach außen
  // alle Punkte des Schritts, auch beim Ziehen in voller Größe mit Markierung; nur der gezogene ist hervorgehoben (18.11.2026)
  const cur=g=>fx().concat(m.sel.map((i,k)=>({i,l:g.labels[k],sub:!!g.w,set:1,drag:k===DRAGK})));
- const render=fb=>{
+ const render=fb=>keepView(m,()=>render0(fb)),render0=fb=>{ // keepView: kein Verrutschen beim Punktsetzen (26.11.2026)
   const g=stages[m.s],n=g.labels.length,idxOf=x=>Math.max(0,Math.min(N,Math.round((x-X0)/DXs)));
   $('#view').innerHTML='<p class="kick">Subwellen zählen · '+P.title+' · Schritt '+(m.s+1)+' von '+stages.length+'</p><p class="task">'+g.t+' Nächster Punkt: <span class="nextpt">'+(m.sel.length<n?L0(g.labels[m.sel.length]):'fertig')+'</span></p><div class="chart">'+
    drawS(R,cur(g),g.w?[g.lo,g.hi]:null)+'</div><div class="dock"><button class="p" id="chk" '+(m.sel.length<n||m.done?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';

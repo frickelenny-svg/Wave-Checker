@@ -31,7 +31,40 @@ sind in allen anderen sichtbar, Knöpfe rufen Funktionen per `onclick="home()"` 
 | Kleiner Chart der Übungsmodi (`draw`, `chartSize`, `startDrag`, `ordHint`, `labX`) | `js/chart/zeichnen.js` |
 | Punkte setzen/ziehen im kleinen Chart (`bindPoints`) | `js/chart/punkte.js` |
 | Spielstand, localStorage: Punkte/Serie, Fortsetzen, Pfad, Tagesaufgabe-Speicher, Ränge (`exSolved`, `rankCheck`, `rnPush`) | `js/speicher.js` |
-| Bausteine: `$`, Icons (`ico`, `ICON`), `stufe`, `lvlNote`, `stats`, `isl`, `toast`, Weiter-Knopf in die Leiste | `js/ui/bausteine.js` |
+| Bausteine: `# Wave-Checker
+
+Lern-App für Elliott-Wellen (Deutsch). Statische Seite ohne Build-Schritt und ohne Framework: `index.html` (nur Gerüst), `css/app.css`,
+`js/…` (seit 26.11.2026 aufgeteilt, vorher alles in `index.html`). Veröffentlicht wird über `main` (Vercel, https://elliott-wellen-checker.vercel.app,
+ohne Einstellungen). Gestaltungsregeln: `DESIGN.md`. Lerninhalte: `lernen/` (Regelwerk-Lernversion + Abbildungen), Quiz: `quiz/`, Tutorial-Texte: `tutorials.json`.
+
+**Lies nur die Dateien, die für die Aufgabe nötig sind.** Die Übersicht unten sagt, wo was liegt; `grep` nach dem Funktionsnamen findet den Rest.
+
+## Wo liegt was (seit 26.11.2026)
+Alle Skripte sind normale Skripte (`<script src>`, kein `type="module"`, kein import/export), geladen in fester Reihenfolge am Ende von
+`index.html`. Sie teilen sich einen gemeinsamen globalen Bereich wie früher der eine Skriptblock: Funktionen, `const` und `let` einer Datei
+sind in allen anderen sichtbar, Knöpfe rufen Funktionen per `onclick="home()"` auf, Tests lesen `PGS`, `TUTS` usw. direkt.
+- **Ladereihenfolge beachten:** Code, der beim Laden sofort läuft (z. B. `PAT.fr=flatPat(…)`, `const X=f()`), darf nur Dinge aus *früheren*
+  Dateien bzw. weiter oben in derselben Datei nutzen. Was erst bei Bedienung läuft (Funktionsrümpfe), darf alles nutzen. `js/start.js` ist
+  immer das letzte Skript (legt den Hauptmenü-Knopf um die Modus-Funktionen und startet die App).
+- **Neue Datei:** in `index.html` an passender Stelle vor `js/start.js` eintragen. Neuer Spielmodus mit eigenem Menü-Einstieg: Funktionsname
+  in die Liste in `js/start.js`, falls der Knopf „← Hauptmenü“ erscheinen soll.
+- **Namen sind global:** Ein neuer Name auf oberster Ebene darf in keiner anderen Datei schon vorkommen (sonst Fehler beim Laden).
+- Kopfkommentar jeder Datei sagt, wofür sie da ist.
+
+| Bereich | Datei |
+|---|---|
+| Gerüst (Kopfzeile, `#view`), Design sofort setzen, Liste der Skripte | `index.html` |
+| Alle Styles, Design-Tokens (CSS-Variablen hell/dunkel in `:root`) | `css/app.css` |
+| Regeln Impuls, Zigzag + Grundlagen (`L`, `FLIP`, `mt`, `pct`, `PAT`) | `js/regeln/impuls-zigzag.js` |
+| Regeln Flats / Dreiecke / Diagonalen / komplexe Korrekturen | `js/regeln/flat.js`, `dreieck.js`, `diagonale.js`, `kombination.js` |
+| Prüffunktionen `check`, `hardFails`, `warns`, `norm`, `tag` | `js/regeln/pruefen.js` |
+| Chart-Generator (`genImp` … `genCx`, `makeRound`, `partF`, `PAT.*.recog/subs/ctx`) | `js/generator/muster.js` |
+| Runden mit Subwellen (`makeSubRound`, `pickAlt`) | `js/generator/subwellen.js` |
+| Kursdaten „Wie geht es weiter?“ (`PGK`, `PGSUB`, `PGTF`, `pgData`, `pgFr`, `PGLINE`) | `js/generator/prognose-kurs.js` |
+| Kleiner Chart der Übungsmodi (`draw`, `chartSize`, `startDrag`, `ordHint`, `labX`) | `js/chart/zeichnen.js` |
+| Punkte setzen/ziehen im kleinen Chart (`bindPoints`) | `js/chart/punkte.js` |
+| Spielstand, localStorage: Punkte/Serie, Fortsetzen, Pfad, Tagesaufgabe-Speicher, Ränge (`exSolved`, `rankCheck`, `rnPush`) | `js/speicher.js` |
+, `keepView`/`taskMin` (Seite bleibt stehen), Icons (`ico`, `ICON`), `stufe`, `lvlNote`, `stats`, `isl`, `toast`, Weiter-Knopf in die Leiste | `js/ui/bausteine.js` |
 | Startseite, Handy-Pfad, Fortsetzen-Karte (`home`, `STN`, `wpDraw`, `resume`) | `js/ui/startseite.js` |
 | Wegführer, Intro, Hintergrund-Chart, Fortschritt zurücksetzen | `js/ui/wegfuehrer.js` |
 | Musterwahl nach Stufen (`pick`, `go`, `STUFEN`) | `js/ui/menue.js` |
@@ -86,6 +119,29 @@ Browser die Styles nicht). Neue Tests verwenden `'Content-Type': require('./typ'
   Lange Dauertests (tausende Runden) nur bei großen Änderungen oder wenn Lenny es ausdrücklich verlangt. Steht im Auftrag ein größerer
   Testumfang, gilt dieser. Die Hinweise „immer auf Handy, iPad und PC“ und „nach Änderungen an … laufen lassen“ in dieser Datei gelten
   innerhalb dieses Umfangs. Am Ende kurz sagen, welche Tests gelaufen sind und wie lange sie gedauert haben.
+
+## Seite bleibt stehen beim Punktsetzen (seit 26.11.2026, Lenny, Video vom iPhone/Safari)
+Gilt für „Wie geht es weiter?“ Leicht/Schwer, „Eigenen Chart prüfen“, „Chart durchzählen“, „Muster erkennen – Schwer“/Tagesaufgabe, „Subwellen zählen“.
+- Ursachen im Video: (1) Jeder Punkt baut `#view` neu auf (innerHTML). Dazwischen war die Seite kurz kürzer (in „Wie geht es weiter?“ wird
+  der Chart erst nach dem Messen der Breite gezeichnet), und Knöpfe bzw. Text über dem Chart wechselten die Höhe (Zählweise-Knöpfe in Leicht
+  erschienen und verschwanden). Der Browser schnitt die Scrollposition ab: Seite sprang nach oben. (2) Die Seite war am Handy nur wenig länger
+  als der Bildschirm. Beim Runterscrollen blendet Safari die Adressleiste aus, der mögliche Scrollweg schrumpfte fast auf null, die Seite sprang
+  zurück, die Leiste kam wieder: Wackeln.
+- `keepView(key, fn)` (`js/ui/bausteine.js`): alle `render` dieser Modi laufen darüber (`render0` bzw. `frRender0` ist der eigentliche Aufbau,
+  key = Rundenobjekt `m`). Während des Neuaufbaus hält `#view` seine Höhe; danach steht `#view .chart` an derselben Stelle im Bild (Ausgleich
+  vom *aktuellen* scrollY aus, Safari verschiebt schon während des Neuaufbaus). Innerhalb einer Runde wächst der Abstand des Charts vom Anfang
+  von `#view` nur (`KVTOP`, leerer Abstandshalter `.kvsp` vor dem Chart) und die Seite wird nie kürzer (`KVH`, `.kvsp` am Ende). Neue Runde
+  oder neue Breite: neu messen. Nie automatisches Scrollen, außer nach „Prüfen“ zum Ergebnis (wie bisher).
+- `taskMin(texte)`: reserviert für `#view .task` die Höhe des längsten Texts der Runde (Leicht: je fehlende Welle Frage nach der Zählweise und
+  Text beim letzten Punkt, `ltask`; „Muster erkennen – Schwer“: Text jeder Zählweise). So bewegt sich auch beim ersten längeren Text nichts.
+- Leicht: Zählweise-Knöpfe über dem Chart sind immer da; gesperrt, solange keine Zählweise gefragt ist, die gewählte ist markiert.
+- CSS: Touch-Geräte (`hover:none`) mit Chart: `main` mindestens `100lvh + 120px` hoch (Reserve über die Safari-Leiste hinaus), kein Gummiband der
+  ganzen Seite (`overscroll-behavior-y:none`), Chart `overscroll-behavior:contain`. Höhen mit vh immer zusätzlich als svh/lvh.
+- Test: `node tests/scroll-stabil.js [Runden]` (Playwright, iPhone 390 × 664 mit Bildschirm 844 und iPad, `ENGINE=webkit` für die Safari-Engine,
+  sonst `PWCH`; `NUR=iPhone`): ganze Runden aller sechs Bildschirme mit echten Tipps auf Chart und Knöpfe, vorher Chart mitten ins Bild gescrollt.
+  Nach jedem Tipp Chart ±1 px an derselben Stelle und Scrollposition unverändert, Seite ≥ große Fensterhöhe + 40 px, keine vh ohne svh/lvh/dvh.
+  Stand 26.11.: Edge und WebKit je 3 Runden ohne Fehler (rund 2 min); die Version davor hatte in WebKit 19 Fehler in allen Modi.
+  Nach Änderungen an `render` eines Chart-Modus oder an Text/Knöpfen über dem Chart laufen lassen. WebKit einmalig: `npx playwright install webkit`.
 
 ## Punkte ziehen, alle Modi (seit 18.11.2026)
 Gilt für „Chart durchzählen“, „Muster erkennen – Schwer“, Tagesaufgabe (`bindPoints`), „Subwellen zählen“ (`sub`) und

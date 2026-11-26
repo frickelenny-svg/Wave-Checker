@@ -44,6 +44,12 @@ Andere Modi mit Haupt- und Subwellen („Subwellen zählen“, „Fehler finden�
 Tests: `tests/wellengroessen.js` (Schreibweise, Farben, Kontrast, Legende), `tests/unterteilung-muster.js`, `tests/bild-blasser.js` (Kontrast gegen
 die Füllung des Labels).
 
+## Chart-Bildschirme: nichts springt (seit 26.11.2026)
+- Beim Punktsetzen bleibt der Chart an seiner Stelle im Bild, die Seite scrollt nicht. Text und Knöpfe über dem Chart reservieren die Höhe ihres
+  längsten Zustands; Knöpfe, die gerade nicht gebraucht werden, sind ausgegraut statt entfernt (z. B. Zählweise in „Wie geht es weiter?“ Leicht).
+  Wird es darüber kürzer, bleibt eine Lücke, nie rückt der Chart nach oben.
+- Am Handy/iPad ist die Seite mindestens die große Fensterhöhe plus 120 px lang (Safari-Adressleiste), Höhen nie nur in vh (svh/lvh/dvh dazu).
+
 ## 11. Chart in „Wie geht es weiter?“
 - Groß, länger als der Bildschirm, seitlich verschiebbar, zoombar (zwei Finger, Strg+Mausrad, −/+).
 - Zeitachse wie bei TradingView: Mausrad streckt/staucht nur die Zeit, Ziehen an der Zeitachse ebenso (Mauszeiger `ew-resize`),

@@ -3,7 +3,7 @@
 // Modus 1: Chart durchzählen
 function count(P){
  const R=makeRound(P,null),n=P.labels.length,m={sel:[],tips:0,failed:false,done:false};tutCtx('count',()=>count(P),{R,m,n}); // So geht's (18.11.2026)
- const render=(fb)=>{
+ const render=fb=>keepView(m,()=>render0(fb)),render0=(fb)=>{ // keepView: kein Verrutschen beim Punktsetzen (26.11.2026)
   $('#view').innerHTML='<p class="kick">Chart durchzählen · '+P.title+'</p><p class="task">Tippe nacheinander die Punkte '+P.labels.map(L0).join(', ')+' auf den Chart. Gesetzte Punkte kannst du anfassen und verschieben. Nächster Punkt: <span class="nextpt">'+(m.sel.length<n?L0(P.labels[m.sel.length]):'fertig')+'</span></p><div class="chart">'+draw(R,m.sel,false,m.tl&&P.tri?m.sel:null)+'</div>'+(m.tl&&P.tri?'<p class="mut">Gestrichelt: Trendlinien durch '+(P.waves[0]==='A'?'A, C (bis E) und durch B, D.':'die Enden der Wellen 1, 3 (bis 5) und der Wellen 2, 4.')+'</p>':'')+'<div class="dock">'+
   '<button class="p" id="chk" '+(m.sel.length<n||m.done?'disabled':'')+'>Prüfen</button><button id="und" '+(m.done?'disabled':'')+'>Zurück</button><button id="rst" '+(m.done?'disabled':'')+'>Neu setzen</button></div><div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
   bindPoints(m,n,()=>draw(R,m.sel,false,m.tl&&P.tri?m.sel:null),render);
