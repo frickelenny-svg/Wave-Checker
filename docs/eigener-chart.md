@@ -55,9 +55,9 @@ Weitere Filter (26.11.2026): Farbsaum (Kerzenpixel, umgeben von mehr als dreimal
 - **Meldungen:** Teilwellen mit Ebene (`subRule`: „Teilwelle (b) in Welle B überschreitet den Start von Teilwelle (a)“), Liste „Geprüft: als Zigzag nicht (…); als Regular Flat nicht (…)“ (Feld `tried`; bei nur einem Muster mit Regelbruch ohne Liste).
 - Korrekturwellen finden fast immer ein erlaubtes Muster (oft Double Zigzag), Warnsignale dort sind selten; das ist nach dem Regelwerk richtig.
 
-## Farben der Wellengrößen (seit 26.11.2026, DESIGN.md)
+## Wellengrößen und Farben (fünf Größen seit 27.11.2026, DESIGN.md, CLAUDE.md „Schwer: fünf Wellengrößen“)
 
-Groß: Kreis `#1E5EFF`, Schrift weiß. Mittel: Feld `#6F97FF`, Schrift `#0B1B3A` (Weiß nur 2,8:1). Klein: Feld `#C9D8FF`, Schrift `#0B1B3A`. Punkte (`.wpt1–3`), Labels (`lab()` mit Feld `lv`, Klassen `.wlv1–3`, `.wt1–3`) und Legende (`.wlg1–3`); Schreibweise ①, (1), 1 bleibt. Gilt in „Wie geht es weiter?“ und hier; Fehler bleiben rot ohne Farbfeld.
+Fünf Größen: ① Ⓐ (Kreis `#1E5EFF`, weiß), (1) (A) `#4A7DFF`, 1 A `#7A9EFF`, (i) (a) `#A9C1FF`, i a `#D4E1FF` (Schrift `#0B1B3A`). Klassen `.wlv1–5`, `.wt1–5`, `.wpt1–5`, Legende `details.pglg` (`.wlg1–5`, am Handy eingeklappt). Die Größe folgt aus der Verschachtelung, nicht aus der Reihenfolge (`frRelevel`); von Hand „Größer“/„Kleiner“ in der Auswahl. Prüfung (harte Regeln, `ocSub`) läuft auf allen Größen, Teilwellen werden mit der Schreibweise der nächsten Größe genannt (`subRule`, höchstens Größe 5). Fehler bleiben rot ohne Farbfeld.
 
 ## Chart-Erkennung (`ocPath`) – bisheriger Weg (liefert Rahmen, Achsen, Legende, Kästchen und Linien; Rückfall ohne Kerzen)
 

@@ -100,7 +100,7 @@
    "titel": "Wie geht es weiter?",
    "schritte": [
     {"id": "aufgabe", "text": "Der Chart bricht ab. Du planst die fehlenden Wellen in der grauen Zone rechts der gestrichelten Linie."},
-    {"id": "zaehlweise", "text": "Wähle, wie sich die nächste große Welle unterteilt."},
+    {"id": "zaehlweise", "text": "Wähle, wie sich die nächste Welle im Kreis unterteilt."},
     {"id": "punkt", "text": "Tippe in die graue Zone, wo die erste Teilwelle enden soll. Wischen verschiebt den Chart, ohne einen Punkt zu setzen."},
     {"id": "zeit", "text": "Mit W, D, 4h und 1h wechselst du die Zeiteinheit, mit + und − zoomst du."},
     {"id": "pruefen", "text": "Stehen alle Wellen, tippe auf „Prüfen“. „Zurück“ nimmt den letzten Punkt weg."}
@@ -114,7 +114,7 @@
     {"id": "werkzeug", "text": "Mit dem Pfeil wechselst du zu „Auswählen“. Das Fadenkreuz darüber ist „Zeichnen“ und setzt neue Punkte."},
     {"id": "auswahl", "text": "Tippe deinen ersten Punkt an. Jetzt kannst du ihn ziehen, unten umbenennen oder die Zählung mit dem Mülleimer löschen."},
     {"id": "zeit", "text": "Mit W, D, 4h und 1h wechselst du die Zeiteinheit. Kleine Wellen zählst du am besten im 4h- oder 1h-Chart."},
-    {"id": "zone", "text": "In der grauen Zone setzt du deine Prognose frei, dort gibt es keine Kerzen. Steht dort mindestens die nächste große Welle, kannst du prüfen."}
+    {"id": "zone", "text": "In der grauen Zone setzt du deine Prognose frei, dort gibt es keine Kerzen. Steht dort mindestens die nächste Welle deiner größten Zählung, kannst du prüfen."}
    ]
   },
   "quiz": {

@@ -19,6 +19,9 @@
 body{margin:0;background:var(--bg);color:var(--text);font:400 15px/1.5 "DM Sans",system-ui,sans-serif;overflow-x:clip}
 h1,h2,h3,.logo,.lead,.isl b{font-family:"Bricolage Grotesque",system-ui,sans-serif}
 main{max-width:800px;margin:0 auto;padding:12px 16px 120px}
+/* Chart-Bildschirme mit großer Leiste unten (Schwer: Prüfen, Löschen, Zurück, Neu setzen und Hinweis, am Handy rund 175 px): fester größerer Abstand,
+   damit die Leiste nichts verdeckt (z. B. die Legende der Wellengrößen). Fest statt gemessen, sonst verrutscht die Seite beim Tippen (27.11.2026, Lenny). */
+@media(max-width:839px){main:has(#pgc){padding-bottom:calc(210px + env(safe-area-inset-bottom))}}
 main:has(.home){max-width:none;padding:12px 0 0}
 @media(min-width:900px){main{padding:16px 48px 130px}}
 /* Kopfzeile: Logo bzw. „← Hauptmenü“, daneben Lernen, Level, Punkte, Serie */
@@ -286,10 +289,13 @@ body.tut-on .tutbtn{visibility:hidden}
 .pgc1{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}
 /* Farben der Wellengrößen (26.11.2026, Lenny, DESIGN.md): groß #1E5EFF mit weißer Schrift, mittel #6F97FF und klein #C9D8FF mit dunkler Schrift #0B1B3A
    (Weiß auf #6F97FF nur 2,8:1); dazu bleibt die Schreibweise ①, (1), 1. Gilt für Label-Kreise/-Felder, Punkte und Legende. */
-.pgc1.wlv1{fill:#1E5EFF;stroke:#1E5EFF}.wlv2{fill:#6F97FF}.wlv3{fill:#C9D8FF;stroke:#6F97FF;stroke-width:1}.lab.wt1{fill:#fff}.lab.wt2,.lab.wt3{fill:#0B1B3A}
-.wpt1{fill:#1E5EFF}.wpt2{fill:#6F97FF}.wpt3{fill:#C9D8FF;stroke:#1E5EFF}
+/* Fünf Wellengrößen (27.11.2026, Lenny): Füllung je Größe, Schrift weiß nur bei Größe 1 (5,1:1), sonst #0B1B3A (ab 4,6:1); helle Felder mit Rand */
+.pgc1.wlv1{fill:#1E5EFF;stroke:#1E5EFF}.wlv2{fill:#4A7DFF}.wlv3{fill:#7A9EFF}.wlv4{fill:#A9C1FF;stroke:#4A7DFF;stroke-width:1}.wlv5{fill:#D4E1FF;stroke:#4A7DFF;stroke-width:1}
+.lab.wt1{fill:#fff}.lab.wt2,.lab.wt3,.lab.wt4,.lab.wt5{fill:#0B1B3A}
+.wpt1{fill:#1E5EFF}.wpt2{fill:#4A7DFF}.wpt3{fill:#7A9EFF}.wpt4{fill:#A9C1FF;stroke:#1E5EFF}.wpt5{fill:#D4E1FF;stroke:#1E5EFF}
 .wlg{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;font-weight:800;font-size:12px;line-height:1;vertical-align:1px}
-.wlg1{background:#1E5EFF;color:#fff;border-radius:50%;padding:0}.wlg2{background:#6F97FF;color:#0B1B3A}.wlg3{background:#C9D8FF;color:#0B1B3A}.pgc .lab.l1{font-weight:800;font-size:12px}
+.wlg1{background:#1E5EFF;color:#fff;border-radius:50%;padding:0}.wlg2{background:#4A7DFF;color:#0B1B3A}.wlg3{background:#7A9EFF;color:#0B1B3A}.wlg4{background:#A9C1FF;color:#0B1B3A;box-shadow:inset 0 0 0 1px #4A7DFF}.wlg5{background:#D4E1FF;color:#0B1B3A;box-shadow:inset 0 0 0 1px #4A7DFF}
+.pglg summary{display:inline;cursor:pointer;font-weight:700;color:var(--text);margin-right:6px}.pglg summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}.pglgi{white-space:nowrap;display:inline-block;margin:2px 0}.pgc .lab.l1{font-weight:800;font-size:12px}
 .pgcut{stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 4;opacity:.7}.pgc .lab.pgcutt{text-anchor:start;font-size:12px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:3px}
 .pgfoc{fill:var(--accent);opacity:.1}
 .pgnx .pgendc{font-size:12px;padding:3px 8px;min-height:0;margin-left:6px}

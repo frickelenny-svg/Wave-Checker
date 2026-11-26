@@ -9,7 +9,7 @@ const FFT=(()=>{
  // Umlaute (15.11.2026, Lenny): ä, ae und a gelten gleich (ebenso ö/oe/o, ü/ue/u). Antwort und Begriffe werden gleich vereinfacht.
  const st=s=>s.replace(/ae/g,'a').replace(/oe/g,'o').replace(/ue/g,'u');
  const FEST=new Set('unter ueber den dem das die der des als von vom zu ist hat in im ins an am auf aus mit nach vor bei bis nur wie so ein eine auch und'.split(' ').map(st)); // nur genau so
- const NUM={eins:'1',zwei:'2',drei:'3',dri:'3',drie:'3',vier:'4',funf:'5',funv:'5'},ORD=/^(erst|zweit|dritt|viert|funft)(e|er|en|es|em)?$/,ORDN={erst:'1',zweit:'2',dritt:'3',viert:'4',funft:'5'};
+ const NUM={eins:'1',zwei:'2',drei:'3',dri:'3',drie:'3',vier:'4',funf:'5',funv:'5',i:'1',ii:'2',iii:'3',iv:'4',v:'5'} /* römisch (Subwellen (i)–(v), seit 27.11.2026) */,ORD=/^(erst|zweit|dritt|viert|funft)(e|er|en|es|em)?$/,ORDN={erst:'1',zweit:'2',dritt:'3',viert:'4',funft:'5'};
  const NUMF=[['erste','1'],['zweite','2'],['dritte','3'],['vierte','4'],['fuenfte','5'],['fuenf','5'],['zweiten','2'],['dritten','3'],['vierten','4'],['fuenften','5']].map(([w,d])=>[st(w),d]);
  const SPLIT=new Set('und aber sondern oder doch jedoch waehrend weil denn obwohl deshalb daher also'.split(' ').map(st)),STATT=new Set(['statt','anstatt','anstelle']);
  const NEG=t=>/^(nicht|kein)/.test(t)||/^(nie|niemals|weder|ohne|fehlt|fehlen|fehlend|fehlende|hochstens|maximal|max)$/.test(t)||(t.length>=4&&t.length<=6&&osa(t,'nicht')<=1);

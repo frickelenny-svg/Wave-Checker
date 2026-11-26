@@ -266,8 +266,9 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
      `tests/eigener-chart.js` toleriert bis 0,4 % Ausschlag-Spalten (mit Zeichnungen 2 %, Einrasten ab 88 %). Liegt nur etwas über 25 % der Höhe daneben, bleibt die Spalte leer (kein Ausreißer). Echte lange Dochte
      hängen am Kerzenkörper und bleiben. Blasse Dochtspitzen werden bis 6 px verlängert.
   Was dann noch nicht passt, überzeichnet man mit „Verlauf nachzeichnen“.
-- Farben der Wellengrößen (seit 26.11.2026, siehe DESIGN.md): groß Kreis `#1E5EFF` mit weißer Schrift, mittel Feld `#6F97FF`, klein Feld `#C9D8FF`,
-  beide mit Schrift `#0B1B3A`; Punkte und Legende ebenso; `lab()` hat dafür das Feld `lv`. Gilt in „Wie geht es weiter?“ und „Eigenen Chart prüfen“.
+- Farben der Wellengrößen (seit 26.11.2026, fünf Größen seit 27.11.2026, siehe DESIGN.md und „Fünf Wellengrößen“ unten): Füllung je Größe `#1E5EFF`,
+  `#4A7DFF`, `#7A9EFF`, `#A9C1FF`, `#D4E1FF`, Schrift weiß nur bei Größe 1, sonst `#0B1B3A`; Punkte und Legende ebenso; `lab()` hat dafür das Feld `lv`.
+  Gilt in „Wie geht es weiter?“ und „Eigenen Chart prüfen“.
 - Kerzen 1:1 zum Original (seit 26.11.2026, Lenny, nach Video): `ocPath` baut im Kerzenmodus `IMG.cdl` = je erkannter Kerze {a, b (Spalten), xc (Docht =
   Spalte mit dem längsten Strich), hi, lo, o, c (Zeilen; null = kein Körper erkannt), up}. Kerze = zusammenhängende Spalten mit Verlauf ohne ergänzte
   (`IMG.ip`); dicht an dicht stehende werden im Kerzenabstand `KZ.P` geteilt (P nur aus Formen ab 3 px Höhe, sonst teilten Punkte und Splitter OHLC-Balken).
@@ -454,8 +455,8 @@ KOM-5 und andere Regeln, die der Generator nicht verletzt, kommen in „Fehler f
   Mit 250 rund 30.000 geprüfte Charts und Teile. Nach Änderungen an Generatoren laufen lassen.
 
 ## „Wie geht es weiter?“ (Funktion `progn`)
-Großer, verschiebbarer und zoombarer Kerzenchart in vier Zeiteinheiten (W, D, 4h, 1h), drei Wellengrößen:
-groß ①, mittel (1), klein 1.
+Großer, verschiebbarer und zoombarer Kerzenchart in vier Zeiteinheiten (W, D, 4h, 1h). Leicht zeigt die erzeugten Ebenen 1–3 als Größe 1–3
+(①, (1)/(A), 1/A), Schwer und „Eigenen Chart prüfen“ kennen fünf Wellengrößen (siehe unten).
 
 ### Zoom und Zeitachse (Stand 13.11.2026)
 - Mausrad ohne Taste: nur die Zeitachse (`zoomX`), nach oben strecken, nach unten stauchen, um die Mausposition.
@@ -527,9 +528,36 @@ Beim Setzen (Zeichnen) und beim Ziehen (Auswählen) springt der Punkt automatisc
   Zeiteinheit wirklich das Extrem ihrer Kerze und der Nachbarkerzen sind (im Wochen-Chart läuft sonst z. B. eine spätere Teilwelle
   darüber hinaus). `DBG=1` zeigt jeden Fehlgriff. Testzugriff: `PGS.snapAt(px,py,o)`, `PGS.ring()`.
 
-### Schwer: feste Reihenfolge der Wellengrößen
-Die Größe wird beim Start einer Zählung festgelegt und in `FR.cm[c] = {lev, par, pk}` gespeichert (nicht mehr erraten):
-1. Die erste Zählung ist die große Welle.
+### Schwer: fünf Wellengrößen (seit 27.11.2026, Lenny)
+- Schreibweise (`pgTxt`, `PGMAXL` = 5, Namen `PGSIZE`): 1 sehr groß ① Ⓐ Ⓦ (Zeichen im Kreis), 2 groß (1) (A) (W), 3 mittel 1 A W, 4 klein (i) (a) (w),
+  5 sehr klein i a w. Korrekturen auf Größe 2 und 3 großgeschrieben (vorher (a), a); Leicht-Prognosepunkte `PGK[…].l` = (A)/(B)/(C).
+  „Subwellen zählen“ und „Fehler finden“: Hauptwellen Größe 3, Subwellen Größe 4 ((i)–(v) statt (1)–(5)); die Freitext-Prüfung versteht römische
+  Ziffern (`NUM` in `fehler-text.js`), die Texte der Subwellen-Regeln in `fehler-schluesselwoerter.json` nennen (ii), (iii) usw.
+- Sichtbarkeit beim Zoom gestaffelt: Größe 1 immer; sonst müssen die Wellen einer Zählung im Schnitt 18/20/22/24 px (Größe 2–5) breit sein und die
+  Zählung darüber sichtbar (laufende und ausgewählte Zählung immer). Testzugriff `PGS.vis()` = {Zählung: sichtbar}. Schrift 12 px ab Größe 3, 11 px ab 4.
+- Legende `details.pglg` „① sehr groß · (1) groß · 1 mittel · (i) klein · i sehr klein“, am Handy eingeklappt.
+- Größe 6 gibt es nicht: Start in einer Welle der Größe 5, „Welle auswählen + Zählweise“ an Größe 5 und Verschachtelungen, die eine sechste Größe
+  bräuchten, setzen nichts und zeigen „Mehr als fünf Wellengrößen werden nicht unterstützt“ (auch in der Auswahl-Karte einer Welle der Größe 5).
+- Reihenfolge frei (`frRelevel` nach jedem Punkt und nach dem Ziehen, `frNormLev`): Die Größe folgt aus der Verschachtelung, nicht aus der
+  Reihenfolge. Liegt eine bestehende, nicht kleinere Zählung ganz in einer Welle der geänderten Zählung, rückt sie samt Unterteilungen darunter
+  (die neue wird größer); beginnt eine neue in einer Welle einer bestehenden, ist sie eine Größe kleiner (`frMeta`); schließt sie an, gleich groß.
+  Läuft eine Unterteilung über ihre Welle hinaus (nicht die offene nächste Welle), bekommt sie vorläufig die Größe der überschnittenen Zählung,
+  über dem Chart steht dann der Hinweis „überschneiden sich nur teilweise …“ (`frConfNote`, `.pgconf`, aus `out.conf`). Danach ist die größte
+  Zählung immer Größe 1, die Labels stellen sich um. „Zurück“ stellt die Größen vor dem Punkt her (`cm0` am Punkt).
+- Von Hand: Auswählen, Zählung antippen, „Größer“/„Kleiner“ (`frSizeUI`, `#fbig`/`#fsmall`, in der Zeile mit „Ganze Zählung löschen“, damit die Karte nicht höher wird; eine höhere Karte ließ die Seite
+  beim Tippen verrutschen) verschiebt die Zählung samt Unterteilungen um eine
+  Stufe; gesperrt bei Größe 1 bzw. wenn die feinste Unterteilung schon Größe 5 ist oder die Zählung die einzige größte ist.
+- Am Handy ist die Leiste unten in Schwer rund 175 px hoch, mehr als der Abstand von `main` (120 px), und verdeckte die Legende: Chart-Bildschirme
+  (`main:has(#pgc)`, unter 840 px) haben unten fest 210 px. Nicht nachmessen: Ein gemessener Abstand ließ die Seite beim Tippen verrutschen
+  (`tests/schwer-touch.js` griff beim Ziehen das falsche Label).
+- Test: `node tests/wellengroessen.js [Runden]` (Playwright, Handy/iPad/PC, rund 3 s je Gerät und 4 Runden): Schreibweise, Zählungen mit 1–5 Größen
+  in zufälliger Reihenfolge (Start in der Welle bzw. Auswahl + Zählweise), Labels und Punktfarben je Größe, Größe 6, Löschen einer mittleren Größe
+  mit Rückgängig, Zoom-Staffelung, Kontrast, Legende, Reihenfolge frei (erst Subwellen, dann darüber; erst groß, dann klein; gemischt über drei
+  Größen; teilweise Überschneidung mit Hinweis; Größer/Kleiner), Leicht großgeschrieben.
+
+### Schwer: Wellengrößen festhalten (Stand 12.11.2026, seit 27.11.2026 ergänzt durch „Reihenfolge frei“ oben)
+Die Größe wird beim Start einer Zählung festgelegt und in `FR.cm[c] = {lev, par, pk}` gespeichert und danach von `frRelevel` angepasst:
+1. Die erste Zählung ist Größe 1 (bis 26.11.2026 blieb sie immer die größte Welle).
 2. Im Auswahlmodus Welle antippen (Endpunkt; wird hervorgehoben), dann Zählweise wählen: Unterteilung genau eine Größe kleiner,
    Start automatisch am Start dieser Welle (`frStartSub`). Für die nächste, noch offene Welle gibt es einen eigenen Knopf.
 3. Ohne Auswahl (`frMeta`): beginnt die Zählung in einer Welle einer bestehenden Zählung, ist sie eine Größe kleiner;

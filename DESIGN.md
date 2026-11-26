@@ -23,19 +23,26 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
 - Danach auf „Meine Ränge“ die neuen Karten kurz hervorgehoben (Rand `--accent`, Ring `--accent-soft`, verblasst in 2,6 s).
 - Bewegung reduzieren: keine Animationen, Endzustand sofort; Hervorhebung bleibt als ruhiger Ring.
 
-## Farben der Wellengrößen (seit 26.11.2026)
+## Farben der Wellengrößen (seit 26.11.2026, fünf Größen seit 27.11.2026)
 Gilt überall, wo Wellengrößen vorkommen („Wie geht es weiter?“, „Eigenen Chart prüfen“): Punkte, Label-Kreise/-Felder und Legende.
-Farbe ist nie das einzige Merkmal, die Schreibweise bleibt: groß ①, mittel (1), klein 1.
+Farbe ist nie das einzige Merkmal, die Schreibweise unterscheidet immer mit (übliche Elliott-Notation, `pgTxt`):
 
-| Größe | Füllung | Schrift | Kontrast | Form |
-|---|---|---|---|---|
-| groß | `#1E5EFF` | weiß | 5,1:1 | Kreis r 10 (`.pgc1.wlv1`, `.wt1`) |
-| mittel | `#6F97FF` | `#0B1B3A` (Weiß wäre nur 2,8:1) | 6,2:1 | Feld mit Ecken 6 px (`.wlv2`, `.wt2`) |
-| klein | `#C9D8FF`, Rand `#6F97FF` | `#0B1B3A` | 13:1 | Feld mit Ecken 6 px (`.wlv3`, `.wt3`) |
+| Größe | Schreibweise | Füllung | Schrift | Kontrast | Form |
+|---|---|---|---|---|---|
+| 1 sehr groß | ① ② … ⑤ · Ⓐ … Ⓔ · Ⓦ Ⓧ Ⓨ Ⓩ (Zeichen im Kreis) | `#1E5EFF` | weiß | 5,1:1 | Kreis r 10 (`.pgc1.wlv1`, `.wt1`) |
+| 2 groß | (1) … (5) · (A) … (E) · (W) (X) (Y) (Z) | `#4A7DFF` | `#0B1B3A` (Weiß nur 3,7:1) | 4,6:1 | Feld mit Ecken 6 px (`.wlv2`, `.wt2`) |
+| 3 mittel | 1 … 5 · A … E · W X Y Z | `#7A9EFF` | `#0B1B3A` | 6,6:1 | Feld (`.wlv3`, `.wt3`), Schrift 12 px |
+| 4 klein | (i) … (v) · (a) … (e) · (w) (x) (y) (z) | `#A9C1FF`, Rand `#4A7DFF` | `#0B1B3A` | 9,5:1 | Feld (`.wlv4`, `.wt4`), Schrift 11 px |
+| 5 sehr klein | i … v · a … e · w x y z | `#D4E1FF`, Rand `#4A7DFF` | `#0B1B3A` | 13:1 | Feld (`.wlv5`, `.wt5`), Schrift 11 px |
 
-Punkte: `.wpt1`/`.wpt2`/`.wpt3` in derselben Füllung (klein mit Rand `#1E5EFF`). Fehler bleiben rot (`--dn`), ohne Farbfeld. Legende `.pglg`: drei
-Farbfelder `.wlg1`–`.wlg3`. Gleich im hellen und dunklen Design. Test: `tests/unterteilung-muster.js` (Farben), `tests/bild-blasser.js` (Kontrast gegen die
-Füllung des Labels).
+Korrekturen auf Größe 2 und 3 werden großgeschrieben ((A), A), ab Größe 4 klein und Ziffern römisch. Schrift weiß nur, wo der Kontrast mind. 4,5:1
+erreicht (nur Größe 1), sonst `#0B1B3A`. Punkte: `.wpt1`–`.wpt5` in derselben Füllung (4 und 5 mit Rand `#1E5EFF`). Fehler bleiben rot (`--dn`), ohne
+Farbfeld. Gleich im hellen und dunklen Design.
+Legende (`details.pglg`): kompakt „① sehr groß · (1) groß · 1 mittel · (i) klein · i sehr klein“ mit Farbfeldern `.wlg1`–`.wlg5` (je Eintrag
+`.pglgi`, umbricht nur zwischen Einträgen); am Handy (unter 600 px) eingeklappt, Tipp auf „Wellengrößen“ klappt auf, auf iPad/PC offen.
+Andere Modi mit Haupt- und Subwellen („Subwellen zählen“, „Fehler finden“): Hauptwellen in Größe 3 (1, A), Subwellen in Größe 4 ((i), (a)).
+Tests: `tests/wellengroessen.js` (Schreibweise, Farben, Kontrast, Legende), `tests/unterteilung-muster.js`, `tests/bild-blasser.js` (Kontrast gegen
+die Füllung des Labels).
 
 ## 11. Chart in „Wie geht es weiter?“
 - Groß, länger als der Bildschirm, seitlich verschiebbar, zoombar (zwei Finger, Strg+Mausrad, −/+).

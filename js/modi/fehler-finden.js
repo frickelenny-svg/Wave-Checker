@@ -128,9 +128,9 @@ function findSub(key,lvl){
  for(;tries<4000;tries++){if(tries%200===0)o=(!opts.length||Math.random()<.4)?pickFrom(mainO):pickFrom(opts);
   R=o.main?makeSubRound(P,{},o.id,true):makeSubRound(P,{[o.k]:o.plan},null,true);if(findOk(P,R,o))break}
  const id=o.id,m={w:null,r:null},wv=o.main?(R.vwave||o.wave):o.wave,inv=ffInv(P,R,o,wv); // inv: alle beteiligten Wellen, jede zählt als richtig
- // Beschriftung: alle Hauptpunkte (weiter außen) und alle Subpunkte jeder Welle, einschließlich des letzten ((5) bzw. (c))
+ // Beschriftung: alle Hauptpunkte (weiter außen) und alle Subpunkte jeder Welle, einschließlich des letzten ((v) bzw. (c)); Subwellen in Größe 4 der Schreibweise (seit 27.11.2026)
  const pts=R.mp.map((i,q)=>({i,l:R.lab?R.lab[q]:P.labels[q],far:true}));
- Object.keys(R.spAll).forEach(q=>{const t=R.spAll[q],lab=t.length===5?(R.tri[q]?['(a)','(b)','(c)','(d)','(e)']:['(1)','(2)','(3)','(4)','(5)']):R.wxy[q]?['(w)','(x)','(y)']:['(a)','(b)','(c)'];t.forEach((i,j)=>pts.push({i,l:lab[j],sub:true}))});
+ Object.keys(R.spAll).forEach(q=>{const t=R.spAll[q],lab=t.length===5?(R.tri[q]?['(a)','(b)','(c)','(d)','(e)']:['(i)','(ii)','(iii)','(iv)','(v)']):R.wxy[q]?['(w)','(x)','(y)']:['(a)','(b)','(c)'];t.forEach((i,j)=>pts.push({i,l:lab[j],sub:true}))});
  const solution=()=>'Gesucht war: Welle '+inv.join(' oder ')+', Regel „'+mt(SR[id].name)+'“ ('+tag({rules:SR},id)+'). '+SR[id].ex;
  const FX={}; // aufgefüllte Regelauswahl je Welle
  const render=fb=>{

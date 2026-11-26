@@ -276,20 +276,20 @@
     },
 
     "s:IMP-1": {
-      "thema": "Subwellen: Welle (2) unter dem Start von Welle (1)",
-      "einfach": "Auch in den Subwellen gilt: Welle (2) darf nie über den Startpunkt von Welle (1) hinauslaufen.",
+      "thema": "Subwellen: Welle (ii) unter dem Start von Welle (i)",
+      "einfach": "Auch in den Subwellen gilt: Welle (ii) darf nie über den Startpunkt von Welle (i) hinauslaufen.",
       "wie": "IMP-1"
     },
 
     "s:IMP-2": {
-      "thema": "Subwellen: Welle (3) ist die kürzeste",
-      "einfach": "Auch in den Subwellen gilt: Welle (3) darf nie die kürzeste von (1), (3) und (5) sein.",
+      "thema": "Subwellen: Welle (iii) ist die kürzeste",
+      "einfach": "Auch in den Subwellen gilt: Welle (iii) darf nie die kürzeste von (i), (iii) und (v) sein.",
       "wie": "IMP-2"
     },
 
     "s:IMP-3": {
-      "thema": "Subwellen: Welle (4) überschneidet Welle (1)",
-      "einfach": "Auch in den Subwellen gilt: Welle (4) darf nicht in den Preisbereich von Welle (1) hineinlaufen.",
+      "thema": "Subwellen: Welle (iv) überschneidet Welle (i)",
+      "einfach": "Auch in den Subwellen gilt: Welle (iv) darf nicht in den Preisbereich von Welle (i) hineinlaufen.",
       "wie": "IMP-3"
     },
 

@@ -6,8 +6,9 @@
 // (1-2-3-4-5, A-B-C, A-B-C-D-E, W-X-Y, W-X-Y-X-Z) und setzt die Wendepunkte in die graue Zukunftszone; der letzte ist das Ende der Hauptwelle.
 // Richtig ist jede Fortsetzung, die zu irgendeinem Muster mit derselben Beschriftung regelkonform ist (z. B. nach A-B: Zigzag oder eine Flat).
 // Geprüft wird nur nach dem Regelwerk: erlaubte Unterteilung je Welle, Richtung der Subwellen, harte Regeln der Haupt- und der Teilmuster.
-const PGK={N:{t:'1-2-3-4-5',l:['(1)','(2)','(3)','(4)','(5)']},ABC:{t:'A-B-C',l:['(a)','(b)','(c)']},TRI:{t:'A-B-C-D-E',l:['(a)','(b)','(c)','(d)','(e)']},
- WXY:{t:'W-X-Y',l:['(w)','(x)','(y)']},TZ:{t:'W-X-Y-X-Z',l:['(w)','(x)','(y)','(x)','(z)']}};
+// l = Beschriftung der Größe 2 (seit 27.11.2026 Korrekturen großgeschrieben: (A) statt (a), Lenny)
+const PGK={N:{t:'1-2-3-4-5',l:['(1)','(2)','(3)','(4)','(5)']},ABC:{t:'A-B-C',l:['(A)','(B)','(C)']},TRI:{t:'A-B-C-D-E',l:['(A)','(B)','(C)','(D)','(E)']},
+ WXY:{t:'W-X-Y',l:['(W)','(X)','(Y)']},TZ:{t:'W-X-Y-X-Z',l:['(W)','(X)','(Y)','(X)','(Z)']}};
 const PGKOF={imp:'N',dl:'N',db:'N',de:'N',zig:'ABC',fr:'ABC',fe:'ABC',fru:'ABC',trk:'TRI',tre:'TRI',dz:'WXY',tz:'TZ'}; // Zählweise je Muster
 // Welche Teilmuster darf eine Welle ausbilden? Je Muster eine oder mehrere Varianten (Leading Diagonale: 5-3-5-3-5 oder 3-3-3-3-3), je Welle eine Liste.
 // Quelle: Impuls W1-1 bis W5-2 (Welle 2 kein Dreieck, Welle 4 auch Dreieck, 1 und 5 auch Diagonale), Zigzag WA-1/WB-1/WC-1, Flats WA-2/WB-2/WC-2,
@@ -25,7 +26,11 @@ const PGLEN={imp:[20,10,28,12,30],zig:[28,16,32],fr:[22,22,34],fe:[22,22,34],fru
  dl:[22,12,22,12,24],db:[16,16,16,16,16],de:[16,16,16,16,16],dz:[30,26,30],tz:[18,16,18,16,18]}; // Dauer der Wellen im Verhältnis zueinander
 const PGZL={N:'imp',ABC:'zig',TRI:'trk',WXY:'dz',TZ:'tz'}; // Zählweise → Muster mit dieser Beschriftung
 const pgLab=(key,j)=>{const l=PAT[key].labels[j];return /^X\d$/.test(l)?'X':l}; // X1/X2 heißen im Chart beide X
-const pgTxt=(lev,l)=>lev===1?l:lev===2?'('+l.toLowerCase()+')':l.toLowerCase(); // Ebene 1 im Kreis, Ebene 2 in Klammern, Ebene 3 klein
+// Fünf Wellengrößen (seit 27.11.2026, Lenny; übliche Elliott-Schreibweise): 1 sehr groß ① Ⓐ (im Kreis), 2 groß (1) (A), 3 mittel 1 A,
+// 4 klein (i) (a), 5 sehr klein i a. Ziffern werden ab Größe 4 römisch, Buchstaben klein.
+const PGMAXL=5,PGROM=['','i','ii','iii','iv','v'];
+const pgTxt=(lev,l)=>{l=String(l);const r=/^[1-5]$/.test(l)?PGROM[+l]:l.toLowerCase();return lev<=1?l:lev===2?'('+l+')':lev===3?l:lev===4?'('+r+')':r};
+const PGSIZE=['','sehr große Welle','große Welle','mittlere Welle','kleine Welle','sehr kleine Welle'];
 const PGW={imp:10,dl:1.2,db:1,de:.6,zig:6,fr:3,fe:3,fru:1,trk:2,tre:1,dz:2.5,tz:1}; // wie oft ein Teilmuster gewählt wird
 const pgPick=a=>{let r=Math.random()*a.reduce((x,k)=>x+(PGW[k]||1),0);for(const k of a){r-=PGW[k]||1;if(r<=0)return k}return a[a.length-1]};
 // Ohne Truncation (W5-4): sonst wäre Punkt 3 extremer als das Ende, und das Ende der Welle kein echtes Hoch bzw. Tief.

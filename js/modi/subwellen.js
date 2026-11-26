@@ -17,8 +17,8 @@ function sub(key){
  const P=PAT[key||'imp'],R=makeSubRound(P),N=R.pr.length-1,IM=PAT.imp;let DXs=(W-2*X0)/N;
  const stages=[{labels:P.labels,lo:0,hi:N,truth:R.mp,t:'Zähle zuerst die Hauptwellen.'}];
  Object.keys(R.sp).forEach(k=>{k=+k;const t=R.sp[k],five=t.length===5,nm=P.waves[k-1];
-  stages.push({w:k,nm,five,labels:five?['(1)','(2)','(3)','(4)','(5)']:['(a)','(b)','(c)'],lo:R.mp[k-1],hi:R.mp[k],truth:t,
-   t:'Zähle jetzt die Subwellen von Welle '+nm+' (grau hinterlegt). Sie besteht aus '+(five?'fünf':'drei')+' Wellen, setze auch '+(five?'(5)':'(c)')+' an das Ende der Welle (die Hauptbeschriftung steht etwas weiter außen).'});});
+  stages.push({w:k,nm,five,labels:five?['(i)','(ii)','(iii)','(iv)','(v)']:['(a)','(b)','(c)'],lo:R.mp[k-1],hi:R.mp[k],truth:t,
+   t:'Zähle jetzt die Subwellen von Welle '+nm+' (grau hinterlegt). Sie besteht aus '+(five?'fünf':'drei')+' Wellen, setze auch '+(five?'(v)':'(c)')+' an das Ende der Welle (die Hauptbeschriftung steht etwas weiter außen).'});});
  const m={s:0,sel:[],tips:0,failed:false,fixed:[],gain:0};tutCtx('sub',()=>sub(P.key),{R,m,stages});
  const fx=()=>m.fixed.map(q=>q.sub?q:{...q,far:m.s>0}); // Hauptbeschriftung rückt in den Subwellen-Schritten nach außen
  // alle Punkte des Schritts, auch beim Ziehen in voller Größe mit Markierung; nur der gezogene ist hervorgehoben (18.11.2026)
