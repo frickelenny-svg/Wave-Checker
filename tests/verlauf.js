@@ -32,6 +32,8 @@ const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, 
         let cov = 0, top = 0, bot = 0, sp = []; for (let x = a; x <= b; x++) { if (hi[x] < 0) continue; cov++; if (hi[x] < c.oben * f) top++; if (lo[x] > c.unten * f) bot++;
           const nb = hi.slice(Math.max(0, x - 8), x + 9).filter(v => v >= 0).sort((p, q) => p - q), m = nb[nb.length >> 1]; if (m - hi[x] > .18 * h) sp.push(x); }
         let wn = 0, wc = 0; for (let x = a; x + 5 <= b; x += 6) { wn++; if (hi.slice(x, x + 6).some(v => v >= 0)) wc++; } // Abdeckung je 6 Spalten (dünne Kerzen haben Lücken)
+        // Ränder (seit 26.11.2026): Abdeckung je 6 Spalten getrennt auf den ersten und letzten 5 % (mind. 30 Spalten) von rand (erste/letzte Kerzenspalte, sonst bereich)
+        const rc = (x0, x1) => { let n = 0, k = 0; for (let x = x0; x + 5 <= x1; x += 6) { n++; if (hi.slice(x, x + 6).some(v => v >= 0)) k++; } return n ? k / n : 1; }, rw = Math.max(30, Math.round((b - a) * .05));
         // Kurs nach Farbe: je Spalte oberstes und unterstes Pixel in Kursfarbe (Originalbild, ganzes Bild hochgeladen: f = 1 bzw. verkleinert)
         let nah = null, weg = [], verb = 0; if (c.kurs) { const Dd = I.data, K = c.kurs, isK = j => { const r = Dd[j * 4], g = Dd[j * 4 + 1], b = Dd[j * 4 + 2];
             return K.hell ? Math.min(r, g, b) >= K.hell : K.farben.some(q => Math.max(Math.abs(r - q[0]), Math.abs(g - q[1]), Math.abs(b - q[2])) <= K.tol); };
@@ -43,12 +45,23 @@ const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, 
             if (!nt.length || hi[x] < Math.min(...nt) - 8 || lo[x] > Math.max(...nb) + 8) weg.push(x); }
           nah = n2 / Math.max(1, n1); }
         (c.verboten || []).forEach(([x0, y0, x1, y1]) => { for (let x = Math.round(x0 * f); x <= Math.min(I.w - 1, Math.round(x1 * f)); x++) if (hi[x] >= 0 && lo[x] >= y0 * f && hi[x] <= y1 * f) verb++; });
-        return { cov: wc / Math.max(1, wn), top, bot, sp, nah, weg, verb, hinweis: !!document.querySelector('.ocq') }; }, c);
+        const [ra, rb] = (c.rand || c.bereich).map(v => Math.round(v * f)), rw2 = Math.max(30, Math.round((rb - ra) * .05)); return { cov: wc / Math.max(1, wn), links: rc(ra, ra + rw2), rechts: rc(rb - rw2, rb), top, bot, sp, nah, weg, verb, hinweis: !!document.querySelector('.ocq') }; }, c);
       if (c.hinweis !== undefined && r.hinweis !== c.hinweis) fail(c.datei + ': Hinweis „Erkennung unsicher“ ' + (c.hinweis ? 'fehlt' : 'erscheint ohne Grund'));
       console.log(name + ': ' + c.datei + ' Abdeckung ' + (100 * r.cov).toFixed(0) + ' %, in der Legende ' + r.top + ', in der Zeitachse ' + r.bot + ', Ausschläge ' + r.sp.length);
       if (r.cov < c.abdeckung) fail(c.datei + ': zu wenig Verlauf erkannt'); if (r.top || r.bot) fail(c.datei + ': Verlauf in Legende bzw. Zeitachse'); if (r.sp.length > (c.ausschlaege || 0)) fail(c.datei + ': senkrechte Ausschläge in Spalte ' + r.sp.slice(0, 5));
       if (r.nah !== null) { console.log('   am Kurs ' + (100 * r.nah).toFixed(1) + ' %, abseits (Zeichnung, Kästchen) ' + r.weg.length + ' Spalten'); if (r.nah < c.nah) fail(c.datei + ': Verlauf folgt dem Kurs zu selten'); if (r.weg.length > (c.bereich[1] - c.bereich[0]) * .005) fail(c.datei + ': Verlauf abseits des Kurses in Spalte ' + r.weg.slice(0, 8)); }
       if (r.verb) fail(c.datei + ': Verlauf in einem verbotenen Bereich (' + r.verb + ' Spalten)');
+      console.log('   Rand links ' + (100 * r.links).toFixed(0) + ' %, rechts ' + (100 * r.rechts).toFixed(0) + ' %'); if (r.links < .8 || r.rechts < .8) fail(c.datei + ': zu wenig Verlauf am Rand (links ' + (100 * r.links).toFixed(0) + ' %, rechts ' + (100 * r.rechts).toFixed(0) + ' %)');
+      // mit dem Zuschnitt-Vorschlag (seit 26.11.2026): Kerzen bis an den Rand des Ausschnitts, keine Achse mitten im Kurs (vorher hielt die Erkennung
+      // Kerzenstücke an der gepunkteten Preislinie für die Zeitachse und schnitt die Tiefs links und die letzten Kerzen rechts ab)
+      if (c.vorschlag) { await page.evaluate(() => ownChart()); await page.waitForSelector('#ocfile', { state: 'attached' }); await page.setInputFiles('#ocfile', path.join(__dirname, 'faelle', c.datei));
+        await page.waitForSelector('#occv'); await page.waitForTimeout(80); await page.click('#ocok'); await page.waitForSelector('#svg.pgsvg');
+        const v = await page.evaluate(c => { const I = PGS.img, hi = I.path.hi, lo = I.path.lo, cx = I.crop.x, cy = I.crop.y, f = I.crop.f, a = Math.max(0, Math.round(((c.rand || c.bereich)[0] - cx) * f)), b = Math.min(I.w - 1, Math.round(((c.rand || c.bereich)[1] - cx) * f)), rw = Math.max(30, Math.round((b - a) * .05));
+          const rc = (x0, x1) => { let n = 0, k = 0; for (let x = x0; x + 5 <= x1; x += 6) { n++; for (let q = x; q < x + 6; q++) if (hi[q] >= 0) { k++; break; } } return n ? k / n : 1; };
+          let mx = -1; for (let x = a; x <= b; x++) if (lo[x] > mx) mx = lo[x]; return { links: rc(a, a + rw), rechts: rc(b - rw, b), ax: I.ax, h: I.h, w: I.w, tief: mx, unten: (c.unten - cy) * f }; }, c);
+        console.log('   Vorschlag: Rand links ' + (100 * v.links).toFixed(0) + ' %, rechts ' + (100 * v.rechts).toFixed(0) + ' %, Achsen ' + JSON.stringify(v.ax));
+        if (v.links < .8 || v.rechts < .8) fail(c.datei + ' (Vorschlag): zu wenig Verlauf am Rand (links ' + (100 * v.links).toFixed(0) + ' %, rechts ' + (100 * v.rechts).toFixed(0) + ' %)');
+        if (v.ax.b < Math.min(v.h, v.unten) - 2 && v.tief >= v.ax.b - 3) fail(c.datei + ' (Vorschlag): Zeitachse mitten im Kurs erkannt (Zeile ' + v.ax.b + ')'); }
     }
     if (errs.length) fail('Konsole: ' + [...new Set(errs)].slice(0, 3).join(' | '));
     await ctx.close();

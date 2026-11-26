@@ -17,7 +17,7 @@ Kein Spielmodus (keine Punkte, Serie, Ränge, Tutorials), ohne KI und ohne Serve
 | Steuerung | `zoomX`, `zoomAt`, `clampSc`, `imFit`, `imClamp` | Mausrad streckt die Zeitachse, Strg+Mausrad/+/− zoomen, Ziehen verschiebt, Streifen unten (Modus `ax`), Bild immer randfüllend und begrenzt |
 | Einrasten | `imgSnap(px,py,o)` | Wendehoch/-tief auf `IMG.path` (nicht auf den gezeichneten Kerzen) |
 | Nachzeichnen | `ocApply(S)` | Strich ersetzt nur die gezeichneten Spalten (`man` = 1) |
-| Prüfen | `imgVerify()`, `frCheck`, `ocSub`/`ocZig`/`ocFit` | Regeln (rot), Warnsignale/Faustregeln, Unterteilung per ZigZag (orange „Prüfe die Subwellen“) |
+| Prüfen | `imgVerify()`, `frCheck`, `ocSub`/`ocZig`/`ocFit` | Regeln (rot), Warnsignale/Faustregeln, Unterteilung per ZigZag (orange „Prüfe die Subwellen“, „Automatisch erkannt“, nie harte Regel); Befunde zu selbst gezählten Unterteilungen: Welle rot hinterlegt (`.pgeb`), Punkte markiert. Unterteilungen nur mit Start werden nicht geprüft (26.11.2026) |
 | Prüfen gesperrt | `ocWhy()` | konkreter Grund unter dem Knopf (`#pgwhy`) |
 | Export | `ocPng()`, `ocSave`, `ocShare` | PNG mit Bild, Labels, Linien, Fazit |
 
@@ -33,6 +33,7 @@ Anlass: Discord-Feedback (CoreWeave in Originalgröße, `tests/faelle/coreweave-
 4. **Nur Säulen:** dünne waagerechte Stücke, senkrechte Box-Kanten, gepunktete Linien, Kreis-Labels, Beschriftungsketten und die äußersten 2 Bildzeilen fallen weg.
 5. **Danach in `ocPath`:** Strangwahl mit billigem Auslassen und Belohnung langer Säulen, dünn besetzte Stellen weg, Lücken linear ergänzt (`IMG.ip`), unsichere Bereiche `IMG.uns` → orange im Chart, „Erkennung zu … % sicher“.
 6. **Liniencharts:** nur mit gefüllten Zonen über die Farbmaske, sonst der alte Weg.
+7. **Ränder (26.11.2026):** Die Zeitachse zählt nur mit gleich hohen Formen (Ziffern), sonst schnitt eine Reihe Kerzenstücke an der gepunkteten Preislinie den Kurs unten ab. Graue Kerzen ab s 0,42, Dochte über Zonenränder hinweg, dünne Balken auf kleinen Bildern sind keine Schrift. Randtest in `tests/verlauf.js` (`rand`, auch mit Zuschnitt-Vorschlag).
 
 Messung (40 Generatorbilder, Skript nur im Arbeitsordner): Kerzen/OHLC 97 % genau statt 92 %, Ausschlag-Spalten 435 statt 1539.
 
@@ -75,6 +76,9 @@ Reihenfolge im Code:
 | Linienchart = eine lange Form | dicht gepackte Kerzen (verkleinertes Bild) sind auch eine Form → Strichlänge gegen Anstieg, Hauptfarben |
 | Textzeilen der alten Erkennung ausschließen | ruhige Kerzenreihen galten als Schrift → eigene Kettenregel mit festem Abstand und Löchern |
 | Alte Label-Regel ausschließen | verlor Kerzen in Zonen und das echte Hoch |
+| Graue Kerzen allgemein ab s 0,42 | mehr Ausschläge auf farbigen Fotos → nur für unbunte Kerzenfarben |
+| Zonenflächen (RMV 2) für die Kerzensuche freigeben | Reste von Preis-Kästchen am Rand → stattdessen Lücken aus Zonenpixeln in einer Säule überbrücken |
+| Achsenprüfung „gleich hohe Formen“ auch für die Preisachse | Preisachse mit Kästchen wurde nicht mehr erkannt → nur für die Zeitachse |
 | Engere Farbtoleranz gegen Kreis-Labels | kostete auf Fotos Kerzen (91 → 69 %) |
 | Strangwahl mit Auslassen 6 und Belohnung bis 6 | Kreis-Label mit Pixeln in jeder Spalte gewann gegen dünne Dochte (Allzeithoch fehlte) → im Kerzenmodus 2 bzw. 30 |
 | Bild frei verschiebbar, nicht randfüllend | Bild ließ sich aus der Fläche schieben (Video Lenny) → fixiert |
@@ -100,6 +104,7 @@ Tests (alle Playwright, `NODE_PATH` und `PWCH=msedge` siehe Memory bzw. CLAUDE.m
 | `tests/eigener-chart.js [Runden]` | Zufallsbilder (Generator `MK`: Kerzen/OHLC/Linie, hell/dunkel, Foto, Legende, Labels, Zeichnungen): Verlauf, Einrasten, Ziehen, Nachzeichnen, Prüfen, Export |
 | `tests/struktur.js` | Unterteilungsprüfung: Fehlalarme, Erkennung dreiteiliger Welle 3 |
 | `tests/subwellen.js` | Warnsignal-Texte, Überschrift, Hervorhebung |
+| `tests/unterteilung-richtung.js` | Zählung aus dem Discord-Screenshot (W-X-Y mit Unterteilungen, angefangene Unterteilungen nur mit Start): keine falsche Richtungsmeldung; Gegenprobe mit Text und Hervorhebung |
 | `tests/verlauf-kerzen.js` | Kerzen-Darstellung genau, Zoom feiner/gröber |
 | `tests/bild-steuerung.js` | Mausrad, Ziehen vs. Klick, Streifen, Grenzen, Deckungsgleichheit |
 | `tests/bild-blasser.js` | Regler 0/50/100 %, Kontrast, Export |

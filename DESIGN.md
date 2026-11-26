@@ -70,6 +70,8 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
   6 px mit 85 %, mindestens 6 px breit; nur beim Zählen, nie im Export; nachgezeichnete Spalten gelten als geklärt. Darunter der Satz
   „Erkennung zu … % sicher.“ (`.ocqs`, `--muted`), bei unsicheren Stellen mit einem 14-px-Farbfeld davor und „Orange markierte Stellen: Prüf dort
   den Verlauf und zeichne ihn bei Bedarf nach.“
+- Regelverstoß in einer selbst gezählten Unterteilung (seit 26.11.2026): die Welle über die ganze Höhe in `--bad` mit 10 % Deckkraft (`.pgeb`), alle
+  Punkte der Unterteilung mit Fehlerring. Warnsignale aus automatisch gefundenen Teilwellen tragen „Automatisch erkannt, kein Regelverstoß“.
 - Warnsignal zur Unterteilung: gefundene Wendepunkte als gestrichelte Linie in `--warn-text` (1,8 px, Strich 5/4) mit kleinen Kreisen
   (Füllung `--surface`), nur im Ergebnis.
   Die betroffene Welle ist im Chart orange hinterlegt (`--warn-text`, 10 % Deckkraft, `.pgwb`). Der Hinweis ist antippbar (Rand beim Darüberfahren

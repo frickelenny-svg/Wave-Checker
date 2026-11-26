@@ -1,5 +1,5 @@
 {
-  "_anleitung": "Feste Testbilder für den erkannten Kursverlauf (tests/verlauf.js). datei: Bild in diesem Ordner. bereich: Spalten [von, bis] mit Kursverlauf. oben/unten: Zeilen, über bzw. unter denen kein Verlauf liegen darf (Legende, Zeitachse). abdeckung: Anteil der 6 Spalten breiten Abschnitte im Bereich mit Verlauf. quelle: Herkunft. Seit 23.11.2026 optional: kurs = Farben des Kurses ({farben:[[r,g,b]...], tol} oder {hell: Mindesthelligkeit}); dann muss der Verlauf je Spalte in mindestens nah (Anteil) der Spalten bis 3 px am obersten bzw. untersten Kurspixel (Pixel mit Nachbar in Kursfarbe darüber oder darunter) liegen und darf höchstens 0,5 % der Spalten mehr als 8 px über bzw. unter dem Kurs der Nachbarspalten (±4) liegen (Zeichnungen, Kästchen). verboten: Rechtecke [x0,y0,x1,y1], in denen kein Verlauf liegen darf. Seit 25.11.2026 optional: vorschlag = {innen:[x0,y0,x1,y1], rechts, unten, oben, links} für den Zuschnitt-Vorschlag, hinweis = true/false (Hinweis „Erkennung unsicher“). ausschlaege = erlaubte senkrechte Ausschläge (Standard 0).",
+  "_anleitung": "Feste Testbilder für den erkannten Kursverlauf (tests/verlauf.js). datei: Bild in diesem Ordner. bereich: Spalten [von, bis] mit Kursverlauf. oben/unten: Zeilen, über bzw. unter denen kein Verlauf liegen darf (Legende, Zeitachse). abdeckung: Anteil der 6 Spalten breiten Abschnitte im Bereich mit Verlauf. quelle: Herkunft. Seit 23.11.2026 optional: kurs = Farben des Kurses ({farben:[[r,g,b]...], tol} oder {hell: Mindesthelligkeit}); dann muss der Verlauf je Spalte in mindestens nah (Anteil) der Spalten bis 3 px am obersten bzw. untersten Kurspixel (Pixel mit Nachbar in Kursfarbe darüber oder darunter) liegen und darf höchstens 0,5 % der Spalten mehr als 8 px über bzw. unter dem Kurs der Nachbarspalten (±4) liegen (Zeichnungen, Kästchen). verboten: Rechtecke [x0,y0,x1,y1], in denen kein Verlauf liegen darf. Seit 25.11.2026 optional: vorschlag = {innen:[x0,y0,x1,y1], rechts, unten, oben, links} für den Zuschnitt-Vorschlag, hinweis = true/false (Hinweis „Erkennung unsicher“). ausschlaege = erlaubte senkrechte Ausschläge (Standard 0). Seit 26.11.2026 optional: rand = [erste, letzte Kerzenspalte] für den Randtest (sonst bereich): je 5 % am linken und rechten Rand mindestens 80 % Abdeckung, mit vorschlag auch im vorgeschlagenen Ausschnitt.",
   "faelle": [
     {
       "datei": "legende-oben.png",
@@ -50,6 +50,7 @@
     {
       "datei": "coreweave-zeichnungen-ganz.png",
       "bereich": [195, 1270],
+      "rand": [195, 1058],
       "oben": 100,
       "unten": 857,
       "abdeckung": 0.85,
@@ -73,6 +74,7 @@
     {
       "datei": "coreweave-zeichnungen.png",
       "bereich": [56, 1130],
+      "rand": [56, 919],
       "oben": 2,
       "unten": 700,
       "abdeckung": 0.85,

@@ -133,6 +133,16 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   `tests/eigener-chart.js 6` am 25.11.2026, alt gegen neu (mit den neuen Zonen-Charts): Verlauf 92,8/93,4/94,6 % → 95,2/95,7/94,0 %,
   Ausschlag-Spalten 30/50/14 → 0/11/8, Einrasten 89,6/88,0/98,4 % → 100/94,6/95,5 %, Tipp auf vorhandenes Label 85,7/94,4/100 % →
   85,7/92,9/56,3 % (PC schwächer, auch Liniencharts über den alten Weg betroffen); der Test reißt weiter einzelne Grenzen (alt 10, neu 7 Fehler).
+  Ränder (26.11.2026, Discord: „Mitte gut, links und rechts Fehler“): Ursache war vor allem die Achsenerkennung. Kerzenstücke, die alle an der
+  gepunkteten Preislinie enden, galten als Zeitachse (`AX.b` mitten im Kurs), alles darunter fiel weg (Tiefs links, letzte Kerzen rechts). Seit
+  26.11. zählt eine Zeitachse nur, wenn mind. 80 % ihrer Formen gleich hoch sind (±3 px, Ziffern). Außerdem: unbunte Kerzenfarben (weiß/grau) ab
+  s 0,42 statt 0,5 (graue Abwärtskerzen), Lücken in einer Säule bis 20 px aus Zonenpixeln werden überbrückt (Docht durch den Rand einer Zone),
+  die Schriftketten-Regel gilt nur für Formen ab 6 px Höhe oder über 3 px Breite (dünne Balken auf kleinen Bildern), die Label-Gruppen-Regel nur bei
+  mehr kräftigen andersfarbigen Pixeln als Kerzenpixeln. Halb abgeschnittene Kerzen am Rand bleiben (nur die oberste/unterste 2 Zeilen fallen weg).
+  s 0,42 gilt nur auf Screenshots (Rauschen unter 3); auf Fotos 0,5. Legende in Kerzenfarbe (helle OHLC-Charts, schwarze Schrift): Säulen, die ganz
+  über der Unterkante der als Legende erkannten Schrift (`LT`) liegen, fallen weg. `tests/eigener-chart.js 6` am 26.11.: Verlauf 92,5/95,3/94,8 %,
+  Fehler vor allem bei Fotos mit weißen OHLC-Balken, Zonen und Zeichnungen; dort gezielt verglichen (6 Bilder): neu 86–100 % der Kerzen, alt 74–84 %,
+  Ausschlag-Spalten neu 12–163, alt 141–314.
   Offen: Tipp auf vorhandene Labels; Reste hinter der letzten Kerze (Kreis-Labels, Klammern von Fib-Beschriftungen) bleiben, liegen aber in den unsicheren Bereichen;
   Fotos mit überlappenden Zonen; Kreis-Labels in fast Kerzenfarbe auf stark verkleinerten Bildern.
 - Kursverlauf (seit 23.11.2026, `ocPath`, direkt nach dem Zuschneiden): je Bildspalte höchstes und tiefstes Pixel von Kerzen bzw.
@@ -224,6 +234,10 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   = die andere Zahl gefunden („sie wirkt eher dreiteilig“ bzw. bei Korrekturwellen „eher fünfteilig“), `unruhig` = sonst („wirkt unruhiger, mit
   mehr Teilwellen“). Dazu die Wendepunkte dieses Befunds gestrichelt (`.pgzz`, `m.zz`) und die Welle orange hinterlegt (`.pgwb`, `m.zzw`).
   Antippen eines solchen Warnsignals (`.ocsubn`, `data-zz`) holt Chart und Welle ins Bild und lässt sie kurz blinken. Nicht beurteilt wird
+  Seit 26.11.2026 steht bei jedem dieser Warnsignale „Automatisch erkannt, kein Regelverstoß“. Befunde aus automatisch gefundenen Teilwellen sind
+  nie harte Regeln; harte Fehler zu Unterteilungen kommen nur aus selbst gezählten Unterteilungen (`frCheck`). Deren Befunde markieren die Welle rot
+  (`.pgeb`, `m.ew`) und alle Punkte der Unterteilung (`pids`). Eine Unterteilung, die nur aus dem Start besteht (Welle antippen + Zählweise, dann
+  nichts weiter), wird weder geprüft noch hält sie die automatische Prüfung der Welle ab.
   nur eine Welle ohne Gegenbewegung (ZigZag 4 % mit weniger als 3 Teilwellen).
 - Ergebnis-Überschrift (seit 23.11.2026, `PGS.res.state`): harter Regelverstoß rot (Vorrang), sonst bei Warnsignalen zur Unterteilung orange
   mit Warn-Icon „Prüfe die Subwellen“ und „Die Hauptwellen sind regelkonform, aber in Welle 1 und 3 passt die innere Struktur nicht sicher.“,
@@ -239,6 +253,12 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Handy, iPad, PC je rund 99–100 %, Labels 100 %), Ziehen, Prüfergebnis gleich den Regeln für die bekannten Preise (log: Pixelhöhe),
   Regler, Bild-Export, Spielstand unverändert. Der Start wird auf bzw. jenseits des Extrems getippt. Nach Änderungen an Schwer,
   `snapPt` oder `frCheck` auch diesen Test laufen lassen.
+- Richtungs-Test (seit 26.11.2026, Discord-Screenshot): `node tests/unterteilung-richtung.js` (Playwright, Handy/iPad/PC) auf
+  `coreweave-original.png`: große W-X-Y, W als (a)(b)(c), X und Y als (w)(x)(y), dazu angefangene Unterteilungen nur mit Start in (b) und Y. Keine
+  Meldung „falsche Richtung“, keine harte Regel zu Unterteilungen, Warnsignale nur unter „Hinweise“ mit „Automatisch erkannt“. Gegenprobe: X-Unterteilung
+  mit erster Teilwelle nach unten → harte Regel „Die erste Teilwelle läuft gegen die Welle. Sie muss in dieselbe Richtung laufen wie die Welle selbst.“,
+  Welle X rot hinterlegt, Punkte markiert. Vorher (bis 25.11.) meldete die App für die angefangenen Unterteilungen „beginnt in die falsche Richtung:
+  Die erste Teilwelle läuft wie die Welle selbst“. Nach Änderungen an `frCheck`, `frStartSub`, `imgVerify` oder `ocSub` laufen lassen.
 - Fall-Test: `node tests/subwellen.js [Durchläufe]` (Playwright, Handy/iPad/PC): gebaute Linien-Charts, Welle 3 je Fall dreiteilig, fünfteilig
   mit Regelbruch (IMP-3), unruhig, sauber, dazu ein harter Verstoß: Text je Befund, Überschrift (orange/grün/rot), Reihenfolge, Hervorhebung,
   Antippen blinkt, Export. Nach Änderungen an `ocSub`, `imgVerify` oder den Texten laufen lassen.
@@ -252,7 +272,9 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Kerzen, Kästchen PYPL/52.84/44.31, gepunktete Preislinie, Preisachse mit Rand, E/D-Symbole). Optional je Fall `kurs` (Kursfarbe bzw. Helligkeit; nur Pixel mit Nachbar in Kursfarbe
   darüber oder darunter, also keine Punkte einer gepunkteten Linie; seit 25.11.2026 zählt auch ein einzelnes Pixel ohne 2 weitere in derselben Zeile
   ±12 Spalten, also ein Balken ohne Bewegung wie in Lumen): Verlauf bis 3 px am obersten/untersten Kurspixel (Anteil `nah`), höchstens 0,5 % der Spalten mehr als 8 px abseits; `verboten` = Rechtecke ohne Verlauf. Neue
-  Problembilder dort aufnehmen (Original-Screenshots sind besser als zurückgerechnete). `tests/eigener-chart.js` zeichnet seit 23.11. auch TradingView-Legende im Chart, gepunktete Linie des letzten Kurses,
+  Problembilder dort aufnehmen (Original-Screenshots sind besser als zurückgerechnete). Seit 26.11.2026 Randtest: je 5 % (mind. 30 Spalten) links und
+  rechts von `rand` (erste/letzte Kerzenspalte, sonst `bereich`) mind. 80 % Abdeckung; Fälle mit `vorschlag` laufen zusätzlich mit dem vorgeschlagenen
+  Ausschnitt (Ränder, keine Zeitachse mitten im Kurs). `tests/eigener-chart.js` zeichnet seit 23.11. auch TradingView-Legende im Chart, gepunktete Linie des letzten Kurses,
   Preis-Kästchen auf der mitgeschnittenen Preisachse und lange Dochte und prüft „keine senkrechten Ausschläge“. Seit 23.11. außerdem OHLC-Balken
   (farbig bzw. weiß/grau, `kind:'ohlc'`) und Zeichnungen (`draw`: Trendlinie durch zwei Hochs/Tiefs, Kanal, Fibonacci mit Beschriftung,
   Symbol-Kästchen auf Kurshöhe; Farbe lila, blau, grau oder Kursfarbe); verdeckte Kerzen zählen nicht (`hid`), an berührten Spitzen (`tt`) 3 px
@@ -427,5 +449,8 @@ Die Größe wird beim Start einer Zählung festgelegt und in `FR.cm[c] = {lev, p
 - Erreicht der letzte gesetzte Punkt einer Unterteilung das Ende ihrer übergeordneten Welle, muss die Unterteilung vollständig sein
   (alle Labels der Zählweise, z. B. ZZ-1/WC-1: Welle C fünfteilig). Sonst Befund am letzten Punkt, z. B. „Welle (c) endet hier,
   ihre Unterteilung braucht noch Welle 4 und 5“ (`frCheck`, Schleife über `kids`). Läuft sie über das Ende hinaus, ebenso.
+- Seit 26.11.2026: Unterteilungen, die nur aus dem Start bestehen, werden nicht geprüft (vorher meldete die Richtungsprüfung ohne erste Teilwelle
+  „falsche Richtung“). Text der Richtungsprüfung: „… beginnt in die falsche Richtung: Die erste Teilwelle läuft gegen die Welle. Sie muss in
+  dieselbe Richtung laufen wie die Welle selbst.“ Befunde zu Unterteilungen tragen `S`, `k`, `sub`, `pids` (Hervorhebung).
 - Eine Unterteilung, die vor dem Ende der übergeordneten Welle aufhört, bleibt als angefangene Zählung erlaubt. Fehlt nur das letzte
   Label und liegt der letzte Punkt vor dem Wellenende, endet sie wie bisher am Ende der Welle darüber (`endImpl`).
