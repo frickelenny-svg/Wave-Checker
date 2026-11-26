@@ -13,9 +13,9 @@ Kein Spielmodus (keine Punkte, Serie, Ränge, Tutorials), ohne KI und ohne Serve
 | Kerzensuche | `ocKerzen(k)` (aus `ocPath`) | Kerzenfarben, lokaler Hintergrund je 16-px-Kachel, nur Säulen in Kerzenfarbe → Maske für die Strangwahl; Rückfall auf den alten Weg ohne Kerzen |
 | Verlauf erkennen | `ocPath(IMG)` | je Bildspalte Hoch/Tief → `IMG.path` {hi, lo, man}, `IMG.auto`, `IMG.cw` (Kerzenbreite), `IMG.ax` (Rahmen/Achsen), `IMG.q` (Qualität) |
 | Zählen | `progn({img:IMG},'schwer')` | Bedienung wie „Wie geht es weiter?“ Schwer (Zeichnen/Auswählen, Unterteilungen) |
-| Darstellung | `pic()`, `ocCandles()`, `ocG()` | Bild als `<image>`, Regler „Bild blasser“ (0–100 %), Verlauf als Kerzen |
+| Darstellung | `pic()`, `ocCandles()`, `ocG()` | Bild als `<image>`, Regler „Bild blasser“ (0–100 %), Verlauf als Kerzen: seit 26.11.2026 jede erkannte Kerze 1:1 (`IMG.cdl`), Zoom ändert nur Breite und Abstand; Spaltengruppen mit fester Breite nur im Rückfall und für Nachgezeichnetes |
 | Steuerung | `zoomX`, `zoomAt`, `clampSc`, `imFit`, `imClamp` | Mausrad streckt die Zeitachse, Strg+Mausrad/+/− zoomen, Ziehen verschiebt, Streifen unten (Modus `ax`), Bild immer randfüllend und begrenzt |
-| Einrasten | `imgSnap(px,py,o)` | Wendehoch/-tief auf `IMG.path` (nicht auf den gezeichneten Kerzen) |
+| Einrasten | `imgSnap(px,py,o)` | Wendehoch/-tief auf `IMG.path`, seit 26.11.2026 auf Docht und Hoch/Tief der erkannten Kerze |
 | Nachzeichnen | `ocApply(S)` | Strich ersetzt nur die gezeichneten Spalten (`man` = 1) |
 | Prüfen | `imgVerify()`, `frCheck`, `ocSub`/`ocZig`/`ocFit` | Regeln (rot), Warnsignale/Faustregeln, Unterteilung per ZigZag (orange „Prüfe die Subwellen“, „Automatisch erkannt“, nie harte Regel); Befunde zu selbst gezählten Unterteilungen: Welle rot hinterlegt (`.pgeb`), Punkte markiert. Unterteilungen nur mit Start werden nicht geprüft (26.11.2026) |
 | Prüfen gesperrt | `ocWhy()` | konkreter Grund unter dem Knopf (`#pgwhy`) |
@@ -79,6 +79,8 @@ Reihenfolge im Code:
 | Graue Kerzen allgemein ab s 0,42 | mehr Ausschläge auf farbigen Fotos → nur für unbunte Kerzenfarben |
 | Zonenflächen (RMV 2) für die Kerzensuche freigeben | Reste von Preis-Kästchen am Rand → stattdessen Lücken aus Zonenpixeln in einer Säule überbrücken |
 | Achsenprüfung „gleich hohe Formen“ auch für die Preisachse | Preisachse mit Kästchen wurde nicht mehr erkannt → nur für die Zeitachse |
+| Kerzen je Zoom aus Spaltengruppen (`ocG` je Ansicht) | Anzahl änderte sich beim Strecken, verwirrend (Video Lenny) → Kerzen 1:1 aus `IMG.cdl` |
+| Kerzenabstand aus allen Formen | Punkte und Splitter machten ihn zu klein, OHLC-Balken wurden zweigeteilt → nur Formen ab 3 px Höhe |
 | Engere Farbtoleranz gegen Kreis-Labels | kostete auf Fotos Kerzen (91 → 69 %) |
 | Strangwahl mit Auslassen 6 und Belohnung bis 6 | Kreis-Label mit Pixeln in jeder Spalte gewann gegen dünne Dochte (Allzeithoch fehlte) → im Kerzenmodus 2 bzw. 30 |
 | Bild frei verschiebbar, nicht randfüllend | Bild ließ sich aus der Fläche schieben (Video Lenny) → fixiert |

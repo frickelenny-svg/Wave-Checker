@@ -61,8 +61,8 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
   Text „Der Rahmen ist ein Vorschlag …“. Zählen: Hinweis „Viele Zeichnungen im Bild, die Erkennung ist unsicher“ als Kasten `.ocq` (`--warn-bg`,
   `--warn-text`, Warn-Icon 18 px, Ecken 12 px) über dem Hinweistext. Unter gesperrtem „Prüfen“ immer der konkrete Grund (`.pghint`, `#pgwhy`).
 - Erkannter bzw. nachgezeichneter Kursverlauf (seit 24.11.2026 als Kerzen, vorher Zickzack-Linie aus Hoch und Tief): Kerzen in `--accent`,
-  Docht 1,2 px, steigend gefüllt (`.occu`), fallend als Umriss ohne Füllung (`.occd`, 1,2 px). Breite der Kerze 70 % ihres Abstands; in der
-  Start-Ansicht etwa so breit wie im Original, mindestens 2 Bildschirmpixel, beim Hineinzoomen feiner, beim Herauszoomen gröber. Nur beim Zählen
+  Docht 1,2 px, steigend gefüllt (`.occu`), fallend als Umriss ohne Füllung (`.occd`, 1,2 px). Seit 26.11.2026 jede erkannte Kerze 1:1 (Körper so breit wie im Original, Docht an seiner Spalte; Zoom ändert nur Breite und Abstand, nie die Anzahl). Rückfall und Nachgezeichnetes: Breite der Kerze 70 % ihres Abstands, feste Spalten je Kerze aus der Startansicht; in der
+  Start-Ansicht etwa so breit wie im Original, mindestens 2 Bildschirmpixel. Nur beim Zählen
   (bei „Bild blasser“ 100 % immer, auch im Ergebnis und im Export).
   Darunter eine Zeile: Kästchen „Erkannten Verlauf zeigen“, Knopf „Verlauf nachzeichnen“ (aktiv blau hinterlegt, Text dann „Nachzeichnen
   beenden“), nach dem Nachzeichnen „Erkannten Verlauf wiederherstellen“. Der laufende Strich ist grün (`--ok`, 2,4 px, runde Enden).

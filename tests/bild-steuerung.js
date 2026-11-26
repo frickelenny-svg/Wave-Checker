@@ -20,12 +20,14 @@ const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, 
 const ST = () => { const I = PGS.img, v = PGS.view(), im = document.querySelector('#svg image'), PA = I.path; let best = -1;
   const xa = Math.max(0, Math.ceil(PGS.Tof(20))), xb = Math.min(I.w - 1, Math.floor(PGS.Tof(v.W - 20))); // nur sichtbare Spalten (Kerzen werden nur im Bild gezeichnet)
   for (let x = xa; x <= xb; x++) { if (PA.hi[x] < 0) continue; const y = PGS.Y(I.h - PA.hi[x] - .5); if (y < 60 || y > v.H - 30) continue; if (best < 0 || PA.hi[x] < PA.hi[best]) best = x; }
-  if (best >= 0) { const G = PGS.ocG(), g0 = Math.floor(best / G) * G; for (let x = g0; x < Math.min(I.w, g0 + G); x++) if (PA.hi[x] >= 0 && PA.hi[x] < PA.hi[best]) best = x; } // Extrem der ganzen Kerze
+  // Kerze zu best: seit 26.11.2026 die erkannte Kerze (IMG.cdl, Docht an xc), im Rückfall die Spaltengruppe fester Breite
+  const kz = x => I.cdl ? I.cdl.find(k => k.a <= x && x <= k.b) : null;
+  if (best >= 0) { const k = kz(best); if (k) best = k.xc; else { const G = PGS.ocG(), g0 = Math.floor(best / G) * G; for (let x = g0; x < Math.min(I.w, g0 + G); x++) if (PA.hi[x] >= 0 && PA.hi[x] < PA.hi[best]) best = x; } } // Extrem der ganzen Kerze
   const ix = +im.getAttribute('x'), iy = +im.getAttribute('y'), iw = +im.getAttribute('width'), ih = +im.getAttribute('height');
   // Bild: Mitte der Spalte best und Zeile hi auf dem Bildschirm
-  const bx = ix + (best + .5) * iw / I.w, by = iy + (PA.hi[best] + .5) * ih / I.h, p = I.h - PA.hi[best] - .5;
+  const K = best >= 0 ? kz(best) : null, hb = K ? K.hi : PA.hi[best], bx = ix + (best + .5) * iw / I.w, by = iy + (hb + .5) * ih / I.h, p = I.h - hb - .5;
   const d = [...document.querySelectorAll('#svg .occw')].map(e => e.getAttribute('d')).join(''), m = (d.match(/M-?[\d.]+ -?[\d.]+V-?[\d.]+/g) || []).map(s => s.slice(1).split(/[ V]/).map(Number));
-  const G = PGS.ocG(), g0 = Math.floor(best / G) * G, cxg = PGS.X((g0 + Math.min(I.w, g0 + G) - 1) / 2), wk = m.filter(q => Math.abs(q[0] - cxg) < .2).map(q => q[1] + .5); // Docht genau dieser Kerze // Docht-Oberkante (ohne den halben Pixel Überstand)
+  const G = PGS.ocG(), g0 = Math.floor(best / G) * G, cxg = K ? PGS.X(K.xc) : PGS.X((g0 + Math.min(I.w, g0 + G) - 1) / 2), wk = m.filter(q => Math.abs(q[0] - cxg) < .2).map(q => q[1] + .5); // Docht genau dieser Kerze // Docht-Oberkante (ohne den halben Pixel Überstand)
   const pts = PGS.FR().pts.map(q => ({ t: q.t, p: q.p })), circ = [...document.querySelectorAll('#svg circle')].map(c => [+c.getAttribute('cx'), +c.getAttribute('cy')]);
   return { img: [ix, iy, ix + iw, iy + ih], TP: 54, BP: 26, BW: v.BW, sc: v.sc, yr: v.yr, span: v.yr[1] - v.yr[0], W: v.W, H: v.H, scrollY: window.scrollY, best, bx, by, X: PGS.X(best), Y: PGS.Y(p), wk: wk.length ? Math.min(...wk) : null, n: pts.length, pts, circ, fit: null };
 };

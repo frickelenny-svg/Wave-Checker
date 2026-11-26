@@ -1554,12 +1554,18 @@ function progn(arg,lvl){
  // leicht gestreckt). Kleiner geht es nicht, verschieben nur, wo durch Zoom bzw. Strecken mehr Bild da ist; die Bildkanten rutschen nie in die Fläche.
  const imFit=()=>W/IMG.w; // Bildschirmpixel je Bildspalte in der Startansicht
  const imClamp=()=>{BW=Math.max(BW,imFit());sc=clampSc(sc);const sp=Math.min(yr[1]-yr[0],IMG.h),a=Math.max(0,Math.min(IMG.h-sp,yr[0]));yr=[a,a+sp]};
- const ocG=()=>Math.max(1,Math.round(Math.max((IMG.cw||3)*imFit(),2)/BW)); // Bildspalten je gezeichneter Kerze (mindestens 2 Bildschirmpixel breit)
+ const ocG=()=>IMG.G0||(IMG.G0=Math.max(1,Math.round(Math.max((IMG.cw||3)*imFit(),2)/imFit()))); // Bildspalten je gezeichneter Kerze für Rückfall und Nachgezeichnetes: fest aus der Startansicht
+ // (seit 26.11.2026 nicht mehr je Zoom: die Anzahl der Kerzen ändert sich beim Strecken nie)
+ // Seit 26.11.2026 (Lenny): erkannte Kerzen 1:1 (IMG.cdl: gleiche Stelle, Hoch, Tief, Körper, Richtung); Zoom ändert nur Breite und Abstand. Spalten-
+ // gruppen mit fester Breite (ocG) nur im Rückfall (keine Kerzen gefunden) und für nachgezeichnete Stellen.
  const ocCandles=()=>{const PA=IMG.path,G=ocG(),Yr=r=>Y(IMG.h-r-.5),g0=Math.max(0,Math.floor(Tof(0)/G)-1),g1=Math.min(Math.floor((IMG.w-1)/G),Math.ceil(Tof(W)/G)+1);
-  let wk='',up='',dn='',pc=null;const bw=Math.max(1,G*BW*.7),f1=v=>v.toFixed(1);
+  let wk='',up='',dn='',pc=null;const bw=Math.max(1,G*BW*.7),f1=v=>v.toFixed(1),CD=IMG.cdl,manIn=(a,b)=>{for(let x=a;x<=b;x++)if(PA.man[x])return true;return false};
+  if(CD){const t0=Tof(0)-2,t1=Tof(W)+2;CD.forEach(k=>{if(k.b<t0||k.a>t1||manIn(k.a,k.b))return;const cx=X(k.xc);wk+='M'+f1(cx)+' '+f1(Yr(k.hi)-.5)+'V'+f1(Yr(k.lo)+.5);
+    if(k.o===null||k.c===null)return;const kw=Math.max(1,(k.b-k.a+1)*BW),x0=X(k.a-.5),yt=Yr(Math.min(k.o,k.c)),yb=Yr(Math.max(k.o,k.c)),hh=Math.max(1,yb-yt),
+     r='M'+f1(k.b>k.a?x0:cx-kw/2)+' '+f1(yt-(yb-yt<1?.5:0))+'h'+f1(kw)+'v'+f1(hh)+'h'+f1(-kw)+'z';if(k.up)up+=r;else dn+=r})}
   // Eröffnung der ersten sichtbaren Kerze: Schluss der letzten Spalte mit Verlauf davor
   for(let x=g0*G-1;x>=0;x--)if(PA.hi[x]>=0){pc=(PA.hi[x]+PA.lo[x])/2;break}
-  for(let g=g0;g<=g1;g++){let h=1e9,l=-1,cl=null;for(let x=g*G;x<Math.min(IMG.w,g*G+G);x++)if(PA.hi[x]>=0){h=Math.min(h,PA.hi[x]);l=Math.max(l,PA.lo[x]);cl=(PA.hi[x]+PA.lo[x])/2}
+  for(let g=g0;g<=g1;g++){let h=1e9,l=-1,cl=null;for(let x=g*G;x<Math.min(IMG.w,g*G+G);x++)if(PA.hi[x]>=0&&(!CD||PA.man[x])){h=Math.min(h,PA.hi[x]);l=Math.max(l,PA.lo[x]);cl=(PA.hi[x]+PA.lo[x])/2}
    if(cl===null)continue;const op=pc===null?cl:Math.max(h,Math.min(l,pc)),cx=X((g*G+Math.min(IMG.w,g*G+G)-1)/2);pc=cl;
    wk+='M'+f1(cx)+' '+f1(Yr(h)-.5)+'V'+f1(Yr(l)+.5);
    const yt=Yr(Math.min(op,cl)),yb=Yr(Math.max(op,cl)),hh=Math.max(1,yb-yt),r='M'+f1(cx-bw/2)+' '+f1(yt-(yb-yt<1?.5:0))+'h'+f1(bw)+'v'+f1(hh)+'h'+f1(-bw)+'z';
@@ -1657,7 +1663,9 @@ function progn(arg,lvl){
    return out};
   const want=o.want,all=(want==='l'?[]:find(true)).concat(want==='h'?[]:find(false));
   IMG.cand=all; // Testzugriff: Kandidaten des letzten Einrastens
-  if(!all.length)return free;all.sort((a,b)=>a.s-b.s);return all[0]};
+  if(!all.length)return free;all.sort((a,b)=>a.s-b.s);const r=all[0];
+  // erkannte Kerze (26.11.2026): Punkt auf ihren Docht (Zeit) und ihr Hoch bzw. Tief; nachgezeichnete Stellen bleiben spaltengenau
+  const k=IMG.cdl&&!PA.man[r.t]&&IMG.cdl.find(q=>q.a<=r.t&&r.t<=q.b);if(k&&!((o.tmin!==undefined&&!(k.xc>o.tmin))||(o.tmax!==undefined&&!(k.xc<o.tmax))))return{...r,t:k.xc,p:h-(r.hl==='h'?k.hi:k.lo)-.5};return r};
  // Nachzeichnen (23.11.2026): Strich glätten (gleitendes Mittel über 3 Messpunkte) und Spalte für Spalte in den Verlauf schreiben.
  // Mehrere Werte in einer Spalte (Hin und Her): oben und unten wie bei einer Kerze. Markiert als nachgezeichnet (man).
  const ocApply=S=>{if(S.length<2)return;const PA=IMG.path,w=IMG.w,h=IMG.h,sm=S.map((q,i)=>{const a=S[Math.max(0,i-1)],b=S[Math.min(S.length-1,i+1)];return{t:(a.t+q.t+b.t)/3,p:(a.p+q.p+b.p)/3}});
@@ -2480,7 +2488,7 @@ function ocKerzen(k){const{D,w,h,n,AX,G,T,p98,ex,exG}=k,NZ=Math.min(20,k.n9||0) 
  // Linienchart statt Kerzen: Bei einer Linie ist der Strich je Spalte nur so lang wie der Anstieg zwischen den Nachbarspalten plus die Liniendicke;
  // Kerzen reichen weiter (Docht von Hoch bis Tief). Linie = eine Hauptfarbe (zweite unter 25 % davon), mindestens 85 % der Spalten belegt und Überschuss im Median höchstens 4 px: dann gilt
  // der bisherige Weg. Zwei kräftige Farben (steigend/fallend) sind immer Kerzen, auch stark gestauchte ohne Lücken.
- let el=0,sp=0,fa=-1,fb=-1;const RS=[];for(let x=0;x<w;x++){let r=null,m=0;if(x>=AX.l&&x<AX.r)for(let y=AX.t;y<AX.b;y++){if(!M[y*w+x])continue;if(r&&y-r[1]<=3)r[1]=y;else{m++;r=[y,y]}}
+ let el=0,sp=0,fa=-1,fb=-1;const RS=[],ML=j=>M[j]||(ex(j)&&!exG(j)&&ins(j)&&match(j,null,1)>0); /* auch Pixel, die die Linienerkennung entfernt hat: gerade Stücke einer Kurslinie (26.11.2026) */for(let x=0;x<w;x++){let r=null,m=0;if(x>=AX.l&&x<AX.r)for(let y=AX.t;y<AX.b;y++){if(!ML(y*w+x))continue;if(r&&y-r[1]<=3)r[1]=y;else{m++;r=[y,y]}}
   if(m){el++;sp|=1<<Math.min(23,Math.floor(x/w*24));if(fa<0)fa=x;fb=x}RS.push(m===1?r:null)}
  const ex2=[];for(let x=1;x<w-1;x++){const a=RS[x-1],r=RS[x],b=RS[x+1];if(a&&r&&b)ex2.push(r[1]-r[0]+1-Math.abs(b[0]+b[1]-a[0]-a[1])/4)}ex2.sort((p,q)=>p-q);const lx=ex2.length?ex2[ex2.length>>1]:0,fc=el/Math.max(1,fb-fa+1);
  // Körperbreite: Median der waagerechten Läufe in hohen Säulen; dünne waagerechte Stücke (bis 3 px hoch, ab 1,6 × Körperbreite + 3 lang) fallen weg
@@ -2522,8 +2530,8 @@ function ocKerzen(k){const{D,w,h,n,AX,G,T,p98,ex,exG}=k,NZ=Math.min(20,k.n9||0) 
  const info={dbg,cols:cand.map(o=>o.col.map(Math.round)),Wb,el,lx,fc:+fc.toFixed(3),line:isLine};
  if(el<(AX.r-AX.l)*.12||bits(sp)<10)return{fail:info};
  // Kerzenabstand: Median der Abstände benachbarter Kerzen (Mitten der übrigen Formen)
- const cxs=C.filter(c=>!c.txt&&c.x1-c.x0<=3*Wb+4).map(c=>(c.x0+c.x1)/2).sort((p,q)=>p-q),dd=cxs.slice(1).map((v,i)=>v-cxs[i]).filter(v=>v>=1).sort((p,q)=>p-q),P=dd.length?Math.max(2,Math.round(dd[dd.length>>1])):Math.max(2,Wb+1);info.P=P;
- return{M,soft,Wb,P,info,line:isLine}}
+ const cxs=C.filter(c=>!c.txt&&c.x1-c.x0<=3*Wb+4&&c.y1-c.y0>=2&&c.n>=3) /* ohne winzige Reste (Punkte, Splitter), sonst war der Abstand zu klein und OHLC-Balken wurden geteilt (26.11.2026) */.map(c=>(c.x0+c.x1)/2).sort((p,q)=>p-q),dd=cxs.slice(1).map((v,i)=>v-cxs[i]).filter(v=>v>=1).sort((p,q)=>p-q),P=dd.length?Math.max(2,Math.round(dd[dd.length>>1])):Math.max(2,Wb+1);info.P=P;if(!isLine&&(cand.length===1||cand[1].n<cand[0].n*.25)&&lx<=4+NZ&&ex2.length>=50&&P>=20)info.line=true; /* eine Farbe, linienartige Striche und kaum einzelne Formen: Linie (Legende in Linienfarbe drückte fc) */
+ return{M,soft,Wb,P,info,line:info.line}}
 // Unsichere Bereiche ohne nachgezeichnete Spalten, und wie sicher die Erkennung insgesamt ist (Anteil der Spalten zwischen erstem und letztem Kurs-Stück)
 function ocUnsR(I){if(!I||!I.uns)return[];const o=[];I.uns.forEach(([a,b])=>{let s=-1;for(let x=a;x<=b+1;x++){const u=x<=b&&!I.path.man[x];if(u&&s<0)s=x;if(!u&&s>=0){o.push([s,x-1]);s=-1}}});return o}
 // Satz unter den Knöpfen (25.11.2026): wie sicher die Kerzensuche ist, und wo man nachzeichnen sollte
@@ -2802,6 +2810,25 @@ function ocPath(IMG){IMG.lp=0;IMG.bp=0;const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=
   for(let x=0;x<w;x++)if(ct[x]){let c=0;for(let q=Math.max(0,x-2*P);q<=Math.min(w-1,x+2*P);q++)c+=ct[q];if(c>=3)for(let q=Math.max(fa,x-P);q<=Math.min(fb,x+P);q++)un[q]=1}
   let a=-1;for(let x=0;x<=w;x++){if(x<w&&un[x]){if(a<0)a=x;continue}if(a>=0){const L=IMG.uns[IMG.uns.length-1];if(L&&a-L[1]<=2*P)L[1]=x-1;else IMG.uns.push([a,x-1]);a=-1}}
   IMG.uns.forEach(([p,q])=>unsA+=q-p+1);unsA/=Math.max(1,fb-fa+1);IMG.ip=ip}
+ // Kerzenliste (26.11.2026, Lenny): jede erkannte Kerze genau einmal, für die Darstellung 1:1 zum Original und das Einrasten. Kerze = zusammen-
+ // hängende Spalten mit Verlauf (ohne ergänzte), dicht an dicht stehende werden im Kerzenabstand geteilt. Hoch/Tief = Extrem der Spalten, Docht =
+ // Spalte mit dem längsten Strich. Körper = Zeilen, in denen mindestens 2 Spalten Kerzenfarbe haben; OHLC-Balken: Eröffnung = Strich links,
+ // Schluss = Strich rechts. Richtung: grünere Farbe steigend, rötere fallend; unbunt (weiß/grau bzw. schwarz/grau): die kräftigere steigend.
+ IMG.cdl=null;
+ if(KZ&&!KZ.line){const Mk=KZ.M,P=KZ.P,ipx=IMG.ip||new Uint8Array(w),E=KZ.info.cols.map(c=>[c[0]-G[0],c[1]-G[1],c[2]-G[2]]),mag=e=>Math.hypot(e[0],e[1],e[2]);
+  const chrom=E.map(e=>Math.max(...e)-Math.min(...e)>.15*Math.max(...e.map(Math.abs))),upC=E.map((e,i)=>E.length>1&&(chrom[0]||chrom[1])?(e[1]-e[0])>=(E[1-i][1]-E[1-i][0]):true);
+  const L=[];let a=-1;for(let x=0;x<=w;x++){const on=x<w&&hi[x]>=0&&!ipx[x];if(on&&a<0)a=x;if(!on&&a>=0){const len=x-a,k=len>1.6*P?Math.max(1,Math.round(len/P)):1;for(let i=0;i<k;i++)L.push([a+Math.round(i*len/k),a+Math.round((i+1)*len/k)-1]);a=-1}}
+  const mags=[];const cd=L.map(([a,b])=>{let H=1e9,Lo=-1,xc=a,best=-1;for(let x=a;x<=b;x++){H=Math.min(H,hi[x]);Lo=Math.max(Lo,lo[x]);if(lo[x]-hi[x]>best){best=lo[x]-hi[x];xc=x}}
+   let bt=-1,bb=-1,lt=[],rt=[],cc=[0,0,0],mg=0,mn=0;for(let y=H;y<=Lo;y++){let k=0;for(let x=a;x<=b;x++){const j=y*w+x,m=Mk[j];if(!m)continue;k++;cc[m]++;const q=j*4;mg+=Math.hypot(D[q]-G[0],D[q+1]-G[1],D[q+2]-G[2]);mn++;if(x<xc)lt.push(y);else if(x>xc)rt.push(y)}
+    if(b>a&&k>=2){if(bt<0)bt=y;bb=y}}
+   const ci=cc[2]>cc[1]?1:0,mm=mn?mg/mn:0;mags.push(mm);let o=null,c=null,up=null;
+   const avg=v=>v.reduce((p,q)=>p+q,0)/v.length,tick=lt.length&&rt.length&&lt.length<=4*(b-a+1)&&rt.length<=4*(b-a+1)&&(bt<0||bb-bt<=2);
+   if(tick){o=avg(lt);c=avg(rt);up=c<=o}else if(bt>=0){up=E.length>1&&(chrom[0]||chrom[1])?upC[ci]:null;o=up===false?bt:bb;c=up===false?bb:bt}
+   else up=E.length>1&&(chrom[0]||chrom[1])?upC[ci]:null;
+   return{a,b,xc,hi:H,lo:Lo,o,c,up,m:mm}});
+  // unbunte Kerzen ohne Striche links/rechts: kräftiger als der Median = steigend
+  const sm=mags.slice().sort((p,q)=>p-q),mdn=sm[sm.length>>1]||0;cd.forEach(k=>{if(k.up===null){k.up=k.m>=mdn;if(k.o!==null&&k.c!==null&&k.o!==k.c){const t=Math.min(k.o,k.c),u=Math.max(k.o,k.c);k.o=k.up?u:t;k.c=k.up?t:u}}delete k.m});
+  IMG.cdl=cd}
  // Qualität (25.11.2026): Anteil der 6 Spalten breiten Abschnitte mit Verlauf zwischen erstem und letztem Kurs-Stück, dazu die Zahl entfernter
  // Zeichnungen als Anteil der Bildfläche (entfernte Pixel von Linien, Kästchen und Zonen). Unsicher, wenn unter 80 % abgedeckt oder Zeichnungen ab Q_DRAW.
  {let a=-1,b=-1;for(let x=0;x<w;x++)if(hi[x]>=0){if(a<0)a=x;b=x}let wn=0,wc=0;for(let x=a;a>=0&&x+5<=b;x+=6){wn++;for(let k=x;k<x+6;k++)if(hi[k]>=0){wc++;break}}

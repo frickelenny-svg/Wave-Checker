@@ -203,8 +203,20 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
      `tests/eigener-chart.js` toleriert bis 0,4 % Ausschlag-Spalten (mit Zeichnungen 2 %, Einrasten ab 88 %). Liegt nur etwas über 25 % der Höhe daneben, bleibt die Spalte leer (kein Ausreißer). Echte lange Dochte
      hängen am Kerzenkörper und bleiben. Blasse Dochtspitzen werden bis 6 px verlängert.
   Was dann noch nicht passt, überzeichnet man mit „Verlauf nachzeichnen“.
+- Kerzen 1:1 zum Original (seit 26.11.2026, Lenny, nach Video): `ocPath` baut im Kerzenmodus `IMG.cdl` = je erkannter Kerze {a, b (Spalten), xc (Docht =
+  Spalte mit dem längsten Strich), hi, lo, o, c (Zeilen; null = kein Körper erkannt), up}. Kerze = zusammenhängende Spalten mit Verlauf ohne ergänzte
+  (`IMG.ip`); dicht an dicht stehende werden im Kerzenabstand `KZ.P` geteilt (P nur aus Formen ab 3 px Höhe, sonst teilten Punkte und Splitter OHLC-Balken).
+  Körper = Zeilen mit mind. 2 Spalten in Kerzenfarbe; OHLC: Eröffnung = Strich links, Schluss = Strich rechts. Richtung: grünere Farbe steigend, rötere
+  fallend; unbunt (weiß/grau, schwarz/grau): kräftiger als der Median steigend. `ocCandles` zeichnet jede Kerze genau einmal an ihrer Stelle (Körper so
+  breit wie im Original, Zoom/Strecken ändern nur Breite und Abstand, nie die Anzahl). Nur Rückfall (keine Kerzen, Linienchart) und nachgezeichnete
+  Spalten (`man`) werden aus Spalten gebaut, mit fester Spaltenzahl je Kerze aus der Startansicht (`ocG()` = `IMG.G0`, ändert sich beim Zoomen nicht).
+  Einrasten (`imgSnap`): Treffer in einer erkannten Kerze → Docht-Spalte `xc` und Hoch/Tief der Kerze. Prüfung nutzt die Punkte, also dieselben Werte.
+  Linienchart-Erkennung zählt dafür auch Pixel, die die Linienerkennung entfernt hat (gerade Stücke der Kurslinie), und gilt auch bei großem Formabstand.
+  Test: `node tests/verlauf-kerzen.js` (Playwright, Handy/PC, feste Bilder, erzeugte Kerzen-, OHLC- und Linien-Charts, 0/100 %): jede Kerze genau einmal,
+  Hoch/Tief genau, Anzahl gleich nach Zoom, Strecken (Mausrad) und Zurücksetzen, deckungsgleich mit den bekannten Kerzen (±1 Spalte, ±1,5 px; Zonen-Chart
+  92 %, sonst 95 %; Anzahl ±5 %), Rückfall mit fester Spaltenzahl, Einrasten auf Docht und Hoch, Kontrast. Offen: Dochtspitzen direkt an Box-Kanten.
 - Der Verlauf liegt als Kerzen über dem Bild (seit 24.11.2026, `ocCandles`; vorher Zickzack aus Hoch und Tief, wirkte wie eine Doppelspur):
-  `ocG()` Bildspalten je Kerze, so dass die Kerzen in der Start-Ansicht etwa so breit sind wie im Original (`IMG.cw` aus `ocPath`: Breite der
+  (bis 25.11.2026; seit 26.11. siehe „Kerzen 1:1“) `ocG()` Bildspalten je Kerze, so dass die Kerzen in der Start-Ansicht etwa so breit sind wie im Original (`IMG.cw` aus `ocPath`: Breite der
   Stücke mit Verlauf bei Kerzen/Balken mit Lücken, sonst etwa 250 Kerzen über die Breite), mindestens 2 Bildschirmpixel; hineingezoomt feiner,
   herausgezoomt gröber, Gruppen fest an Vielfachen von G. Hoch/Tief = genaues Extrem der Spalten, Schluss = Mitte der letzten Spalte, Eröffnung =
   Schluss davor; steigend gefüllt, fallend Umriss (`.occ`, `.occw/.occu/.occd`). Gilt auch für Nachgezeichnetes. Das Einrasten nutzt weiter die
