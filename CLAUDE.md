@@ -215,6 +215,14 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   Test: `node tests/verlauf-kerzen.js` (Playwright, Handy/PC, feste Bilder, erzeugte Kerzen-, OHLC- und Linien-Charts, 0/100 %): jede Kerze genau einmal,
   Hoch/Tief genau, Anzahl gleich nach Zoom, Strecken (Mausrad) und Zurücksetzen, deckungsgleich mit den bekannten Kerzen (±1 Spalte, ±1,5 px; Zonen-Chart
   92 %, sonst 95 %; Anzahl ±5 %), Rückfall mit fester Spaltenzahl, Einrasten auf Docht und Hoch, Kontrast. Offen: Dochtspitzen direkt an Box-Kanten.
+  Kerzenabstand für dicht an dicht stehende Kerzen (26.11.2026, PayPal-Bild: vorher 37 Sammelkerzen bis 56 Spalten breit, weil der Abstand aus den
+  zusammenhängenden Formen gemessen wurde): An jeder Kerzengrenze springen Hoch und Tief; Abstand = kleinste Verschiebung 2–40 Spalten mit mind. 85 %
+  der stärksten Selbstähnlichkeit dieser Sprünge (nur bei deutlicher Regelmäßigkeit und nicht mehr als 1,5 × des plausiblen Formabstands), Lage der
+  Grenzen = Rest mit den meisten Sprüngen. Dichter Chart (Kerzen höchstens 1 Spalte breit, oft mehrere je Spalte: Hoch bzw. Tief ändern sich in mind.
+  75 % der Spalten, keine Regelmäßigkeit, lückenlose Stücke im Median ab 6 Spalten): schmale Kerzen fester Breite 2 Spalten (`d:1`) mit Docht = Extrem
+  der Spalten (Hochs und Tiefs bleiben erhalten) und Körper aus der Mitte der ersten und letzten Spalte; nie Sammelkerzen über mehrere Wellen.
+  Test: `tests/verlauf-kerzen.js` prüft seit 26.11. in allen festen Bildern höchstens 10 Spalten je Kerze (dicht 4) und die Wendepunkte aus
+  `faelle.json` (`wendepunkte`, PayPal (a), (b), iii, v) als Hoch bzw. Tief einer Kerze; `tests/verlauf.js` dieselben Wendepunkte im Verlauf.
 - Der Verlauf liegt als Kerzen über dem Bild (seit 24.11.2026, `ocCandles`; vorher Zickzack aus Hoch und Tief, wirkte wie eine Doppelspur):
   (bis 25.11.2026; seit 26.11. siehe „Kerzen 1:1“) `ocG()` Bildspalten je Kerze, so dass die Kerzen in der Start-Ansicht etwa so breit sind wie im Original (`IMG.cw` aus `ocPath`: Breite der
   Stücke mit Verlauf bei Kerzen/Balken mit Lücken, sonst etwa 250 Kerzen über die Breite), mindestens 2 Bildschirmpixel; hineingezoomt feiner,

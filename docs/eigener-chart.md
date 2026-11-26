@@ -80,6 +80,7 @@ Reihenfolge im Code:
 | Zonenflächen (RMV 2) für die Kerzensuche freigeben | Reste von Preis-Kästchen am Rand → stattdessen Lücken aus Zonenpixeln in einer Säule überbrücken |
 | Achsenprüfung „gleich hohe Formen“ auch für die Preisachse | Preisachse mit Kästchen wurde nicht mehr erkannt → nur für die Zeitachse |
 | Kerzen je Zoom aus Spaltengruppen (`ocG` je Ansicht) | Anzahl änderte sich beim Strecken, verwirrend (Video Lenny) → Kerzen 1:1 aus `IMG.cdl` |
+| Kerzenabstand aus den Formen bei dicht stehenden Kerzen | Formen hängen zusammen, Abstand 39 statt 1 Spalte, 56 Spalten breite Sammelkerzen über mehrere Wellen (PayPal, Screenshot Lenny) → Abstand aus der Regelmäßigkeit der Hoch/Tief-Sprünge, dichte Charts als schmale Kerzen fester Breite |
 | Kerzenabstand aus allen Formen | Punkte und Splitter machten ihn zu klein, OHLC-Balken wurden zweigeteilt → nur Formen ab 3 px Höhe |
 | Engere Farbtoleranz gegen Kreis-Labels | kostete auf Fotos Kerzen (91 → 69 %) |
 | Strangwahl mit Auslassen 6 und Belohnung bis 6 | Kreis-Label mit Pixeln in jeder Spalte gewann gegen dünne Dochte (Allzeithoch fehlte) → im Kerzenmodus 2 bzw. 30 |

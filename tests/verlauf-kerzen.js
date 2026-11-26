@@ -15,7 +15,7 @@ const server = http.createServer((q, s) => { let p = decodeURIComponent(q.url.sp
   const f = path.join(ROOT, p); if (!f.startsWith(ROOT) || !fs.existsSync(f)) { s.writeHead(404); return s.end(); }
   s.writeHead(200, { 'Content-Type': p.endsWith('.html') ? 'text/html; charset=utf-8' : p.endsWith('.json') ? 'application/json' : 'application/octet-stream', 'Cache-Control': 'no-store' }); fs.createReadStream(f).pipe(s); });
 const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 }], ['PC', { viewport: { width: 1366, height: 900 } }]];
-const BILDER = ['paypal-preiskaestchen.png', 'lumen-trendlinien.png', 'legende-oben.png', 'coreweave-original.png'];
+const BILDER = ['paypal-preiskaestchen.png', 'lumen-trendlinien.png', 'legende-oben.png', 'coreweave-original.png'], FAELLE = JSON.parse(fs.readFileSync(path.join(__dirname, 'faelle', 'faelle.json'), 'utf8')).faelle;
 
 // Gezeichnete Kerzen lesen und mit IMG.cdl bzw. den Spaltengruppen vergleichen
 const CHECK = () => { const I = PGS.img, PA = I.path, g = document.querySelector('#svg .occ'), Yr = r => PGS.Y(I.h - r - .5);
@@ -60,6 +60,13 @@ const CHECK = () => { const I = PGS.img, PA = I.path, g = document.querySelector
       ok(st.shown > 20 && st.bad === 0, 'gezeichnete Kerzen weichen ab (' + st.bad + ' von ' + st.shown + ' ' + JSON.stringify(st.ex) + ')');
       ok((B.name.startsWith('lumen') || (st.up > 0 && st.dn > 0)) && st.fillD === 'none' && st.fillU === st.stroke, /* Lumen: dünne OHLC-Balken ohne erkennbare Striche, nur Dochte */ 'steigend gefüllt / fallend hohl stimmt nicht (' + [st.up, st.dn, st.fillU, st.fillD, st.stroke] + ')');
       if (st.mode === 'kerzen') ok(st.shown === st.total && st.vis === st.total, 'Startansicht zeigt nicht jede Kerze genau einmal (' + st.shown + ' von ' + st.total + ')');
+      // seit 26.11.2026 (PayPal): nie breite Sammelkerzen; dichte Charts schmal (höchstens 4 Spalten); Wendepunkte bleiben Hoch bzw. Tief einer Kerze
+      const F = FAELLE.find(q => q.datei === B.name);
+      if (st.mode === 'kerzen' && fade === 0) { const kw = await page.evaluate(F => { const I = PGS.img, f = I.crop.f, ws = I.cdl.map(k => k.b - k.a + 1);
+          const wp = ((F && F.wendepunkte) || []).map(q => ({ name: q.name, ok: I.cdl.some(k => k.b >= (q.x - 8) * f && k.a <= (q.x + 8) * f && Math.abs((q.hl === 'h' ? k.hi : k.lo) - q.y * f) <= 3 * Math.max(1, f)) }));
+          return { max: Math.max(...ws), wp }; }, F || null);
+        ok(kw.max <= (F && F.dicht ? 4 : 10), 'zu breite Kerze (' + kw.max + ' Spalten): Sammelkerze über mehrere Kerzen');
+        kw.wp.forEach(q => ok(q.ok, 'Wendepunkt ' + q.name + ' ist kein Hoch bzw. Tief einer Kerze')); }
       if (fade === 100) { const con = await page.evaluate(s => { const m = s.match(/\d+/g).map(Number), f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }, L = .2126 * f(m[0]) + .7152 * f(m[1]) + .0722 * f(m[2]); return 1.05 / (L + .05); }, st.stroke);
         ok(con >= 3, 'Kerzen auf Weiß zu blass (Kontrast ' + con.toFixed(2) + ')'); }
       // deckungsgleich mit den bekannten Kerzen der erzeugten Charts

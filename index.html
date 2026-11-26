@@ -2817,15 +2817,31 @@ function ocPath(IMG){IMG.lp=0;IMG.bp=0;const D=IMG.data,w=IMG.w,h=IMG.h,n=w*h,Q=
  IMG.cdl=null;
  if(KZ&&!KZ.line){const Mk=KZ.M,P=KZ.P,ipx=IMG.ip||new Uint8Array(w),E=KZ.info.cols.map(c=>[c[0]-G[0],c[1]-G[1],c[2]-G[2]]),mag=e=>Math.hypot(e[0],e[1],e[2]);
   const chrom=E.map(e=>Math.max(...e)-Math.min(...e)>.15*Math.max(...e.map(Math.abs))),upC=E.map((e,i)=>E.length>1&&(chrom[0]||chrom[1])?(e[1]-e[0])>=(E[1-i][1]-E[1-i][0]):true);
-  const L=[];let a=-1;for(let x=0;x<=w;x++){const on=x<w&&hi[x]>=0&&!ipx[x];if(on&&a<0)a=x;if(!on&&a>=0){const len=x-a,k=len>1.6*P?Math.max(1,Math.round(len/P)):1;for(let i=0;i<k;i++)L.push([a+Math.round(i*len/k),a+Math.round((i+1)*len/k)-1]);a=-1}}
-  const mags=[];const cd=L.map(([a,b])=>{let H=1e9,Lo=-1,xc=a,best=-1;for(let x=a;x<=b;x++){H=Math.min(H,hi[x]);Lo=Math.max(Lo,lo[x]);if(lo[x]-hi[x]>best){best=lo[x]-hi[x];xc=x}}
+  // Kerzenabstand für dicht an dicht stehende Kerzen (26.11.2026, Lenny, PayPal-Bild): An jeder Kerzengrenze springen Hoch und Tief; diese Sprünge
+  // wiederholen sich im festen Abstand. Abstand = kleinste Verschiebung (2–40 Spalten) mit mind. 85 % der stärksten Selbstähnlichkeit der Sprünge,
+  // Lage der Grenzen = Rest mit den meisten Sprüngen. Ohne deutliche Regelmäßigkeit gilt der Abstand der Formen (KZ.P). Vorher wurden die Formen
+  // gemessen: dicht stehende Kerzen hängen zu großen Formen zusammen, der Abstand war 39 statt 3 Spalten und wenige breite Sammelkerzen entstanden.
+  const dj=new Float64Array(w);for(let x=1;x<w;x++)if(hi[x]>=0&&hi[x-1]>=0&&!ipx[x]&&!ipx[x-1])dj[x]=Math.abs(hi[x]-hi[x-1])+Math.abs(lo[x]-lo[x-1]);
+  let s0=0;for(let x=0;x<w;x++)s0+=dj[x]*dj[x];const ac=[];for(let l=2;l<=40;l++){let v=0;for(let x=0;x+l<w;x++)v+=dj[x]*dj[x+l];ac[l]=s0?v/s0:0}
+  const am=Math.max(...ac.slice(2)),mn=ac.slice(2).reduce((p,q)=>p+q,0)/39;let PL=0;for(let l=2;l<=40;l++)if(ac[l]>=am*.85&&ac[l]>(ac[l-1]||0)&&ac[l]>=(ac[l+1]||0)){PL=l;break}
+  if(!(PL&&am>mn*1.5)||(P<=12&&PL>1.5*P))PL=0; // ein Vielfaches des plausiblen Formabstands gilt nicht
+  // Dichter Chart (PayPal-Bild): Kerzen höchstens 1 Spalte breit, oft mehrere je Spalte; Hoch bzw. Tief ändern sich von fast jeder Spalte zur nächsten,
+  // ohne Regelmäßigkeit. Dann schmale Kerzen fester Breite (DG = 2 Spalten) mit Docht (Extrem der Spalten, Hochs und Tiefs bleiben erhalten) und Körper
+  // (Eröffnung = Mitte der ersten, Schluss = Mitte der letzten Spalte); nie breite Sammelkerzen über mehrere Wellen.
+  if(!PL){let np=0,nc=0;for(let x=1;x<w;x++)if(hi[x]>=0&&hi[x-1]>=0&&!ipx[x]&&!ipx[x-1]){np++;if(dj[x]>0)nc++}const rl=[];let r0=-1;for(let x=0;x<=w;x++){const on=x<w&&hi[x]>=0&&!ipx[x];if(on&&r0<0)r0=x;if(!on&&r0>=0){rl.push(x-r0);r0=-1}}rl.sort((p,q)=>p-q);if(np>=50&&nc>=np*.75&&(rl[rl.length>>1]||0)>=6)PL=1}/* nur lückenlose Strecken (Median der Stücke ab 6 Spalten) */KZ.info.PL=PL;let ph=0;if(PL){let bv=-1;for(let f=0;f<PL;f++){let v=0;for(let x=f;x<w;x+=PL)v+=dj[x];if(v>bv){bv=v;ph=f}}}
+  const L=[];let a=-1;for(let x=0;x<=w;x++){const on=x<w&&hi[x]>=0&&!ipx[x];if(on&&a<0)a=x;if(!on&&a>=0){const len=x-a;
+    if(PL===1){for(let q=a;q<x;q+=2)L.push([q,Math.min(x-1,q+1),1])}
+    else if(PL&&len>1.6*PL){let s=a;for(let q=a+1;q<x;q++)if(((q-ph)%PL+PL)%PL===0){if(q-s>=1)L.push([s,q-1]);s=q}L.push([s,x-1])}
+    else{const k=len>1.6*P?Math.max(1,Math.round(len/P)):1;for(let i=0;i<k;i++)L.push([a+Math.round(i*len/k),a+Math.round((i+1)*len/k)-1])}a=-1}}
+  const mags=[];const cd=L.map(([a,b,dn])=>{let H=1e9,Lo=-1,xc=a,best=-1;for(let x=a;x<=b;x++){H=Math.min(H,hi[x]);Lo=Math.max(Lo,lo[x]);if(lo[x]-hi[x]>best){best=lo[x]-hi[x];xc=x}}
    let bt=-1,bb=-1,lt=[],rt=[],cc=[0,0,0],mg=0,mn=0;for(let y=H;y<=Lo;y++){let k=0;for(let x=a;x<=b;x++){const j=y*w+x,m=Mk[j];if(!m)continue;k++;cc[m]++;const q=j*4;mg+=Math.hypot(D[q]-G[0],D[q+1]-G[1],D[q+2]-G[2]);mn++;if(x<xc)lt.push(y);else if(x>xc)rt.push(y)}
     if(b>a&&k>=2){if(bt<0)bt=y;bb=y}}
    const ci=cc[2]>cc[1]?1:0,mm=mn?mg/mn:0;mags.push(mm);let o=null,c=null,up=null;
    const avg=v=>v.reduce((p,q)=>p+q,0)/v.length,tick=lt.length&&rt.length&&lt.length<=4*(b-a+1)&&rt.length<=4*(b-a+1)&&(bt<0||bb-bt<=2);
    if(tick){o=avg(lt);c=avg(rt);up=c<=o}else if(bt>=0){up=E.length>1&&(chrom[0]||chrom[1])?upC[ci]:null;o=up===false?bt:bb;c=up===false?bb:bt}
    else up=E.length>1&&(chrom[0]||chrom[1])?upC[ci]:null;
-   return{a,b,xc,hi:H,lo:Lo,o,c,up,m:mm}});
+   if(dn){o=(hi[a]+lo[a])/2;c=(hi[b]+lo[b])/2;up=c<=o} // dichter Chart: Körper aus erster und letzter Spalte
+   return{a,b,xc,hi:H,lo:Lo,o,c,up,m:mm,...(dn?{d:1}:{})}});
   // unbunte Kerzen ohne Striche links/rechts: kräftiger als der Median = steigend
   const sm=mags.slice().sort((p,q)=>p-q),mdn=sm[sm.length>>1]||0;cd.forEach(k=>{if(k.up===null){k.up=k.m>=mdn;if(k.o!==null&&k.c!==null&&k.o!==k.c){const t=Math.min(k.o,k.c),u=Math.max(k.o,k.c);k.o=k.up?u:t;k.c=k.up?t:u}}delete k.m});
   IMG.cdl=cd}
