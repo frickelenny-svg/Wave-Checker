@@ -16,12 +16,18 @@ Kein Spielmodus (keine Punkte, Serie, Ränge, Tutorials), ohne KI und ohne Serve
 | Darstellung | `pic()`, `ocCandles()`, `ocG()` | Bild als `<image>`, Regler „Bild blasser“ (0–100 %), Verlauf als Kerzen: seit 26.11.2026 jede erkannte Kerze 1:1 (`IMG.cdl`), Zoom ändert nur Breite und Abstand; Spaltengruppen mit fester Breite nur im Rückfall und für Nachgezeichnetes |
 | Steuerung | `zoomX`, `zoomAt`, `clampSc`, `imFit`, `imClamp` | Mausrad streckt die Zeitachse, Strg+Mausrad/+/− zoomen, Ziehen verschiebt, Streifen unten (Modus `ax`), Bild immer randfüllend und begrenzt |
 | Einrasten | `imgSnap(px,py,o)` | Wendehoch/-tief auf `IMG.path`, seit 26.11.2026 auf Docht und Hoch/Tief der erkannten Kerze |
-| Nachzeichnen | `ocApply(S)` | Strich ersetzt nur die gezeichneten Spalten (`man` = 1) |
+| Nachzeichnen | `ocApply(S)` | Strich ersetzt nur die gezeichneten Spalten (`man` = 1); ein Strich = ein Schritt für Rückgängig |
 | Prüfen | `imgVerify()`, `frCheck`, `ocSub`/`ocZig`/`ocFit` | Regeln (rot), Warnsignale/Faustregeln, Unterteilung per ZigZag (orange „Prüfe die Subwellen“, „Automatisch erkannt“, nie harte Regel); Befunde zu selbst gezählten Unterteilungen: Welle rot hinterlegt (`.pgeb`), Punkte markiert. Unterteilungen nur mit Start werden nicht geprüft (26.11.2026) |
 | Prüfen gesperrt | `ocWhy()` | konkreter Grund unter dem Knopf (`#pgwhy`) |
 | Export | `ocPng()`, `ocSave`, `ocShare` | PNG mit Bild, Labels, Linien, Fazit |
 
 Testzugriff: `PGS.img`, `PGS.res`, `PGS.ocG()`, `PGS.snapAt`, `PGS.X/Y`, `PGS.Tof/Pof`, `PGS.view()`, `PGS.zoom()`, `PGS.lastPng`.
+
+## Bedienung beim Nachzeichnen, Rückgängig/Wiederherstellen (seit 27.11.2026, Lenny, Video)
+
+- **Verschieben beim Nachzeichnen**, ohne den Modus zu verlassen: Streifen unten ziehen streckt/staucht, Mausrad streckt/staucht, Strg/Cmd + Mausrad und + / − zoomen, rechte Maustaste oder Leertaste (gehalten, `SPK`) + Ziehen verschiebt, am Handy/iPad zwei Finger (Strich wird dabei verworfen). Ein Finger bzw. linke Maustaste zeichnet. Ein Tipp setzt beim Nachzeichnen nie einen Punkt. Beim Start der Hinweis „Zum Verschieben: Leertaste halten bzw. mit zwei Fingern ziehen.“ Rechte Maustaste und Leertaste verschieben im Bild auch sonst (`panB` in `bindChart`).
+- **Rückgängig/Wiederherstellen** (`frDo`, `frUndo`, `frRedo`, `HIS`): Pfeil-Knöpfe `[data-ur="u|r"]` in der Werkzeugleiste am Chart (in „Wie geht es weiter?“ Schwer in der Leiste unten, `urBtns`), ausgegraut ohne Schritt; Strg/Cmd+Z, Strg/Cmd+Y bzw. Strg/Cmd+Umschalt+Z. Schnappschuss des ganzen Stands (Punkte, Größen `FR.cm`, laufende Zählung, Verlauf `IMG.path`), gemerkt nur wenn sich etwas ändert. Erfasst: Strich, Punkt setzen, verschieben, umbenennen, Unterteilung beginnen, Größe ändern, Zählung löschen (auch „Rückgängig“ im Hinweis danach), Neu setzen, Erkannten Verlauf wiederherstellen. Bis 100 Schritte, gilt bis zum nächsten Bild (bzw. in „Wie geht es weiter?“ Schwer bis zur nächsten Runde). „Zurück“ in der unteren Leiste ist entfallen. Testzugriff `PGS.his()`, `PGS.undo()`, `PGS.redo()`.
+- Test: `node tests/rueckgaengig.js` (Playwright, Handy/iPad/PC, rund 30 s je Gerät).
 
 ## Kerzensuche (`ocKerzen`, seit 25.11.2026)
 
@@ -140,6 +146,7 @@ Tests (alle Playwright, `NODE_PATH` und `PWCH=msedge` siehe Memory bzw. CLAUDE.m
 | `tests/bild-steuerung.js` | Mausrad, Ziehen vs. Klick, Streifen, Grenzen, Deckungsgleichheit |
 | `tests/bild-blasser.js` | Regler 0/50/100 %, Kontrast, Export |
 | `tests/pruefen-nachzeichnen.js` | Tipp, Vorschlag, Grund unter „Prüfen“, Nachzeichnen, danach Prüfen |
+| `tests/rueckgaengig.js` | Nachzeichnen mit Verschieben/Strecken zwischendurch (Streifen, zwei Finger, Leertaste, rechte Maustaste, Mausrad), Rückgängig/Wiederherstellen je Aktionsart, Tasten, 60 Schritte, neues Bild leert die Schritte |
 
 Tests, die fertig zugeschnittene Bilder hochladen, müssen vor „Weiter“ auf `#ocall` („Ganzes Bild“) klicken, sonst greift der Zuschnitt-Vorschlag.
 

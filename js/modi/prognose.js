@@ -122,7 +122,7 @@ function progn(arg,lvl){
  const fitY=()=>{if(peek!==null){grow(peek);peek=null}};
  const truthPlan=()=>{const o=[];for(let k=cut0+1;k<P.labels.length;k++){const kid=R.tree.kids&&R.tree.kids[k-1];
   o.push({k,kind:kid?PGKOF[kid.key]:'ABC',pts:R.piv.filter(q=>q.lev===2&&q.w1===k).sort((a,b)=>a.t-b.t).map(q=>({t:q.t,p:q.p}))})}return o};
- PGS={vis:()=>({...FRVIS}),P,R,cut:cut0,m,lvl,img:IMG,ocG:()=>IMG?ocG():0,setOCF:v=>{OCF=v},X:t=>X(t),Y:p=>Y(p),plot:()=>({W,H:H-BP}),tf:()=>tf,setTf:h=>{const b=document.querySelector('[data-tf="'+h+'"]');if(b)b.click()},truth:truthPlan,FR:()=>FR,mode:()=>FR&&FR.md,fadd:(z,i,t,p,c)=>{const r=frAdd(z,i,t,p,c);frRender();return r},levels:()=>{const o={};frSeries().forEach(S=>o[S.c]=S.lev);return o},fc:()=>fcAgg(fcNodes()),lbx:()=>LBX.slice(),snapAt:(px,py,o)=>snapPt(px,py,o),ring:()=>SNAPR,
+ PGS={his:()=>({u:HIS.u.length,r:HIS.r.length}),undo:()=>frUndo(),redo:()=>frRedo(),vis:()=>({...FRVIS}),P,R,cut:cut0,m,lvl,img:IMG,ocG:()=>IMG?ocG():0,setOCF:v=>{OCF=v},X:t=>X(t),Y:p=>Y(p),plot:()=>({W,H:H-BP}),tf:()=>tf,setTf:h=>{const b=document.querySelector('[data-tf="'+h+'"]');if(b)b.click()},truth:truthPlan,FR:()=>FR,mode:()=>FR&&FR.md,fadd:(z,i,t,p,c)=>{const r=frAdd(z,i,t,p,c);frRender();return r},levels:()=>{const o={};frSeries().forEach(S=>o[S.c]=S.lev);return o},fc:()=>fcAgg(fcNodes()),lbx:()=>LBX.slice(),snapAt:(px,py,o)=>snapPt(px,py,o),ring:()=>SNAPR,
   view:()=>({BW,sc,yr:yr.slice(),tf,W,H}),Tof:x=>Tof(x),Pof:y=>Pof(y),zoom:(f,px,py)=>{zoomAt(f,px,py);saveV();redraw($('#svg'),pic())},
   show:(t,p)=>{sc=clampSc((t+.5)*BW/tf-W/2);peek=p===undefined?null:p;fitY();redraw($('#svg'),pic())}}; // show: Stelle (und Preis) ins Bild holen
  if(!IMG)tutCtx(lvl==='schwer'?'progn-schwer':'progn',()=>progn(arg,lvl));
@@ -176,7 +176,7 @@ function progn(arg,lvl){
    for(let x=Math.max(0,xa);x<=Math.min(w-1,xb);x++){const f=b.t===a.t?1:(x-a.t)/(b.t-a.t),p=a.p+(b.p-a.p)*Math.max(0,Math.min(1,f)),r=Math.max(0,Math.min(h-1,Math.round(h-p-.5)));
     hi[x]=hi[x]===undefined?r:Math.min(hi[x],r);lo[x]=lo[x]===undefined?r:Math.max(lo[x],r)}}
   Object.keys(hi).forEach(x=>{PA.hi[x]=hi[x];PA.lo[x]=lo[x];PA.man[x]=1})};
- let TRS=null; // Strich, der gerade nachgezeichnet wird
+ let TRS=null,SPK=false; // TRS: Strich, der gerade nachgezeichnet wird; SPK: Leertaste gehalten (Bild: Ziehen verschiebt, auch beim Nachzeichnen)
  // ---- Unterteilung prüfen (23.11.2026, Lenny): Für jede gezählte Welle ohne eigene Unterteilung sucht ein ZigZag-Filter die Wendepunkte im
  // erkannten Verlauf (feine Schwelle: 4 % der Wellenlänge). Daraus wird eine Auswahl gesucht, die eine Unterteilung ergibt, die die Welle laut
  // Regelwerk haben darf (PGSUB) und die die harten Regeln dieses Teilmusters erfüllt: Hoch und Tief wechseln sich ab, jede Teilwelle ist
@@ -459,22 +459,24 @@ function progn(arg,lvl){
   // Schwebende Leiste am gewählten Label: Knöpfe bekommen den Tipp, der Chart nicht (keine Auswahl, kein Verschieben)
   svg.onclick=e=>{const b=e.target.closest&&e.target.closest('[data-sb]');if(!b||b.disabled||!FR||FR.done)return;e.preventDefault();e.stopPropagation();const q=FR.pts.find(x=>x.id===FR.sel);if(!q)return;
    if(b.dataset.sb==='del')frDel();else frSize(q.c,b.dataset.sb==='big'?-1:1)};
-  svg.onpointerdown=e=>{if(e.button)return;if(e.target.closest&&e.target.closest('.pgsb'))return;
+  if(IMG)svg.oncontextmenu=e=>e.preventDefault(); // rechte Maustaste verschiebt den Chart (27.11.2026), kein Kontextmenü
+  svg.onpointerdown=e=>{if(e.button&&!(IMG&&e.button===2))return;if(e.target.closest&&e.target.closest('.pgsb'))return;
    if(GEST){const g=GEST;if(e.pointerType==='touch'&&g.touch&&!g.pinch){e.preventDefault();const a=g.pos();g();pinch(a,{id:e.pointerId,x:e.clientX,y:e.clientY})}else g();return} // zweiter Finger: Zwei-Finger-Zoom, nichts setzen
    // Fangradius: Finger größer als Maus. Läuft eine Zählung, wird ein Punkt nicht ausgewählt oder verschoben: Tippen setzt dann das
    // nächste Label genau auf diesen Pivot (sk), Ziehen verschiebt den Chart.
-   e.preventDefault();const [px,py]=loc(e),touch=e.pointerType==='touch';
+   e.preventDefault();const [px,py]=loc(e),touch=e.pointerType==='touch',panB=!!IMG&&(e.button===2||SPK); // panB: nur verschieben (rechte Maustaste, Leertaste)
    // Verlauf nachzeichnen (23.11.2026): ein Finger bzw. die Maus zeichnet, ein zweiter Finger zoomt (Strich verworfen)
-   if(IMG&&IMG.trace&&FR&&!FR.done){const id=e.pointerId,S=[{t:Tof(px),p:Pof(py)}];let lx=e.clientX,ly=e.clientY;TRS=S;
+   // Seit 27.11.2026 (Lenny, Video): Streifen unten streckt/staucht auch beim Nachzeichnen, rechte Maustaste bzw. Leertaste + Ziehen verschiebt
+   if(IMG&&IMG.trace&&FR&&!FR.done&&!panB&&py<H-BP){const id=e.pointerId,S=[{t:Tof(px),p:Pof(py)}];let lx=e.clientX,ly=e.clientY;TRS=S;
     const mv=ev=>{if(ev.pointerId!==id)return;lx=ev.clientX;ly=ev.clientY;const [x,y]=loc(ev);S.push({t:Math.max(0,Math.min(c0,Tof(x))),p:Pof(Math.max(TP,Math.min(H-BP,y)))});redraw(svg,pic())};
     const stop=()=>{GEST=null;TRS=null;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up)};
-    const up=ev=>{if(ev.pointerId!==id)return;stop();if(ev.type==='pointerup')ocApply(S);frRender(fbLast)};
+    const up=ev=>{if(ev.pointerId!==id)return;stop();if(ev.type==='pointerup')frDo(()=>ocApply(S));frRender(fbLast)}; // ein Strich = ein Schritt für Rückgängig
     addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);GEST=stop;stop.touch=touch;stop.pos=()=>({id,x:lx,y:ly});return}
    if(py>=H-BP&&!IMG)return axisDrag(e,px); // Bild: der Streifen unten streckt nur beim Ziehen (Modus 'ax'); ein Tipp dort wirkt wie im Chart (25.11.2026) // Zeitachse: ziehen staucht/streckt, Doppeltipp setzt zurück, nie einen Punkt setzen
    let k=-1,sk=-1,lk=-1,best=touch?28:12,grp=[],gs=[],mq=null;
    // Werkzeug (seit 13.11.2026, Lenny): Zeichnen = Tipp auf einen Punkt setzt den neuen Punkt genau auf diesen Pivot (sk), Ziehen verschiebt
    // nur den Chart; Auswählen = Tipp wählt aus, Ziehen auf einem Punkt verschiebt ihn (k). Kein Werkzeug tut, was das andere tut.
-   if(FR&&!FR.done){const dr=FR.md==='draw';FR.pts.forEach((q,j)=>{if(dr&&FR.ac!==null&&q.c===FR.ac)return;const d=Math.hypot(X(q.t)-px,Y(q.p)-py);if(d<best){best=d;k=j}});
+   if(FR&&!FR.done&&!panB&&!(IMG&&IMG.trace)){const dr=FR.md==='draw';FR.pts.forEach((q,j)=>{if(dr&&FR.ac!==null&&q.c===FR.ac)return;const d=Math.hypot(X(q.t)-px,Y(q.p)-py);if(d<best){best=d;k=j}});
     if(k>=0){const q0=FR.pts[k];grp=FR.pts.filter(q=>q.t===q0.t&&q.p===q0.p);if(dr)k=-1} // grp: alle Punkte auf demselben Pivot
     // Seit 14.11.2026 (Lenny): Auswählen. Tipp direkt auf ein Label wählt genau dieses (lk). Am gemeinsamen Pivot: kleinste Welle zuerst,
     // erneutes Tippen die nächstgrößere. Ziehen verschiebt nur das gewählte Label (mq), die anderen auf dem Pivot bleiben stehen.
@@ -484,10 +486,10 @@ function progn(arg,lvl){
      if(lk>=0){k=-1;grp=[]}
      else if(k>=0){const lvc=c=>(FR.cm[c]||{lev:1}).lev;gs=grp.slice().sort((a,b)=>lvc(b.c)-lvc(a.c)||b.i-a.i);mq=gs.find(q=>q.id===FR.sel)||gs[0]}}}
    if(CNT&&!m.done)m.pts.forEach((q,j)=>{const d=Math.hypot(X(q.x)-px,Y(q.p)-py);if(d<best){best=d;k=j}}); // k: geplanter Punkt direkt unter dem Finger
-   const x0=e.clientX,y0=e.clientY,s0=sc,B0=BW,ta=Tof(px),T0=performance.now(),id=e.pointerId,zy=zoomedY(),inAx=IMG&&py>=H-BP;let mode='',ly=y0,lx=x0,dw=null,lsn=null,lkey='',t00=0,p00=0;
+   const x0=e.clientX,y0=e.clientY,s0=sc,B0=BW,ta=Tof(px),T0=performance.now(),id=e.pointerId,zy=zoomedY(),inAx=IMG&&py>=H-BP;let mode='',ly=y0,lx=x0,dw=null,lsn=null,lkey='',t00=0,p00=0,hs0=null; // hs0: Stand vor dem Verschieben (Rückgängig)
    const stop=()=>{GEST=null;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);svg.style.cursor=cur0;saveV()};
    const mv=ev=>{if(ev.pointerId!==id)return;const dx=ev.clientX-x0,dy=ev.clientY-y0;
-    if(!mode&&Math.hypot(dx,dy)>(k>=0||!touch?5:8)){mode=inAx?'ax':k>=0?'p':touch&&!zy&&!IMG&&Math.abs(dy)>Math.abs(dx)?'v':'h'; /* Maus: ab 5 px ziehen statt klicken; Bild: ein Finger verschiebt in alle Richtungen */svg.style.cursor='grabbing';if(mode==='p'){m.lines=[];if(FR&&mq){FR.sel=mq.id;FR.pw={c:mq.c,k:Math.max(1,mq.i)};dw=wantOf(mq.c,mq.i);t00=mq.t;p00=mq.p}}}
+    if(!mode&&Math.hypot(dx,dy)>(k>=0||!touch?5:8)){mode=panB?'h':inAx?'ax':k>=0?'p':touch&&!zy&&!IMG&&Math.abs(dy)>Math.abs(dx)?'v':'h'; /* Maus: ab 5 px ziehen statt klicken; Bild: ein Finger verschiebt in alle Richtungen */svg.style.cursor='grabbing';if(mode==='p'){m.lines=[];if(FR&&mq){hs0=frSnap();FR.sel=mq.id;FR.pw={c:mq.c,k:Math.max(1,mq.i)};dw=wantOf(mq.c,mq.i);t00=mq.t;p00=mq.p}}}
     // nur das gewählte Label bewegt sich. Seit 16.11.2026: Der Punkt folgt dem Finger (am Handy 34 px darüber, damit man ihn sieht),
     // ein Ring zeigt, wo er einrasten wird (snapPt); wechselt das Ziel, vibriert das Handy kurz. Alt (PC): frei, ohne Einrasten.
     // Seit 18.11.2026 (Lenny): Der Punkt bleibt zwischen Vorgänger und Nachfolger seiner Zählung (gleiches Label, nie umsortiert).
@@ -505,8 +507,9 @@ function progn(arg,lvl){
     ly=ev.clientY;lx=ev.clientX};
    // Loslassen ohne Bewegung = Tippen (auch dicht neben einem Punkt: dann entsteht der nächste Punkt, der alte bleibt, wo er ist)
    const up=ev=>{if(ev.pointerId!==id)return;stop();
-    if(mode==='p'&&FR){SNAPR=null;if(lsn){mq.t=lsn.t;mq.p=lsn.p;mq.hl=lsn.hl}if(!frRelevel(mq.c))toast(FRTOO);FR.err={};m.lines=[];return frRender()} // loslassen: der Punkt springt an die Stelle des Rings
+    if(mode==='p'&&FR){SNAPR=null;if(lsn){mq.t=lsn.t;mq.p=lsn.p;mq.hl=lsn.hl}if(!frRelevel(mq.c))toast(FRTOO);if(hs0&&frSnapKey(hs0)!==frSnapKey(frSnap()))frPush(hs0);FR.err={};m.lines=[];return frRender()} // loslassen: der Punkt springt an die Stelle des Rings
     if(mode==='p')return render();
+    if(panB||(IMG&&IMG.trace))return; // Verschiebe-Taste bzw. Nachzeichnen: ein Tipp setzt nichts
     if(ev.type==='pointerup'&&!mode&&performance.now()-T0<800){
      // doppelt ausgelöster Tipp (Touch): derselbe Fleck innerhalb von 350 ms zählt nur einmal
      const nw=performance.now();if(FR&&lastTap&&nw-lastTap.t<350&&Math.hypot(px-lastTap.x,py-lastTap.y)<12)return;lastTap={t:nw,x:px,y:py};
@@ -795,7 +798,7 @@ function progn(arg,lvl){
  // rechts vom letzten Punkt der Zählung, wird nichts gesetzt (vorher begann still eine neue Zählung, daher sprangen die Labels).
  const FRTOO='Mehr als sechs Wellengrößen werden nicht unterstützt. Die feinste Zählung hat vorläufig die kleinste Größe.';
  const frLast=()=>{if(FR.ac===null)return null;const a=FR.pts.filter(q=>q.c===FR.ac);return a.length?a.reduce((x,y)=>y.i>x.i?y:x):null};
- const frAdd=(z,i,t,p,c,hl)=>{if(typeof c!=='number'){
+ const frAdd=(...a)=>frDo(()=>frAdd0(...a)),frAdd0=(z,i,t,p,c,hl)=>{if(typeof c!=='number'){
    // Seit 14.11.2026 (Lenny): Das Label einer laufenden Zählung ist immer genau das nächste (lst.i+1), unabhängig von FR.i. Vorher galt
    // max(FR.i, lst.i+1): Stand die Leiste weiter vorn (Knopf der Label-Leiste, auch durch einen nachlaufenden Click nach einem Tipp, wenn
    // die Seite beim Neuaufbau verrutscht), wurden Labels übersprungen und die Zählung galt als fertig. Eine neue Zählung beginnt mit Start oder 1.
@@ -809,7 +812,7 @@ function progn(arg,lvl){
   if(i>=frSeq(z).length-1){FR.ac=null;FR.i=0}else{FR.ac=c;FR.i=i+1}FR.z=z;
   FR.sel=null;FR.pw=null;FR.err={};m.lines=[];return c};
  // Unterteilung der gewählten Welle FR.pw beginnen: eine Größe kleiner, Start (0) automatisch am Start dieser Welle
- const frStartSub=z=>{const all=frSeries(),S=all.find(x=>x.c===FR.pw.c),k=FR.pw.k;FR.pw=null;FR.sel=null;if(!S)return;
+ const frStartSub=z=>frDo(()=>frStartSub0(z)),frStartSub0=z=>{const all=frSeries(),S=all.find(x=>x.c===FR.pw.c),k=FR.pw.k;FR.pw=null;FR.sel=null;if(!S)return;
   if(S.lev>=PGMAXL){FR.z=z;return toast('Mehr als sechs Wellengrößen werden nicht unterstützt: Die kleinste Welle lässt sich nicht weiter unterteilen.')}
   const P=all.P_(S),st=P[k-1-all.i0(S)],c=++FR.cn;FR.cm[c]={lev:S.lev+1,par:S.c,pk:k};FR.z=z;
   if(st){FR.pts.push({id:++FR.n,c,z,i:0,t:st.t,p:st.p,hl:(FR.pts.find(x=>x.id===st.id)||{}).hl});FR.ac=c;FR.i=1}else{FR.ac=c;FR.i=0}FR.err={};m.lines=[]};
@@ -827,24 +830,27 @@ function progn(arg,lvl){
   if(py<TP+24||py>H-BP-24)grow(q.p);frAdd(FR.z,FR.i,q.t,q.p,undefined,q.hl);frRender()};
  // Löschen (seit 12.11.2026): immer die ganze Zählung des ausgewählten Punkts. Ihre Unterteilungen bleiben stehen und rücken eine Größe auf.
  // Danach kurz „Zählung gelöscht · Rückgängig“.
- const frDel=()=>{const q=FR.pts.find(x=>x.id===FR.sel);if(!q||FR.done)return;const all=frSeries(),gone=FR.pts.filter(x=>x.c===q.c),st0={ac:FR.ac,z:FR.z,i:FR.i},cm0=JSON.parse(JSON.stringify(FR.cm));
+ const frDel=()=>frDo(frDel0),frDel0=()=>{const q=FR.pts.find(x=>x.id===FR.sel);if(!q||FR.done)return;const all=frSeries(),gone=FR.pts.filter(x=>x.c===q.c),st0={ac:FR.ac,z:FR.z,i:FR.i},cm0=JSON.parse(JSON.stringify(FR.cm));
   const anc=(S,c)=>{let x=S.par;const seen=new Set();while(x&&!seen.has(x)){if(x.c===c)return true;seen.add(x);x=x.par}return false};
   const desc=all.filter(S=>anc(S,q.c)),pm=FR.cm[q.c]||{};
   desc.forEach(S=>{const o=FR.cm[S.c]=FR.cm[S.c]||{lev:S.lev,par:null,pk:0};o.lev=Math.max(1,S.lev-1);if(S.par&&S.par.c===q.c){o.par=pm.par!=null?pm.par:null;o.pk=pm.par!=null?pm.pk:0}});
   delete FR.cm[q.c];frNormLev();FR.pts=FR.pts.filter(x=>x.c!==q.c);if(FR.ac===q.c){FR.ac=null;FR.i=0}FR.sel=null;FR.pw=null;FR.err={};m.lines=[];frRender();
   toast('Zählung gelöscht ('+gone.length+(gone.length>1?' Punkte':' Punkt')+')'+(desc.length?', Unterteilungen eine Größe größer':'')+' · <button id="fundel" class="tbtn">Rückgängig</button>');
-  const b=$('#fundel');if(b)b.onclick=e=>{e.stopPropagation();if(PGS.m!==m||FR.done)return;const ids=new Set(FR.pts.map(x=>x.id));gone.forEach(x=>{if(!ids.has(x.id))FR.pts.push(x)});
-   FR.cm=cm0;FR.ac=st0.ac;FR.z=st0.z;FR.i=st0.i;FR.sel=null;FR.err={};m.lines=[];$('#toast').className='';frRender()}};
+  const b=$('#fundel');if(b)b.onclick=e=>{e.stopPropagation();if(PGS.m!==m||FR.done)return;$('#toast').className='';frUndo()}}; // derselbe Schritt wie „Rückgängig“ in der Werkzeugleiste (27.11.2026)
  // Tasten (PC): Entf/Rücktaste löschen die ausgewählte Zählung (Auswählen), V = Auswählen, C = Zeichnen,
  // Esc = laufende Zählung beenden und zu Auswählen wechseln (sonst Auswahl aufheben)
  const onKey=e=>{if(PGS.m!==m)return removeEventListener('keydown',onKey);if(!FR||FR.done||/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||''))return;
   if((e.key==='Delete'||e.key==='Backspace')&&FR.sel&&FR.md==='sel'){e.preventDefault();frDel();return}
+  if((e.ctrlKey||e.metaKey)&&!e.altKey){const k0=e.key.toLowerCase();if(k0==='z'&&!e.shiftKey){e.preventDefault();frUndo();return}if(k0==='y'||(k0==='z'&&e.shiftKey)){e.preventDefault();frRedo();return}}
+  if(e.code==='Space'&&IMG){e.preventDefault();if(!SPK){SPK=true;const sv=$('#svg');if(sv&&!GEST)sv.style.cursor='grab'}return} // Leertaste halten = verschieben
   if(e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
   if(k==='v'&&FR.md!=='sel'){frMode('sel')}else if(k==='c'&&FR.md!=='draw'){frMode('draw')}
   else if(e.key==='Escape'){if(FR.ac!==null){frEnd();FR.md='sel';frRender(fbLast)}else if(FR.sel||FR.pw){FR.sel=null;FR.pw=null;frRender(fbLast)}else if(FR.md!=='sel')frMode('sel')}};
  // Werkzeug wechseln. Zeichnen hebt eine Auswahl auf (sonst bliebe unklar, was der nächste Tipp tut).
  const frMode=md=>{FR.md=md;if(md==='draw'){FR.sel=null;FR.pw=null}frRender(fbLast)};
  addEventListener('keydown',onKey);
+ const onKeyUp=e=>{if(PGS.m!==m)return removeEventListener('keyup',onKeyUp);if(e.code==='Space'&&SPK){SPK=false;const sv=$('#svg');if(sv&&!GEST)sv.style.cursor=FR&&!FR.done?(FR.md==='draw'||(IMG&&IMG.trace)?'crosshair':'default'):'grab'}};
+ addEventListener('keyup',onKeyUp);addEventListener('blur',()=>{SPK=false});
  // Leiste: Zählweise (antippen = neue Zählung beginnen bzw. die ausgewählte Welle unterteilen) und nächstes Label.
  // Während eine Zählung läuft: kleiner Knopf „Zählung beenden“.
  const frBar=()=>{{const l=frLast();if(l)FR.i=l.i+1;else if(FR.i>1)FR.i=FR.ac!==null?1:0} // die Leiste zeigt immer genau das nächste Label
@@ -884,23 +890,40 @@ function progn(arg,lvl){
   return'<foreignObject class="pgsbf" x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+w+'" height="'+h+'"><div xmlns="http://www.w3.org/1999/xhtml" class="pgsb" role="toolbar" aria-label="Ausgewählte Zählung">'+frSizeUI(S).replace('id="fbig"','data-sb="big"').replace('id="fsmall"','data-sb="small"')+
    '<button data-sb="del" title="Ganze Zählung löschen (Entf)" aria-label="Ganze Zählung löschen"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></foreignObject>'};
  // Größe der ganzen Zählung c um d Stufen ändern (−1 größer, +1 kleiner), samt Unterteilungen
- const frSize=(c,d)=>{const all=frSeries(),S=all.find(x=>x.c===c);if(!S)return;[S,...frDesc(all,S)].forEach(x=>{(FR.cm[x.c]=FR.cm[x.c]||{lev:x.lev,par:null,pk:0}).lev+=d});FR.cm[c].man=1;
+ const frSize=(c,d)=>frDo(()=>frSize0(c,d)),frSize0=(c,d)=>{const all=frSeries(),S=all.find(x=>x.c===c);if(!S)return;[S,...frDesc(all,S)].forEach(x=>{(FR.cm[x.c]=FR.cm[x.c]||{lev:x.lev,par:null,pk:0}).lev+=d});FR.cm[c].man=1;
   if(d<0){FR.cm[c].par=null;FR.cm[c].pk=0}frNormLev();FR.err={};m.lines=[];frRender(fbLast)};
+ // Rückgängig / Wiederherstellen (27.11.2026, Lenny, Video aus „Eigenen Chart prüfen“): Schnappschüsse des ganzen Zustands (Punkte, Größen,
+ // laufende Zählung, im Bild auch der Verlauf). Vor jeder Aktion (Punkt setzen, verschieben, umbenennen, Unterteilung beginnen, Größe ändern,
+ // Zählung löschen, Neu setzen, Nachzeichnen je Strich, Verlauf wiederherstellen) merkt frDo den Stand, aber nur wenn sich etwas ändert.
+ // Bis 100 Schritte, gilt für dieses Bild bzw. diese Runde (HIS lebt in progn). Testzugriff PGS.his().
+ const HIS={u:[],r:[]},HMAX=100;
+ const frSnap=()=>({pts:FR.pts.map(q=>({...q})),cm:JSON.stringify(FR.cm),cn:FR.cn,n:FR.n,ac:FR.ac,i:FR.i,z:FR.z,
+  path:IMG?{hi:IMG.path.hi.slice(),lo:IMG.path.lo.slice(),man:IMG.path.man.slice()}:null});
+ const frSnapKey=s=>JSON.stringify([s.pts.map(q=>[q.id,q.c,q.z,q.i,q.t,q.p]),s.cm])+(s.path?'|'+s.path.hi.join(',')+'|'+s.path.lo.join(',')+'|'+s.path.man.join(','):'');
+ const frPush=s=>{HIS.u.push(s);if(HIS.u.length>HMAX)HIS.u.shift();HIS.r=[]};
+ const frDo=fn=>{const s=frSnap(),k=frSnapKey(s),r=fn();if(frSnapKey(frSnap())!==k)frPush(s);return r};
+ const frLoad=s=>{FR.pts=s.pts.map(q=>({...q}));FR.cm=JSON.parse(s.cm);FR.cn=s.cn;FR.n=s.n;FR.ac=s.ac;FR.i=s.i;FR.z=s.z;
+  if(s.path){IMG.path.hi.set(s.path.hi);IMG.path.lo.set(s.path.lo);IMG.path.man.set(s.path.man)}FR.sel=null;FR.pw=null;FR.err={};m.lines=[];SNAPR=null};
+ const frUndo=()=>{if(!HIS.u.length||FR.done)return;HIS.r.push(frSnap());frLoad(HIS.u.pop());frRender(fbLast)};
+ const frRedo=()=>{if(!HIS.r.length||FR.done)return;HIS.u.push(frSnap());frLoad(HIS.r.pop());frRender(fbLast)};
  // Werkzeugleiste (DESIGN.md, Werkzeugleiste): Strich-Icons, aktives Werkzeug blau
  const MHKEY='waveChecker.pgTools',mhSeen=()=>{try{return!!localStorage.getItem(MHKEY)}catch(_){return true}};
+ const urBtns=()=>[['u','Rückgängig ('+(/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Strg+')+'Z)','<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/>',HIS.u.length],['r','Wiederherstellen ('+(/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Strg+')+'Y)','<path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 000 11H13"/>',HIS.r.length]]
+  .map(([k,t,ic,n])=>'<button data-ur="'+k+'" title="'+t+'" aria-label="'+t+'"'+(n?'':' disabled')+'><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ic+'</svg></button>').join(''); // Rückgängig/Wiederherstellen: im Bild in der Werkzeugleiste, sonst in der Leiste unten (verdeckt so nichts im Chart)
  const toolBar=()=>FR.done?'':'<div class="pgtool" role="group" aria-label="Werkzeug">'+[['draw','Zeichnen (C)','<path d="M12 3v6M12 15v6M3 12h6M15 12h6"/>'],['sel','Auswählen (V)','<path d="M6 3l12 9-5.5 1.2L15.5 20l-2.6 1.1-2.6-6.6L6 18z"/>']]
-  .map(([md,t,ic])=>'<button data-md="'+md+'" class="'+(FR.md===md?'on':'')+'" aria-pressed="'+(FR.md===md)+'" title="'+t+'" aria-label="'+t+'"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ic+'</svg></button>').join('')+'</div>';
+  .map(([md,t,ic])=>'<button data-md="'+md+'" class="'+(FR.md===md?'on':'')+'" aria-pressed="'+(FR.md===md)+'" title="'+t+'" aria-label="'+t+'"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ic+'</svg></button>').join('')+
+  (IMG?'<span class="pgtsep" aria-hidden="true"></span>'+urBtns():'')+'</div>';
  const frRender=fb=>keepView(m,()=>frRender0(fb)),frRender0=fb=>{fbLast=fb;const ready=frReady();
-  $('#view').innerHTML='<p class="kick">'+(IMG?'Eigenen Chart prüfen':'Wie geht es weiter? · Schwer')+'</p><p class="task">'+(FR.done?(IMG?'Geprüft. Du kannst die Zählung weiter ändern oder das Ergebnis als Bild speichern.':'Geprüft.'):IMG&&IMG.trace?'<b>Verlauf nachzeichnen.</b> Fahre mit dem Finger oder der Maus den Kursverlauf entlang: Was du zeichnest, ersetzt dort den erkannten Verlauf, zum Nachbessern fährst du einfach noch einmal über die Stelle. Zwei Finger zoomen.':IMG&&!FR.pts.length?'<b>Zähle deinen Chart.</b> Die blaue Linie zeigt den erkannten Kursverlauf, darauf rasten die Punkte ein. Passt sie nicht, zeichne den Verlauf nach. Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, der Punkt rastet am Docht-Hoch bzw. -Tief in der Nähe ein'+(mob?'':' (mit gedrückter Alt-Taste frei)')+'. Die Wellengröße ergibt sich aus der Verschachtelung, in beliebiger Reihenfolge: Liegt eine Zählung in einer Welle einer anderen, ist sie eine Größe kleiner. Du kannst also auch erst die Teilwellen und dann die Welle darüber zählen.':FR.md==='sel'?'<b>Auswählen.</b> Tippe einen Punkt an: Seine Zählung wird hervorgehoben, du kannst ihn verschieben, umbenennen oder die Zählung löschen. Für eine Unterteilung wähle die übergeordnete Welle (ihren Endpunkt) und dann die Zählweise.':FR.ac!==null?'<b>Zeichnen, Zählung läuft.</b> Jeder Tipp setzt das nächste Label (im sichtbaren Teil am nächsten Hoch oder Tief), ein Tipp auf einen bestehenden Punkt setzt es genau auf diesen Pivot.':FR.pts.length?'<b>Zeichnen.</b> Der nächste Tipp beginnt eine neue Zählung, auch genau auf einem bestehenden Pivot. Sie ist so groß wie die Zählung, an die sie anschließt, und wird größer, sobald eine bestehende Zählung ganz in einer ihrer Wellen liegt. Für eine Unterteilung wechsle zu Auswählen, tippe die übergeordnete Welle an und dann die Zählweise.':'<b>Zähle frei und plane die Fortsetzung.</b> Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, danach springt die Leiste weiter. Im sichtbaren Teil rastet der Punkt am nächsten Hoch oder Tief ein, in der grauen Zone setzt du frei. Die Wellengröße ergibt sich aus der Verschachtelung, in beliebiger Reihenfolge: Liegt eine Zählung in einer Welle einer anderen, ist sie eine Größe kleiner. Du kannst also auch erst die Teilwellen und dann die Welle darüber zählen.')+'</p>'+
+  $('#view').innerHTML='<p class="kick">'+(IMG?'Eigenen Chart prüfen':'Wie geht es weiter? · Schwer')+'</p><p class="task">'+(FR.done?(IMG?'Geprüft. Du kannst die Zählung weiter ändern oder das Ergebnis als Bild speichern.':'Geprüft.'):IMG&&IMG.trace?'<b>Verlauf nachzeichnen.</b> Fahre mit dem Finger oder der Maus den Kursverlauf entlang: Was du zeichnest, ersetzt dort den erkannten Verlauf, zum Nachbessern fährst du einfach noch einmal über die Stelle. Verschieben: Leertaste oder rechte Maustaste halten und ziehen, am Handy zwei Finger; der Streifen unten streckt und staucht. Verzeichnet? „Rückgängig“ oben am Chart.':IMG&&!FR.pts.length?'<b>Zähle deinen Chart.</b> Die blaue Linie zeigt den erkannten Kursverlauf, darauf rasten die Punkte ein. Passt sie nicht, zeichne den Verlauf nach. Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, der Punkt rastet am Docht-Hoch bzw. -Tief in der Nähe ein'+(mob?'':' (mit gedrückter Alt-Taste frei)')+'. Die Wellengröße ergibt sich aus der Verschachtelung, in beliebiger Reihenfolge: Liegt eine Zählung in einer Welle einer anderen, ist sie eine Größe kleiner. Du kannst also auch erst die Teilwellen und dann die Welle darüber zählen.':FR.md==='sel'?'<b>Auswählen.</b> Tippe einen Punkt an: Seine Zählung wird hervorgehoben, du kannst ihn verschieben, umbenennen oder die Zählung löschen. Für eine Unterteilung wähle die übergeordnete Welle (ihren Endpunkt) und dann die Zählweise.':FR.ac!==null?'<b>Zeichnen, Zählung läuft.</b> Jeder Tipp setzt das nächste Label (im sichtbaren Teil am nächsten Hoch oder Tief), ein Tipp auf einen bestehenden Punkt setzt es genau auf diesen Pivot.':FR.pts.length?'<b>Zeichnen.</b> Der nächste Tipp beginnt eine neue Zählung, auch genau auf einem bestehenden Pivot. Sie ist so groß wie die Zählung, an die sie anschließt, und wird größer, sobald eine bestehende Zählung ganz in einer ihrer Wellen liegt. Für eine Unterteilung wechsle zu Auswählen, tippe die übergeordnete Welle an und dann die Zählweise.':'<b>Zähle frei und plane die Fortsetzung.</b> Wähle eine Zählweise und tippe auf den Chart: Das markierte Label wird gesetzt, danach springt die Leiste weiter. Im sichtbaren Teil rastet der Punkt am nächsten Hoch oder Tief ein, in der grauen Zone setzt du frei. Die Wellengröße ergibt sich aus der Verschachtelung, in beliebiger Reihenfolge: Liegt eine Zählung in einer Welle einer anderen, ist sie eine Größe kleiner. Du kannst also auch erst die Teilwellen und dann die Welle darüber zählen.')+'</p>'+
    (FR.done?'':frBar())+(FR.done||mhSeen()?'':'<p class="pgmh card"><span>Zwei Werkzeuge links am Chart: <b>Zeichnen</b> (Fadenkreuz) setzt mit jedem Tipp einen Punkt, <b>Auswählen</b> (Pfeil) wählt Punkte zum Verschieben, Umbenennen und Löschen.</span><button id="pgmhok">OK</button></p>')+'<div class="chart pgc'+(IMG?' ocimg'+(IMG.fade>=1?' ocw':''):'')+'" id="pgc"></div>'+frConfNote()+(IMG?'<p class="ocfd"><label for="ocfr">Bild blasser</label><input type="range" id="ocfr" min="0" max="100" step="5" value="'+Math.round(IMG.fade*100)+'" aria-valuetext="'+Math.round(IMG.fade*100)+' %"><output id="ocfv" for="ocfr">'+Math.round(IMG.fade*100)+' %</output></p>'+(FR.done?'':'<p class="ocfd ocpt"><label><input type="checkbox" id="ocsh"'+(IMG.show!==false||IMG.trace||IMG.fade>=1?' checked':'')+(IMG.trace?' disabled':'')+'> Erkannten Verlauf zeigen</label><button id="octr" class="'+(IMG.trace?'on':'')+'" aria-pressed="'+!!IMG.trace+'">'+(IMG.trace?'Nachzeichnen beenden':'Verlauf nachzeichnen')+'</button>'+(IMG.path.man.some(v=>v)?'<button id="ocrs">Erkannten Verlauf wiederherstellen</button>':'')+'</p>'+ocQS(IMG)):'')+legend+(IMG&&!FR.done&&IMG.q&&IMG.q.low?'<p class="ocq" role="note">'+ICON.warn+'<span>Viele Zeichnungen im Bild, die Erkennung ist unsicher. Tipp: In TradingView vorher alle Zeichnungen ausblenden (Augen-Symbol links) und nur den Chart abfotografieren. Passt der erkannte Verlauf an einer Stelle nicht, zeichne ihn dort nach.</span></p>':'')+(IMG&&!FR.done?OCNOTE:'')+(FR.sel&&!FR.done?frSelUI():'')+
    '<div class="dock">'+(FR.done&&IMG?'<button class="p" id="ocsave">Als Bild speichern</button>'+(ocCanShare()?'<button id="ocshare">Teilen</button>':'')+'<button id="ocedit">Zählung ändern</button><button id="ocnew">Neues Bild</button>':FR.done?'<button class="p" id="real" '+(m.shown?'disabled':'')+'>Tatsächlichen Verlauf zeigen</button><button class="p" id="nxt">Nächster Chart</button>':
-    '<button class="p" id="fchk" '+(ready?'':'disabled')+'>Prüfen</button><button id="ftrash" class="pgtrash" '+(FR.sel&&FR.md==='sel'?'':'disabled')+' aria-label="Ausgewählte Zählung löschen" title="Ausgewählte Zählung löschen (Entf)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="fund">Zurück</button><button id="frst">Neu setzen</button>'+(ready?'':'<p class="mut pghint" id="pgwhy">'+(IMG?ocWhy():'Prüfen geht, sobald mindestens die nächste Welle deiner größten Zählung in der grauen Zone steht.')+'</p>'))+'</div>'+
+    '<button class="p" id="fchk" '+(ready?'':'disabled')+'>Prüfen</button><button id="ftrash" class="pgtrash" '+(FR.sel&&FR.md==='sel'?'':'disabled')+' aria-label="Ausgewählte Zählung löschen" title="Ausgewählte Zählung löschen (Entf)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+(IMG?'':urBtns())+'<button id="frst">Neu setzen</button>'+(ready?'':'<p class="mut pghint" id="pgwhy">'+(IMG?ocWhy():'Prüfen geht, sobald mindestens die nächste Welle deiner größten Zählung in der grauen Zone steht.')+'</p>'))+'</div>'+
    '<div class="card" id="fb" '+(fb?'':'hidden')+'>'+(fb||'')+'</div>';
   initView();$('#pgc').innerHTML=pic()+tfBar()+toolBar()+'<button id="pgend" class="pgend" hidden>Zum Ende springen</button>';bindChart();
   // Seit 14.11.2026: Ändert sich die Höhe von Text oder Leiste, bleibt der Chart an seiner Stelle im Bild; seit 26.11.2026 über keepView/topFix
   const osh=$('#ocsh');if(osh)osh.onchange=()=>{IMG.show=osh.checked;frRender(fbLast)};
-  const otr=$('#octr');if(otr)otr.onclick=()=>{IMG.trace=!IMG.trace;if(!IMG.trace&&!FR.done)FR.md='draw';frRender(fbLast)}; // danach gleich wieder Punkte setzen (25.11.2026)
-  const ors=$('#ocrs');if(ors)ors.onclick=()=>{IMG.path.hi.set(IMG.auto.hi);IMG.path.lo.set(IMG.auto.lo);IMG.path.man.fill(0);frRender(fbLast)};
+  const otr=$('#octr');if(otr)otr.onclick=()=>{IMG.trace=!IMG.trace;if(!IMG.trace&&!FR.done)FR.md='draw';frRender(fbLast);if(IMG.trace)toast('Zum Verschieben: Leertaste halten bzw. mit zwei Fingern ziehen.')}; // danach gleich wieder Punkte setzen (25.11.2026)
+  const ors=$('#ocrs');if(ors)ors.onclick=()=>{frDo(()=>{IMG.path.hi.set(IMG.auto.hi);IMG.path.lo.set(IMG.auto.lo);IMG.path.man.fill(0)});frRender(fbLast)};
   // Regler 0–100 % (23.11.2026): stufenlos zur weißen Fläche hin; ab 100 % weiße Chartfläche (.ocw), Verlauf wird eingeblendet
   const ofr=$('#ocfr');if(ofr)ofr.oninput=()=>{const w0=IMG.fade>=1;IMG.fade=+ofr.value/100;const r=$('#ocfade');if(r)r.setAttribute('opacity',IMG.fade);
    const fv=$('#ocfv');if(fv)fv.textContent=ofr.value+' %';ofr.setAttribute('aria-valuetext',ofr.value+' %');
@@ -916,17 +939,18 @@ function progn(arg,lvl){
   document.querySelectorAll('[data-fz]').forEach(b=>b.onclick=()=>{if(FR.pw)frStartSub(b.dataset.fz);else{FR.z=b.dataset.fz;FR.ac=null;FR.i=0;FR.sel=null}FR.md='draw';frRender(fbLast)}); // Zählweise wählen: immer Zeichnen // Unterteilung der ausgewählten Welle bzw. neue Zählung
   const fe=$('#fend');if(fe)fe.onclick=()=>{frEnd();FR.md='sel';frRender(fbLast)};
   document.querySelectorAll('[data-md]').forEach(b=>b.onclick=()=>frMode(b.dataset.md));
+  document.querySelectorAll('[data-ur]').forEach(b=>b.onclick=()=>b.dataset.ur==='u'?frUndo():frRedo());
   const hk=$('#pgmhok');if(hk)hk.onclick=()=>{try{localStorage.setItem(MHKEY,'1')}catch(_){}hk.parentNode.remove()};
   document.querySelectorAll('[data-fi]').forEach(b=>b.onclick=()=>{const v=+b.dataset.fi;if(frLast()||v>1)return;FR.i=v;frRender(fbLast)}); // läuft eine Zählung, zeigt die Leiste nur an (kein Springen); sonst Start oder 1
   const q=FR.pts.find(x=>x.id===FR.sel);
   if(q){
    const fc=$('#fcont');if(fc)fc.onclick=()=>{const top=FR.pts.filter(x=>x.c===q.c).reduce((a,b)=>Math.max(a,b.i),0);FR.ac=q.c;FR.z=q.z;FR.i=top+1;FR.sel=null;FR.pw=null;FR.md='draw';frRender(fbLast)};
    const fo=$('#fopen');if(fo)fo.onclick=()=>{const top=FR.pts.filter(x=>x.c===q.c).reduce((a,b)=>Math.max(a,b.i),0);FR.pw={c:q.c,k:top+1};frRender(fbLast)};
-   document.querySelectorAll('[data-fren]').forEach(b=>b.onclick=()=>{q.i=+b.dataset.fren;FR.sel=null;FR.err={};m.lines=[];frRender()});
+   document.querySelectorAll('[data-fren]').forEach(b=>b.onclick=()=>{frDo(()=>{q.i=+b.dataset.fren});FR.sel=null;FR.err={};m.lines=[];frRender()});
    $('#fdel').onclick=frDel;$('#fsx').onclick=()=>{FR.sel=null;FR.pw=null;frRender(fbLast)}}
   $('#ftrash').onclick=frDel;
-  $('#fund').onclick=()=>{const q=FR.pts.pop();if(q){FR.ac=q.c;FR.z=q.z;FR.i=q.i;FR.md='draw';if(q.cm0)FR.cm=JSON.parse(q.cm0);if(!FR.pts.some(x=>x.c===q.c))delete FR.cm[q.c]}FR.sel=null;FR.pw=null;FR.err={};m.lines=[];frRender()}; // Zurück: das Label kommt wieder dran
-  $('#frst').onclick=()=>{FR.pts=[];FR.cm={};FR.ac=null;FR.i=0;FR.sel=null;FR.pw=null;FR.err={};m.lines=[];frRender()};
+  // „Zurück“ (letzten Punkt entfernen) entfällt seit 27.11.2026: Rückgängig in der Werkzeugleiste macht dasselbe und mehr
+  $('#frst').onclick=()=>{frDo(()=>{FR.pts=[];FR.cm={};FR.ac=null;FR.i=0});FR.sel=null;FR.pw=null;FR.err={};m.lines=[];frRender()};
   $('#fchk').onclick=frVerify};
  // Faustregeln und Warnsignale für die gezeichneten Wellen (nur Hinweise, kein Fehler)
  const hints=(Q,v,gs)=>{const out=[];let inR=true,pc=x=>pct(x);const key=Q.key;

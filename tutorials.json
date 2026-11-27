@@ -103,7 +103,7 @@
     {"id": "zaehlweise", "text": "Wähle, wie sich die nächste Welle im Kreis unterteilt."},
     {"id": "punkt", "text": "Tippe in die graue Zone, wo die erste Teilwelle enden soll. Wischen verschiebt den Chart, ohne einen Punkt zu setzen."},
     {"id": "zeit", "text": "Mit W, D, 4h und 1h wechselst du die Zeiteinheit, mit + und − zoomst du."},
-    {"id": "pruefen", "text": "Stehen alle Wellen, tippe auf „Prüfen“. „Zurück“ nimmt den letzten Punkt weg."}
+    {"id": "pruefen", "text": "Stehen alle Wellen, tippe auf „Prüfen“. Der Pfeil „Rückgängig“ in der Werkzeugleiste nimmt den letzten Schritt zurück."}
    ]
   },
   "progn-schwer": {

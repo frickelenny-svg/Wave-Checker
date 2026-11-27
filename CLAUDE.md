@@ -353,7 +353,9 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
   einzelnen Spalten. Test: `node tests/verlauf-kerzen.js` (Playwright, Handy/PC, feste Bilder und Linienchart, 0/100 %, Zoom: Hoch/Tief und
   Körper genau, Anzahl wie im Original, feiner/gröber, Einrasten auf der Spalte, Kontrast auf Weiß). Testzugriff `PGS.ocG()`.
   Kästchen „Erkannten Verlauf zeigen“,
-  `IMG.show`). „Verlauf nachzeichnen“ (`IMG.trace`): ein Finger bzw. die Maus zeichnet (`TRS`, `ocApply`: gleitendes Mittel über 3
+  `IMG.show`). Seit 27.11.2026 beim Nachzeichnen verschieben (rechte Maustaste/Leertaste + Ziehen, zwei Finger) und strecken (Streifen, Mausrad), dazu
+  Rückgängig/Wiederherstellen für den ganzen Modus (Pfeile in der Werkzeugleiste, Strg/Cmd+Z/Y; `frDo`/`frUndo`/`frRedo`, „Zurück“ entfällt; Details und
+  Test `tests/rueckgaengig.js` in docs/eigener-chart.md). „Verlauf nachzeichnen“ (`IMG.trace`): ein Finger bzw. die Maus zeichnet (`TRS`, `ocApply`: gleitendes Mittel über 3
   Messpunkte, Spalte für Spalte in den Verlauf, `man` = 1), ein zweiter Finger zoomt, erneutes Zeichnen bessert nach, „Erkannten Verlauf
   wiederherstellen“ setzt `IMG.auto` zurück. Während des Nachzeichnens werden keine Punkte gesetzt.
 - Einrasten (`imgSnap`, seit 23.11.2026 auf dem Verlauf): Profil `IMG.path`, Wendehoch/-tief in ±K Spalten wie beim Kerzen-Einrasten

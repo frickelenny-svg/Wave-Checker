@@ -79,6 +79,11 @@ die Füllung des Labels).
   1. **Zeichnen**: Fadenkreuz (vier Striche mit Lücke in der Mitte). Mauszeiger im Chart: `crosshair`.
   2. **Auswählen**: Pfeil (Umriss). Mauszeiger: `default`, über einem Punkt `move`.
 - Aktives Werkzeug blau hervorgehoben (wie aktive Zeiteinheit). Tooltip mit Tastenkürzel: „Zeichnen (C)“, „Auswählen (V)“.
+- Seit 27.11.2026 nach einem Trenner (`.pgtsep`, 1 px `--line`) zwei weitere Knöpfe gleicher Größe: **Rückgängig** (Pfeil nach links mit Bogen) und
+  **Wiederherstellen** (gespiegelt), Tooltip „Rückgängig (Strg+Z)“ bzw. „Wiederherstellen (Strg+Y)“ (Mac: ⌘). Ohne Schritt ausgegraut (`disabled`).
+  Nur im Bild („Eigenen Chart prüfen“), dort steht die Leiste waagerecht im Streifen über dem Bild, der Trenner senkrecht. In „Wie geht es weiter?“
+  Schwer liegt die Leiste auf dem Chart; dort stehen Rückgängig/Wiederherstellen in der Leiste unten neben dem Mülleimer (48 px breit, Icon 20 px),
+  sonst verdeckten sie Labels am linken Rand.
 - Nur im Schwer-Modus und nur, solange noch nicht geprüft wurde.
 - Erster Besuch: ein Satz Hinweis über dem Chart mit „OK“-Knopf (`.pgmh`), danach nie wieder.
 
