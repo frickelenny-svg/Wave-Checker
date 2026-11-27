@@ -111,6 +111,9 @@ Browser die Styles nicht). Neue Tests verwenden `'Content-Type': require('./typ'
   Label, Ziehen nur des gewählten Labels) und die Regel „Unterteilung am Ende der Welle darüber muss vollständig sein“.
   Vor jedem Veröffentlichen von Änderungen an Schwer laufen lassen. Hinweis für Tests: Nach einem synthetischen Wisch mit Schwung
   verschluckt der Test-Browser den nächsten Tipp (Finger vor dem Loslassen ruhen lassen); der Click eines Touch-Tipps kommt verzögert.
+  Seit 27.11.2026 holt der Test vor jedem Tipp auf ein Label dieses Label ins Bild: `at()` hält nur den Punkt sichtbar, das äußere Label eines
+  Stapels lag nach dem zufälligen Scrollen manchmal über dem Bildrand, der Tipp wurde still übersprungen und das Ziehen griff die noch gewählte
+  kleine Welle (Fehlalarm „Ziehen der großen Welle hat das Label der kleineren mitbewegt“, kein Fehler der App).
 - Seit 18.11.2026 braucht das installierte Edge (Version 157) Playwright ab 1.65; ältere Versionen starten es nicht mehr.
 - Testumfang nach Größe der Änderung (Regel von Lenny, seit 24.11.2026):
   · Klein (Text, Design, eine Funktion in einem Modus): nur gezielte Tests für das Geänderte plus ein kurzer Rauchtest, dass die App startet.
