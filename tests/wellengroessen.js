@@ -1,17 +1,18 @@
-// Test „Fünf Wellengrößen“ (seit 27.11.2026, Lenny). Aufruf im Repo-Ordner: node tests/wellengroessen.js [Runden je Gerät]
+// Test „Wellengrößen“ (seit 27.11.2026, Lenny; sechs Größen seit 26.11.2026 abends). Aufruf im Repo-Ordner: node tests/wellengroessen.js [Runden je Gerät]
 // (Playwright nötig; PWCH=msedge bzw. PWCH=chrome). Handy (iPhone), iPad (Touch), PC (Maus). „Wie geht es weiter?“ Schwer und Leicht.
 // Prüft:
-//  1) Schreibweise pgTxt für alle Größen: ① Ⓐ (Kreis), (1) (A), 1 A, (i) (a), i a; Korrekturen auf Größe 2 und 3 großgeschrieben.
-//  2) Zählungen mit 1 bis 5 Größen in zufälliger Reihenfolge: Zählweise, Welle der Unterteilung und Weg (Start in der Welle über PGS.fadd
+//  1) Schreibweise pgTxt für alle Größen: ① Ⓐ (Kreis), (1) (A), 1 A, ⓘ ⓐ (Kreis), (i) (a), i a; Korrekturen auf Größe 2 und 3 großgeschrieben.
+//  2) Zählungen mit 1 bis 6 Größen in zufälliger Reihenfolge: Zählweise, Welle der Unterteilung und Weg (Start in der Welle über PGS.fadd
 //     bzw. Welle auswählen + Zählweise antippen) zufällig, auch mehrere Unterteilungen je Zählung. PGS.levels() = erwartete Größe, Labels im
 //     Chart in der Schreibweise ihrer Größe (Klasse wtL, Text), Punkte in der Farbe ihrer Größe (wptL).
-//  3) Größe 6 geht nicht: Start in einer Welle der Größe 5 und „Welle auswählen + Zählweise“ geben den Hinweis
-//     „Mehr als fünf Wellengrößen werden nicht unterstützt“ und setzen nichts; die Auswahl einer Welle der Größe 5 zeigt denselben Hinweis.
+//  3) Größe 7 gibt es nicht: Ein Start in einer Welle der Größe 6 setzt den Punkt trotzdem (seit 26.11.2026 blockiert die Meldung nie das Setzen),
+//     Hinweis „Mehr als sechs Wellengrößen werden nicht unterstützt“, die Zählung bekommt vorläufig Größe 6. „Welle auswählen + Zählweise“ an Größe 6
+//     setzt nichts (Hinweis), die Auswahl einer Welle der Größe 6 zeigt den Hinweis.
 //  4) Löschen einer mittleren Größe: Unterteilungen rücken eine Größe auf (Labels neu), die anderen bleiben; Rückgängig stellt alles her.
 //  5) Zoom-Staffelung: Beim Hineinzoomen erscheinen die Größen von groß nach klein (sichtbar ist immer 1 … k), nie verschwindet beim
-//     Hineinzoomen eine; ganz hineingezoomt an der feinsten Zählung sind alle fünf Größen zu sehen.
+//     Hineinzoomen eine; ganz hineingezoomt an der feinsten Zählung sind alle Größen zu sehen.
 //  6) Kontrast Schrift/Füllung ≥ 4,5:1 für alle Größen (Chart und Legende), Füllfarben laut DESIGN.md.
-//  7) Legende: fünf Einträge „① sehr groß · (1) groß · 1 mittel · (i) klein · i sehr klein“; Handy eingeklappt, Tipp klappt auf; iPad/PC offen.
+//  7) Legende: sechs Einträge „① sehr groß · (1) groß · 1 mittel · ⓘ klein · (i) sehr klein · i kleinste“; Handy eingeklappt, Tipp klappt auf; iPad/PC offen.
 //  8) Leicht: Labels der Größe 2 und 3 großgeschrieben, Prognose-Punkte (A)/(B)/(C).
 //  Keine Fehler in der Konsole.
 const { chromium } = require('playwright');
@@ -21,11 +22,11 @@ const server = http.createServer((q, s) => { let p = decodeURIComponent(q.url.sp
   const f = path.join(ROOT, p); if (!f.startsWith(ROOT) || !fs.existsSync(f)) { s.writeHead(404); return s.end(); }
   s.writeHead(200, { 'Content-Type': require('./typ')(p), 'Cache-Control': 'no-store' }); fs.createReadStream(f).pipe(s); });
 const DEV = [['Handy', { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 3 }], ['iPad', { viewport: { width: 820, height: 1180 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 }], ['PC', { viewport: { width: 1366, height: 800 } }]];
-const FILL = ['', 'rgb(30, 94, 255)', 'rgb(74, 125, 255)', 'rgb(122, 158, 255)', 'rgb(169, 193, 255)', 'rgb(212, 225, 255)'];
+const FILL = ['', 'rgb(30, 94, 255)', 'rgb(74, 125, 255)', 'rgb(111, 150, 255)', 'rgb(147, 176, 255)', 'rgb(181, 201, 255)', 'rgb(212, 225, 255)'];
 const SEQ = { N: ['0', '1', '2', '3', '4', '5'], ABC: ['0', 'A', 'B', 'C'], TRI: ['0', 'A', 'B', 'C', 'D', 'E'], WXY: ['0', 'W', 'X', 'Y'], TZ: ['0', 'W', 'X', 'Y', 'X', 'Z'] };
 const ROM = { 1: 'i', 2: 'ii', 3: 'iii', 4: 'iv', 5: 'v' };
-// erwartete Schreibweise (unabhängig von der App aufgeschrieben); Größe 1 steht als Zeichen im Kreis
-const TXT = (lev, l) => { const r = ROM[l] || l.toLowerCase(); return lev === 1 ? l : lev === 2 ? '(' + l + ')' : lev === 3 ? l : lev === 4 ? '(' + r + ')' : r; };
+// erwartete Schreibweise (unabhängig von der App aufgeschrieben); Größe 1 und 4 stehen als Zeichen im Kreis
+const TXT = (lev, l) => { const r = ROM[l] || l.toLowerCase(); return lev === 1 ? l : lev === 2 ? '(' + l + ')' : lev === 3 ? l : lev === 4 ? r : lev === 5 ? '(' + r + ')' : r; };
 const lum = c => { const m = c.match(/[\d.]+/g).map(Number), f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(m[0]) + .7152 * f(m[1]) + .0722 * f(m[2]); };
 const con = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
 const pick = a => a[Math.floor(Math.random() * a.length)];
@@ -60,12 +61,12 @@ async function szenarien(page, name, ok) {
       out['teilweise'] = { lv: PGS.levels(), A, B, note: (document.querySelector('.pgconf') || {}).textContent || '' }; }
     // e) manuelle Korrektur: Größer / Kleiner
     { const c0 = fresh(), G = add('N', ev(5, c0 - 5, 5)), F = PGS.FR(), g = F.pts.filter(x => x.c === G).sort((x, y) => x.t - y.t), K = add('N', ev(g[0].t, g[1].t, 5)), kk = F.pts.filter(x => x.c === K).sort((x, y) => x.t - y.t), KK = add('ABC', ev(kk[0].t, kk[1].t, 3));
-      const sel = c => { const q = F.pts.find(x => x.c === c && x.i > 0); F.ac = null; F.md = 'sel'; F.sel = q.id; F.pw = null; document.querySelector('[data-md="sel"]').click(); const b = document.querySelector('#fbig'), s = document.querySelector('#fsmall'); return { big: b && !b.disabled, small: s && !s.disabled }; };
-      const r = { lv0: PGS.levels(), G, K, KK }; r.btnG = sel(G); r.btnK = sel(K); document.querySelector('#fbig').click(); r.lvBig = PGS.levels(); r.noteBig = !!document.querySelector('.pgconf');
-      sel(K); document.querySelector('#fsmall').click(); r.lvBack = PGS.levels(); r.btnKK = sel(KK); document.querySelector('#fsmall').click(); r.lvSmall = PGS.levels(); r.labKK = labs(KK); out['hand'] = r; }
-    // f) Prüfen über alle fünf Größen: große Zählung bis in die Zukunftszone, darin vier Ebenen; Kurs frei gewählt, also Regelbrüche auf vielen Ebenen
-    { const c0 = fresh(), G = add('N', [...ev(5, c0 - 5, 4), c0 + 60]), F = PGS.FR(); let par = G;
-      for (let L = 2; L <= 5; L++) { const g = F.pts.filter(x => x.c === par).sort((x, y) => x.t - y.t); par = add('N', ev(g[0].t, g[1].t, 5)); }
+      const sel = c => { const q = F.pts.find(x => x.c === c && x.i > 0); F.ac = null; F.md = 'sel'; F.sel = q.id; F.pw = null; document.querySelector('[data-md="sel"]').click(); const b = document.querySelector('#svg [data-sb="big"]'), s = document.querySelector('#svg [data-sb="small"]'); return { big: b && !b.disabled, small: s && !s.disabled, card: !!document.querySelector('.pgsel #fbig,.pgsel #fsmall') }; };
+      const r = { lv0: PGS.levels(), G, K, KK }; r.btnG = sel(G); r.btnK = sel(K); document.querySelector('#svg [data-sb="big"]').click(); r.lvBig = PGS.levels(); r.noteBig = !!document.querySelector('.pgconf');
+      sel(K); document.querySelector('#svg [data-sb="small"]').click(); r.lvBack = PGS.levels(); r.btnKK = sel(KK); document.querySelector('#svg [data-sb="small"]').click(); r.lvSmall = PGS.levels(); r.labKK = labs(KK); out['hand'] = r; }
+    // f) Prüfen über alle sechs Größen: große Zählung bis in die Zukunftszone, darin fünf Ebenen; Kurs frei gewählt, also Regelbrüche auf vielen Ebenen
+    { const c0 = fresh(), tw = (a, b) => [0, 3, 4, 5, 6, 7].map(w => Math.round(a + (b - a) * w / 7)) /* erste Welle 3/7: Platz für sechs Ebenen */, G = add('N', [...tw(5, c0 - 5).slice(0, 5), c0 + 60]), F = PGS.FR(); let par = G;
+      for (let L = 2; L <= 6; L++) { const g = F.pts.filter(x => x.c === par).sort((x, y) => x.t - y.t); par = add('N', tw(g[0].t, g[1].t)); }
       const lv = PGS.levels(), b = document.querySelector('#fchk'), en = b && !b.disabled; let err = null; try { b.click(); } catch (e) { err = e.message; }
       out['pruefen'] = { lv, en, err, fb: (document.querySelector('#fb') || {}).textContent || '', errs: (F.errs || []).map(e => e.msg || '') }; }
     return out; });
@@ -78,15 +79,16 @@ async function szenarien(page, name, ok) {
     ok(x.labG === '1 2 3 4 5' && x.labM === '(1) (2) (3) (4) (5)' && x.labK === 'A B C', d + 'gemischt Labels: ' + [x.labG, x.labM, x.labK].join(' | ')); }
   { const x = L['klein-gross-mittel']; ok(x.lvK1 === 2 && x.lv[x.G] === 1 && x.lv[x.M] === 2 && x.lv[x.K] === 3, d + 'klein, groß, mittel: ' + JSON.stringify(x.lv) + ' (klein nach groß: ' + x.lvK1 + ')'); }
   { const x = L['teilweise']; ok(x.lv[x.A] === x.lv[x.B] && /überschneiden sich nur teilweise/.test(x.note), d + 'teilweise Überschneidung: ' + JSON.stringify(x.lv) + ' Hinweis „' + x.note.slice(0, 80) + '“'); }
-  { const x = L['pruefen'], lv = Object.values(x.lv).sort().join(''); ok(lv === '12345' && x.en && !x.err && x.fb.length > 20, d + 'Prüfen mit fünf Größen: Größen ' + lv + ', Knopf ' + x.en + ', Fehler ' + x.err + ', Text ' + x.fb.slice(0, 100));
-    ok(x.errs.some(m => /((i|ii|iii|iv|v))|(^|[^a-z(])(ii|iii|iv)([^a-z)]|$)/.test(m.replace(/<[^>]*>/g, ''))), d + 'Prüfen nennt keine Welle der Größe 4/5: ' + x.errs.slice(0, 3).join(' | ').replace(/<[^>]*>/g, '').slice(0, 300)); }
+  { const x = L['pruefen'], lv = Object.values(x.lv).sort().join(''); ok(lv === '123456' && x.en && !x.err && x.fb.length > 20, d + 'Prüfen mit sechs Größen: Größen ' + lv + ', Knopf ' + x.en + ', Fehler ' + x.err + ', Text ' + x.fb.slice(0, 100));
+    ok(x.errs.some(m => /((i|ii|iii|iv|v))|(^|[^a-z(])(ii|iii|iv)([^a-z)]|$)/.test(m.replace(/<[^>]*>/g, ''))), d + 'Prüfen nennt keine Welle der Größe 4–6: ' + x.errs.slice(0, 3).join(' | ').replace(/<[^>]*>/g, '').slice(0, 300)); }
   { const x = L['hand'];
     ok(x.lv0[x.G] === 1 && x.lv0[x.K] === 2 && x.lv0[x.KK] === 3, d + 'Hand: Ausgang ' + JSON.stringify(x.lv0));
     ok(!x.btnG.big && !x.btnG.small, d + 'Hand: einzige größte Zählung, Größer/Kleiner müssen gesperrt sein ' + JSON.stringify(x.btnG));
+    ok(!x.btnG.card && !x.btnK.card, d + 'Hand: Größer/Kleiner stehen noch in der Karte unter dem Chart');
     ok(x.btnK.big && x.btnK.small, d + 'Hand: mittlere Zählung, beide Knöpfe frei ' + JSON.stringify(x.btnK));
     ok(x.lvBig[x.K] === 1 && x.lvBig[x.KK] === 2 && x.lvBig[x.G] === 1 && x.noteBig, d + 'Hand: Größer ' + JSON.stringify(x.lvBig) + (x.noteBig ? '' : ' ohne Hinweis zur Überschneidung'));
     ok(JSON.stringify(x.lvBack) === JSON.stringify(x.lv0), d + 'Hand: Kleiner zurück ' + JSON.stringify(x.lvBack));
-    ok(x.btnKK.big && x.btnKK.small && x.lvSmall[x.KK] === 4 && x.labKK === '(a) (b) (c)', d + 'Hand: Kleiner auf Größe 4 '
+    ok(x.btnKK.big && x.btnKK.small && x.lvSmall[x.KK] === 4 && x.labKK === 'a b c', d + 'Hand: Kleiner auf Größe 4 (ⓐ ⓑ ⓒ) '
  + JSON.stringify(x.lvSmall) + ' ' + x.labKK); }
 }
 (async () => {
@@ -98,7 +100,7 @@ async function szenarien(page, name, ok) {
     page.on('pageerror', e => errs.push(e.message)); page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
     await page.goto('http://localhost:' + PORT + '/'); await page.evaluate(() => { localStorage.setItem('waveChecker.guide', '1'); sessionStorage.setItem('waveChecker.intro', '1'); localStorage.setItem('waveChecker.pgTools', '1'); }); await page.reload();
     // 1) Schreibweise
-    const tx = await page.evaluate(SEQ => { const o = {}; for (let l = 1; l <= 5; l++)Object.values(SEQ).forEach(s => s.slice(1).forEach(x => o[l + x] = pgTxt(l, x))); return o; }, SEQ);
+    const tx = await page.evaluate(SEQ => { const o = {}; for (let l = 1; l <= 6; l++)Object.values(SEQ).forEach(s => s.slice(1).forEach(x => o[l + x] = pgTxt(l, x))); return o; }, SEQ);
     let tbad = Object.entries(tx).filter(([k, v]) => TXT(+k[0], k.slice(1)) !== v); ok(!tbad.length, 'Schreibweise falsch: ' + tbad.slice(0, 6).map(([k, v]) => k + '→' + v).join(' '));
     // Labels, Punkte und Stand der Zählungen im Chart lesen (svg neu zeichnen; optional eine Zählung auswählen, damit sie sichtbar ist)
     const look = () => page.evaluate(() => { const F = PGS.FR(), lv = PGS.levels(), tx = {};
@@ -108,7 +110,7 @@ async function szenarien(page, name, ok) {
     // Punkt (Ende von Welle k, 0 = erster Punkt mit Label) der Zählung c im Werkzeug Auswählen wählen, wie nach einem Tipp; liefert den Text der Auswahl-Karte
     const selUI = (c, k) => page.evaluate(([c, k]) => { const F = PGS.FR(), q = k ? F.pts.find(x => x.c === c && x.i === k) : F.pts.find(x => x.c === c && x.i > 0); F.ac = null; F.i = 0; F.md = 'sel'; F.sel = q.id; F.pw = { c, k: Math.max(1, q.i) };
       document.querySelector('[data-md="sel"]').click(); return (document.querySelector('.pgsel') || {}).textContent || ''; }, [c, k]);
-    const RX = ['', /^([1-5]|[A-EWXYZ])$/, /^(([1-5]|[A-EWXYZ]))$/, /^([1-5]|[A-EWXYZ])$/, /^((i|ii|iii|iv|v|[a-ewxyz]))$/, /^(i|ii|iii|iv|v|[a-ewxyz])$/];
+    const RX = ['', /^([1-5]|[A-EWXYZ])$/, /^\(([1-5]|[A-EWXYZ])\)$/, /^([1-5]|[A-EWXYZ])$/, /^(i|ii|iii|iv|v|[a-ewxyz])$/, /^\((i|ii|iii|iv|v|[a-ewxyz])\)$/, /^(i|ii|iii|iv|v|[a-ewxyz])$/];
     const labelsOf = c => page.evaluate(c => { const F = PGS.FR(), qs = F.pts.filter(x => x.c === c && x.i > 0), q = qs[0]; F.md = 'sel'; F.sel = q.id; F.pw = null; F.ac = null; const lv = PGS.levels()[c], o = new Set(), all = [];
       qs.forEach(x => { PGS.show(x.t, x.p); document.querySelectorAll('#svg text.lab.wt' + lv).forEach(e => o.add(e.textContent)); document.querySelectorAll('#svg text.lab').forEach(e => { const m = e.getAttribute('class').match(/wt(d)/); if (m) all.push([+m[1], e.textContent]); }); });
       return { lv, o: [...o], all }; }, c);
@@ -119,7 +121,7 @@ async function szenarien(page, name, ok) {
       const info = await page.evaluate(() => ({ c0: PGS.R.mp[PGS.cut], c: PGS.R.c.slice(0, PGS.R.mp[PGS.cut] + 1) }));
       const price = t => info.c[Math.max(0, Math.min(info.c.length - 1, Math.round(t)))];
       // Zählungen: S = {c, lev, z, ts (Zeiten der Punkte)}; Kind in Welle k (Label-Index des Endes) des Elternteils
-      const counts = [], tag = name + ' Runde ' + r + ': ', depth = 1 + Math.floor(Math.random() * 5);
+      const counts = [], tag = name + ' Runde ' + r + ': ', depth = 1 + Math.floor(Math.random() * 6);
       const times = (a, b, z) => { const m = SEQ[z].length - 1, w = []; for (let j = 0; j < m; j++)w.push(j === 0 ? 3 : 1); const tot = w.reduce((x, y) => x + y), ts = [a]; let acc = 0;
         w.forEach(x => { acc += x; ts.push(Math.round(a + (b - a) * acc / tot)); }); ts[ts.length - 1] = b; return ts; }; // erste Welle 3-mal so lang wie die anderen (Platz für Unterteilungen)
       const addCount = async (z, ts, via) => { // via: null = neue Zählung (PGS.fadd 'neu'), sonst {c, k}: Welle auswählen + Zählweise antippen
@@ -147,15 +149,17 @@ async function szenarien(page, name, ok) {
       await page.evaluate(() => { const F = PGS.FR(); F.sel = null; F.md = 'draw'; PGS.show(0); });
       s = await look();
       Object.entries(s.pc).forEach(([l, f]) => ok(f === FILL[l], tag + 'Punkt der Größe ' + l + ' hat Farbe ' + f));
-      // 3) Größe 6: Start in Welle 1 der feinsten Zählung bzw. Auswahl + Zählweise
-      const deep = counts.filter(S => S.lev === 5 && !S.side)[0];
+      // 3) Größe 7: Start in Welle 1 der feinsten Zählung (Punkt wird gesetzt, nur Hinweis) bzw. Auswahl + Zählweise (setzt nichts)
+      const deep = counts.filter(S => S.lev === 6 && !S.side)[0];
       if (deep) {
-        const before = s.pts.length, c6 = await page.evaluate(([t, p]) => { const F = PGS.FR(); F.ac = null; F.i = 0; F.md = 'draw'; return PGS.fadd('ABC', 0, t, p, 'neu'); }, [deep.ts[0], price(deep.ts[0])]);
-        let s6 = await look(); ok(c6 == null && s6.pts.length === before && /Mehr als fünf Wellengrößen werden nicht unterstützt/.test(s6.toast), tag + 'Größe 6 per Start: ' + c6 + ', Hinweis „' + s6.toast.replace(/<[^>]*>/g, '') + '“');
-        // Welle 1 der feinsten Zählung auswählen: Karte zeigt den Hinweis, Zählweise antippen setzt nichts
-        const card = await selUI(deep.c, 1); ok(/Mehr als fünf Wellengrößen werden nicht unterstützt/.test(card), tag + 'Auswahl einer Welle der Größe 5 ohne Hinweis: ' + card.slice(0, 120));
+        // erst Auswahl + Zählweise (setzt nichts), danach der Start per Tipp (setzt den Punkt); so stört der neue Punkt die Auswahl nicht
+        const before = s.pts.length, card = await selUI(deep.c, 1); ok(/Mehr als sechs Wellengrößen werden nicht unterstützt/.test(card), tag + 'Auswahl einer Welle der Größe 6 ohne Hinweis: ' + card.slice(0, 120));
         await page.evaluate(() => document.querySelector('[data-fz="ABC"]').click());
-        s6 = await look(); ok(s6.pts.length === before && /Mehr als fünf Wellengrößen werden nicht unterstützt/.test(s6.toast), tag + 'Größe 6 per Auswahl + Zählweise: ' + (s6.pts.length - before) + ' neue Punkte, Hinweis „' + s6.toast.replace(/<[^>]*>/g, '') + '“');
+        let s6 = await look(); ok(s6.pts.length === before && /Mehr als sechs Wellengrößen werden nicht unterstützt/.test(s6.toast), tag + 'Größe 7 per Auswahl + Zählweise: ' + (s6.pts.length - before) + ' neue Punkte, Hinweis „' + s6.toast.replace(/<[^>]*>/g, '') + '“');
+        await page.evaluate(() => { const t = document.querySelector('#toast'); if (t) t.className = ''; });
+        const c6 = await page.evaluate(([t, p]) => { const F = PGS.FR(); F.ac = null; F.i = 0; F.md = 'draw'; F.sel = null; F.pw = null; return PGS.fadd('ABC', 0, t, p, 'neu'); }, [deep.ts[0], price(deep.ts[0])]);
+        s6 = await look(); ok(c6 != null && s6.pts.length === before + 1 && /Mehr als sechs Wellengrößen werden nicht unterstützt/.test(s6.toast) && Math.max(...Object.values(s6.lv)) <= 6, tag + 'Größe 7 per Start: Punkt ' + (c6 != null ? 'gesetzt' : 'NICHT gesetzt') + ', Größen ' + JSON.stringify(s6.lv) + ', Hinweis „' + s6.toast.replace(/<[^>]*>/g, '') + '“');
+        await page.evaluate(c => { const F = PGS.FR(); F.pts = F.pts.filter(x => x.c !== c); delete F.cm[c]; F.ac = null; }, c6); // wieder entfernen, damit die weiteren Prüfungen gleich bleiben
       }
       // 4) Löschen einer mittleren Größe (3, sonst 2): Unterteilungen rücken auf, Rückgängig
       const mid = counts.find(S => S.lev === 3 && !S.side) || counts.find(S => S.lev === 2 && !S.side && depth > 2);
@@ -190,14 +194,14 @@ async function szenarien(page, name, ok) {
       if (r === 0) console.log(tag + 'Zoom-Staffelung (sichtbare Größen beim Hineinzoomen) ' + z.map(v => v.length).join(''));
     }
     // 6) Kontrast Schrift/Füllung je Größe (Elemente wie im Chart) und Legende
-    const kont = await page.evaluate(() => { const o = []; for (let l = 1; l <= 5; l++) { const svg = document.querySelector('#svg'), g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.innerHTML = l === 1 ? '<circle class="pgc1 wlv1" r="10"/><text class="lab l1 wt1">1</text>' : '<rect class="wlv' + l + '" width="20" height="20"/><text class="lab wt' + l + '">1</text>'; svg.appendChild(g);
+    const kont = await page.evaluate(() => { const o = []; for (let l = 1; l <= 6; l++) { const svg = document.querySelector('#svg'), g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.innerHTML = l === 1 || l === 4 ? '<circle class="pgc1 wlv' + l + '" r="10"/><text class="lab l1 wt' + l + '">1</text>' : '<rect class="wlv' + l + '" width="20" height="20"/><text class="lab wt' + l + '">1</text>'; svg.appendChild(g);
         o.push([l, getComputedStyle(g.firstChild).fill, getComputedStyle(g.lastChild).fill]); g.remove(); }
       const lg = [...document.querySelectorAll('.pglg .wlg')].map(e => [getComputedStyle(e).backgroundColor, getComputedStyle(e).color]);
       const d = document.querySelector('details.pglg'); return { o, lg, txt: d ? d.textContent.replace(/\s+/g, ' ') : '', open: d && d.open }; });
     kont.o.forEach(([l, f, t]) => { ok(f === FILL[l], name + ': Füllung Größe ' + l + ' ist ' + f); ok(con(f, t) >= 4.5, name + ': Kontrast Größe ' + l + ' nur ' + con(f, t).toFixed(2)); });
-    ok(kont.lg.length === 5 && kont.lg.every(([b, c], j) => b === FILL[j + 1] && con(b, c) >= 4.5), name + ': Legende Farben/Kontrast ' + JSON.stringify(kont.lg));
-    ok(/Wellengrößen ?1 sehr groß · \(1\) groß · 1 mittel · \(i\) klein · i sehr klein/.test(kont.txt), name + ': Legendentext „' + kont.txt + '“');
+    ok(kont.lg.length === 6 && kont.lg.every(([b, c], j) => b === FILL[j + 1] && con(b, c) >= 4.5), name + ': Legende Farben/Kontrast ' + JSON.stringify(kont.lg));
+    ok(/Wellengrößen ?1 sehr groß · \(1\) groß · 1 mittel · i klein · \(i\) sehr klein · i kleinste/.test(kont.txt), name + ': Legendentext „' + kont.txt + '“');
     ok(kont.open === (name !== 'Handy'), name + ': Legende ' + (kont.open ? 'offen' : 'zu'));
     if (name === 'Handy') { await page.evaluate(() => document.querySelector('details.pglg summary').scrollIntoView({ block: 'center' })); const b = await page.evaluate(() => { const r = document.querySelector('details.pglg summary').getBoundingClientRect(); return [r.left + 20, r.top + r.height / 2]; });
       if (touch) await page.touchscreen.tap(b[0], b[1]); else await page.mouse.click(b[0], b[1]); await page.waitForTimeout(150);

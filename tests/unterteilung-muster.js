@@ -63,7 +63,7 @@ const MKC = C => { const W = C.W, P = [W[0][0]], main = [0]; W.forEach(w => { w.
       else { ok(r.sub.some(t => C.warn.test(t)), d + ': erwarteter Text fehlt: ' + r.sub.join(' | '));
         ok(r.sub.every(t => /Automatisch erkannt/.test(t)) && r.pos.every(p => p > r.hin), d + ': Warnsignal nicht als „Automatisch erkannt“ unter „Hinweise“');
         ok(!r.sub.some(t => /\(Welle \d überschneidet|Welle B überschreitet den Start von Welle A/.test(t)), d + ': Regel ohne Ebene genannt'); }
-      if (fall === 'gleich') { ok(r.leg.join() === 'rgb(30, 94, 255),rgb(74, 125, 255),rgb(122, 158, 255),rgb(169, 193, 255),rgb(212, 225, 255)', d + ': Legende ohne Farben der Wellengrößen (' + r.leg.join(' / ') + ')');
+      if (fall === 'gleich') { ok(r.leg.join() === 'rgb(30, 94, 255),rgb(74, 125, 255),rgb(111, 150, 255),rgb(147, 176, 255),rgb(181, 201, 255),rgb(212, 225, 255)', d + ': Legende ohne Farben der Wellengrößen (' + r.leg.join(' / ') + ')');
         ok(r.c1 === 'rgb(30, 94, 255)' && r.t1 === 'rgb(255, 255, 255)', d + ': große Welle nicht #1E5EFF mit weißer Schrift (' + r.c1 + ' / ' + r.t1 + ') ' + r.cls); }
       console.log(d + ': ' + r.state + (r.sub.length ? ' – ' + r.sub[0].slice(0, 140) : ''));
     }

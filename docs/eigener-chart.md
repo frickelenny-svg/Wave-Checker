@@ -55,9 +55,13 @@ Weitere Filter (26.11.2026): Farbsaum (Kerzenpixel, umgeben von mehr als dreimal
 - **Meldungen:** Teilwellen mit Ebene (`subRule`: „Teilwelle (b) in Welle B überschreitet den Start von Teilwelle (a)“), Liste „Geprüft: als Zigzag nicht (…); als Regular Flat nicht (…)“ (Feld `tried`; bei nur einem Muster mit Regelbruch ohne Liste).
 - Korrekturwellen finden fast immer ein erlaubtes Muster (oft Double Zigzag), Warnsignale dort sind selten; das ist nach dem Regelwerk richtig.
 
-## Wellengrößen und Farben (fünf Größen seit 27.11.2026, DESIGN.md, CLAUDE.md „Schwer: fünf Wellengrößen“)
+## Wellengrößen und Farben (sechs Größen seit 26.11.2026 abends, DESIGN.md, CLAUDE.md „Schwer: sechs Wellengrößen“)
 
-Fünf Größen: ① Ⓐ (Kreis `#1E5EFF`, weiß), (1) (A) `#4A7DFF`, 1 A `#7A9EFF`, (i) (a) `#A9C1FF`, i a `#D4E1FF` (Schrift `#0B1B3A`). Klassen `.wlv1–5`, `.wt1–5`, `.wpt1–5`, Legende `details.pglg` (`.wlg1–5`, am Handy eingeklappt). Die Größe folgt aus der Verschachtelung, nicht aus der Reihenfolge (`frRelevel`); von Hand „Größer“/„Kleiner“ in der Auswahl. Prüfung (harte Regeln, `ocSub`) läuft auf allen Größen, Teilwellen werden mit der Schreibweise der nächsten Größe genannt (`subRule`, höchstens Größe 5). Fehler bleiben rot ohne Farbfeld.
+Sechs Größen (vollständige Elliott-Schreibweise): ① Ⓐ (Kreis `#1E5EFF`, weiß), (1) (A) `#4A7DFF`, 1 A `#6F96FF`, ⓘ ⓐ (Kreis `#93B0FF`, neu), (i) (a) `#B5C9FF`, i a `#D4E1FF` (Schrift ab Größe 2 `#0B1B3A`). Klassen `.wlv1–6`, `.wt1–6`, `.wpt1–6`, Legende `details.pglg` (`.wlg1–6`, am Handy eingeklappt). Die Größe folgt aus der Verschachtelung, nicht aus der Reihenfolge (`frRelevel`); von Hand „Größer“/„Kleiner“ über die schwebende Leiste am gewählten Label (`frSelBar`, mit Löschen). Prüfung (harte Regeln, `ocSub`) läuft auf allen Größen, Teilwellen werden mit der Schreibweise der nächsten Größe genannt (`subRule`, höchstens Größe 6). Fehler bleiben rot ohne Farbfeld.
+- Discord-Video 26.11.2026 abends: Eine laufende Zählung der feinsten Größe ließ sich mit iv und v rechts außerhalb der hervorgehobenen Welle nicht
+  fortsetzen („Mehr als fünf Wellengrößen werden nicht unterstützt“). Ursache: Rechts daneben lag eine Nachbar-Zählung mit eigener Unterteilung; iv/v
+  machten sie zur Unterteilung der laufenden Zählung, ihre Unterteilung hätte eine Größe mehr gebraucht, `frRelevel` nahm alles zurück und `frAdd` den
+  Punkt wieder weg. Seit dem Fix wird ein Punkt immer gesetzt; mehr als sechs Größen werden auf 6 begrenzt, mit Hinweis (`FRTOO`). Test: `tests/groessen-leiste.js`.
 
 ## Chart-Erkennung (`ocPath`) – bisheriger Weg (liefert Rahmen, Achsen, Legende, Kästchen und Linien; Rückfall ohne Kerzen)
 

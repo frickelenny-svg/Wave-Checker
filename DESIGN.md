@@ -23,7 +23,7 @@ Neu angelegt am 13.11.2026. Der Code verweist an einigen Stellen auf „DESIGN.m
 - Danach auf „Meine Ränge“ die neuen Karten kurz hervorgehoben (Rand `--accent`, Ring `--accent-soft`, verblasst in 2,6 s).
 - Bewegung reduzieren: keine Animationen, Endzustand sofort; Hervorhebung bleibt als ruhiger Ring.
 
-## Farben der Wellengrößen (seit 26.11.2026, fünf Größen seit 27.11.2026)
+## Farben der Wellengrößen (seit 26.11.2026, sechs Größen seit 26.11.2026 abends)
 Gilt überall, wo Wellengrößen vorkommen („Wie geht es weiter?“, „Eigenen Chart prüfen“): Punkte, Label-Kreise/-Felder und Legende.
 Farbe ist nie das einzige Merkmal, die Schreibweise unterscheidet immer mit (übliche Elliott-Notation, `pgTxt`):
 
@@ -31,16 +31,27 @@ Farbe ist nie das einzige Merkmal, die Schreibweise unterscheidet immer mit (üb
 |---|---|---|---|---|---|
 | 1 sehr groß | ① ② … ⑤ · Ⓐ … Ⓔ · Ⓦ Ⓧ Ⓨ Ⓩ (Zeichen im Kreis) | `#1E5EFF` | weiß | 5,1:1 | Kreis r 10 (`.pgc1.wlv1`, `.wt1`) |
 | 2 groß | (1) … (5) · (A) … (E) · (W) (X) (Y) (Z) | `#4A7DFF` | `#0B1B3A` (Weiß nur 3,7:1) | 4,6:1 | Feld mit Ecken 6 px (`.wlv2`, `.wt2`) |
-| 3 mittel | 1 … 5 · A … E · W X Y Z | `#7A9EFF` | `#0B1B3A` | 6,6:1 | Feld (`.wlv3`, `.wt3`), Schrift 12 px |
-| 4 klein | (i) … (v) · (a) … (e) · (w) (x) (y) (z) | `#A9C1FF`, Rand `#4A7DFF` | `#0B1B3A` | 9,5:1 | Feld (`.wlv4`, `.wt4`), Schrift 11 px |
-| 5 sehr klein | i … v · a … e · w x y z | `#D4E1FF`, Rand `#4A7DFF` | `#0B1B3A` | 13:1 | Feld (`.wlv5`, `.wt5`), Schrift 11 px |
+| 3 mittel | 1 … 5 · A … E · W X Y Z | `#6F96FF` | `#0B1B3A` | 6,1:1 | Feld (`.wlv3`, `.wt3`), Schrift 12 px |
+| 4 klein | ⓘ … ⓥ · ⓐ … ⓔ · ⓦ ⓧ ⓨ ⓩ (Zeichen im Kreis, neu) | `#93B0FF`, Rand `#1E5EFF` | `#0B1B3A` | 8,0:1 | Kreis r 10 (`.pgc1.wlv4`, `.wt4`), Schrift 11 px |
+| 5 sehr klein | (i) … (v) · (a) … (e) · (w) (x) (y) (z) | `#B5C9FF`, Rand `#4A7DFF` | `#0B1B3A` | 10,4:1 | Feld (`.wlv5`, `.wt5`), Schrift 11 px |
+| 6 kleinste | i … v · a … e · w x y z | `#D4E1FF`, Rand `#4A7DFF` | `#0B1B3A` | 13:1 | Feld (`.wlv6`, `.wt6`), Schrift 11 px |
 
 Korrekturen auf Größe 2 und 3 werden großgeschrieben ((A), A), ab Größe 4 klein und Ziffern römisch. Schrift weiß nur, wo der Kontrast mind. 4,5:1
-erreicht (nur Größe 1), sonst `#0B1B3A`. Punkte: `.wpt1`–`.wpt5` in derselben Füllung (4 und 5 mit Rand `#1E5EFF`). Fehler bleiben rot (`--dn`), ohne
-Farbfeld. Gleich im hellen und dunklen Design.
-Legende (`details.pglg`): kompakt „① sehr groß · (1) groß · 1 mittel · (i) klein · i sehr klein“ mit Farbfeldern `.wlg1`–`.wlg5` (je Eintrag
-`.pglgi`, umbricht nur zwischen Einträgen); am Handy (unter 600 px) eingeklappt, Tipp auf „Wellengrößen“ klappt auf, auf iPad/PC offen.
-Andere Modi mit Haupt- und Subwellen („Subwellen zählen“, „Fehler finden“): Hauptwellen in Größe 3 (1, A), Subwellen in Größe 4 ((i), (a)).
+erreicht (nur Größe 1), sonst `#0B1B3A`. Punkte: `.wpt1`–`.wpt6` in derselben Füllung (4–6 mit Rand `#1E5EFF`). Fehler bleiben rot (`--dn`), ohne
+Farbfeld. Gleich im hellen und dunklen Design. Die sechs Füllungen laufen gleichmäßig von `#1E5EFF` nach `#D4E1FF` (Stufe 2 bleibt `#4A7DFF`, damit
+dunkle Schrift 4,5:1 erreicht; eine rein gleichmäßige Stufe 2 schafft weder Weiß noch Dunkel).
+Legende (`details.pglg`): kompakt „① sehr groß · (1) groß · 1 mittel · ⓘ klein · (i) sehr klein · i kleinste“ mit Farbfeldern `.wlg1`–`.wlg6`
+(1 und 4 rund; je Eintrag `.pglgi`, umbricht nur zwischen Einträgen); am Handy (unter 600 px) eingeklappt, Tipp auf „Wellengrößen“ klappt auf, auf iPad/PC offen.
+Andere Modi mit Haupt- und Subwellen („Subwellen zählen“, „Fehler finden“): Hauptwellen 1, A (wie Größe 3), Subwellen (i), (a) (Schreibweise wie Größe 5,
+dort fest im Text, ohne Farbfeld).
+
+### Leiste „Größer · Kleiner · Löschen“ am Chart (seit 26.11.2026 abends)
+- Erscheint im Werkzeug Auswählen, sobald ein Punkt bzw. eine Zählung gewählt ist, als kleine schwebende Leiste direkt am gewählten Label
+  (Fläche `--surface`, Rand `--line`, Ecken 12 px, Schatten; Knöpfe 30 px hoch, Löschen als Mülleimer in `--dn`). Sie steht über, unter oder neben dem
+  Label, wo sie am wenigsten andere Labels verdeckt, nie auf dem gewählten Label oder einem Punkt, immer in der Zeichenfläche, und wandert beim
+  Verschieben und Zoomen mit (`foreignObject` im SVG, `frSelBar`).
+- Ein Tipp auf Größer/Kleiner ändert die ganze Zählung samt Unterteilungen um eine Stufe, die Labels stellen sich sofort um; gesperrt an den Grenzen
+  (Größe 1, feinste Unterteilung schon Größe 6, einzige größte Zählung). In der Karte unter dem Chart stehen sie nicht mehr.
 Tests: `tests/wellengroessen.js` (Schreibweise, Farben, Kontrast, Legende), `tests/unterteilung-muster.js`, `tests/bild-blasser.js` (Kontrast gegen
 die Füllung des Labels).
 

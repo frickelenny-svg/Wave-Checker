@@ -322,8 +322,8 @@ Kein Spielmodus: keine Punkte, keine Serie, keine Ränge, kein Tutorial. Ohne KI
      `tests/eigener-chart.js` toleriert bis 0,4 % Ausschlag-Spalten (mit Zeichnungen 2 %, Einrasten ab 88 %). Liegt nur etwas über 25 % der Höhe daneben, bleibt die Spalte leer (kein Ausreißer). Echte lange Dochte
      hängen am Kerzenkörper und bleiben. Blasse Dochtspitzen werden bis 6 px verlängert.
   Was dann noch nicht passt, überzeichnet man mit „Verlauf nachzeichnen“.
-- Farben der Wellengrößen (seit 26.11.2026, fünf Größen seit 27.11.2026, siehe DESIGN.md und „Fünf Wellengrößen“ unten): Füllung je Größe `#1E5EFF`,
-  `#4A7DFF`, `#7A9EFF`, `#A9C1FF`, `#D4E1FF`, Schrift weiß nur bei Größe 1, sonst `#0B1B3A`; Punkte und Legende ebenso; `lab()` hat dafür das Feld `lv`.
+- Farben der Wellengrößen (seit 26.11.2026, sechs Größen seit 26.11.2026 abends, siehe DESIGN.md und „Sechs Wellengrößen“ unten): Füllung je Größe `#1E5EFF`,
+  `#4A7DFF`, `#6F96FF`, `#93B0FF`, `#B5C9FF`, `#D4E1FF`, Schrift weiß nur bei Größe 1, sonst `#0B1B3A`; Punkte und Legende ebenso; `lab()` hat dafür das Feld `lv`.
   Gilt in „Wie geht es weiter?“ und „Eigenen Chart prüfen“.
 - Kerzen 1:1 zum Original (seit 26.11.2026, Lenny, nach Video): `ocPath` baut im Kerzenmodus `IMG.cdl` = je erkannter Kerze {a, b (Spalten), xc (Docht =
   Spalte mit dem längsten Strich), hi, lo, o, c (Zeilen; null = kein Körper erkannt), up}. Kerze = zusammenhängende Spalten mit Verlauf ohne ergänzte
@@ -512,7 +512,7 @@ KOM-5 und andere Regeln, die der Generator nicht verletzt, kommen in „Fehler f
 
 ## „Wie geht es weiter?“ (Funktion `progn`)
 Großer, verschiebbarer und zoombarer Kerzenchart in vier Zeiteinheiten (W, D, 4h, 1h). Leicht zeigt die erzeugten Ebenen 1–3 als Größe 1–3
-(①, (1)/(A), 1/A), Schwer und „Eigenen Chart prüfen“ kennen fünf Wellengrößen (siehe unten).
+(①, (1)/(A), 1/A), Schwer und „Eigenen Chart prüfen“ kennen sechs Wellengrößen (siehe unten).
 
 ### Zoom und Zeitachse (Stand 13.11.2026)
 - Mausrad ohne Taste: nur die Zeitachse (`zoomX`), nach oben strecken, nach unten stauchen, um die Mausposition.
@@ -584,29 +584,40 @@ Beim Setzen (Zeichnen) und beim Ziehen (Auswählen) springt der Punkt automatisc
   Zeiteinheit wirklich das Extrem ihrer Kerze und der Nachbarkerzen sind (im Wochen-Chart läuft sonst z. B. eine spätere Teilwelle
   darüber hinaus). `DBG=1` zeigt jeden Fehlgriff. Testzugriff: `PGS.snapAt(px,py,o)`, `PGS.ring()`.
 
-### Schwer: fünf Wellengrößen (seit 27.11.2026, Lenny)
-- Schreibweise (`pgTxt`, `PGMAXL` = 5, Namen `PGSIZE`): 1 sehr groß ① Ⓐ Ⓦ (Zeichen im Kreis), 2 groß (1) (A) (W), 3 mittel 1 A W, 4 klein (i) (a) (w),
-  5 sehr klein i a w. Korrekturen auf Größe 2 und 3 großgeschrieben (vorher (a), a); Leicht-Prognosepunkte `PGK[…].l` = (A)/(B)/(C).
-  „Subwellen zählen“ und „Fehler finden“: Hauptwellen Größe 3, Subwellen Größe 4 ((i)–(v) statt (1)–(5)); die Freitext-Prüfung versteht römische
-  Ziffern (`NUM` in `fehler-text.js`), die Texte der Subwellen-Regeln in `fehler-schluesselwoerter.json` nennen (ii), (iii) usw.
-- Sichtbarkeit beim Zoom gestaffelt: Größe 1 immer; sonst müssen die Wellen einer Zählung im Schnitt 18/20/22/24 px (Größe 2–5) breit sein und die
+### Schwer: sechs Wellengrößen (fünf seit 27.11.2026, sechs seit 26.11.2026 abends, Lenny)
+- Schreibweise (`pgTxt`, `PGMAXL` = 6, Namen `PGSIZE`, Kreis `pgCirc`): 1 sehr groß ① Ⓐ Ⓦ (Zeichen im Kreis), 2 groß (1) (A) (W), 3 mittel 1 A W,
+  4 klein ⓘ ⓐ ⓦ (Zeichen im Kreis, neu), 5 sehr klein (i) (a) (w), 6 kleinste i a w. Korrekturen auf Größe 2 und 3 großgeschrieben; Leicht-Prognosepunkte
+  `PGK[…].l` = (A)/(B)/(C). Kreis-Labels (`lab()` mit `c`) gibt es für Größe 1 und 4; im Text `frHtml` ebenso (`C1`).
+  „Subwellen zählen“ und „Fehler finden“: Hauptwellen 1, A (wie Größe 3), Subwellen (i)–(v) (fest im Text, Schreibweise wie Größe 5); die Freitext-Prüfung
+  versteht römische Ziffern (`NUM` in `fehler-text.js`), die Texte der Subwellen-Regeln in `fehler-schluesselwoerter.json` nennen (ii), (iii) usw.
+- Sichtbarkeit beim Zoom gestaffelt: Größe 1 immer; sonst müssen die Wellen einer Zählung im Schnitt 18/20/22/24/26 px (Größe 2–6) breit sein und die
   Zählung darüber sichtbar (laufende und ausgewählte Zählung immer). Testzugriff `PGS.vis()` = {Zählung: sichtbar}. Schrift 12 px ab Größe 3, 11 px ab 4.
-- Legende `details.pglg` „① sehr groß · (1) groß · 1 mittel · (i) klein · i sehr klein“, am Handy eingeklappt.
-- Größe 6 gibt es nicht: Start in einer Welle der Größe 5, „Welle auswählen + Zählweise“ an Größe 5 und Verschachtelungen, die eine sechste Größe
-  bräuchten, setzen nichts und zeigen „Mehr als fünf Wellengrößen werden nicht unterstützt“ (auch in der Auswahl-Karte einer Welle der Größe 5).
+  `frSeries` ordnet die Zählungen über alle Größen 1…`PGMAXL` (vorher fest 1–5: eine Zählung der Größe 6 bekam keine übergeordnete).
+- Legende `details.pglg` „① sehr groß · (1) groß · 1 mittel · ⓘ klein · (i) sehr klein · i kleinste“, am Handy eingeklappt.
+- Ein Punkt einer laufenden Zählung wird **immer** gesetzt (seit 26.11.2026 abends, Video aus „Eigenen Chart prüfen“): `frRelevel` nimmt nichts mehr
+  zurück, `frAdd` entfernt den Punkt nicht mehr. Bräuchte die Verschachtelung eine siebte Größe, werden die Größen auf 6 begrenzt und es kommt nur der
+  Hinweis `FRTOO` („Mehr als sechs Wellengrößen werden nicht unterstützt. Die feinste Zählung hat vorläufig die kleinste Größe.“). Ebenso beim Start
+  einer neuen Zählung in einer Welle der Größe 6 (`frMeta` `over`) und nach dem Ziehen. Nur „Welle auswählen + Zählweise“ an einer Welle der Größe 6
+  setzt nichts (Hinweis, auch in der Auswahl-Karte). Ursache im Video: Rechts neben der hervorgehobenen Welle lag eine Nachbar-Zählung mit Unterteilung;
+  iv/v machten sie zur Unterteilung der laufenden Zählung, ihre Unterteilung hätte eine Größe mehr gebraucht.
+- Größer/Kleiner (seit 26.11.2026 abends): schwebende Leiste direkt am gewählten Label im Chart (`frSelBar`, `foreignObject` im SVG, Klasse `.pgsb`,
+  Knöpfe `[data-sb="big|small|del"]`, Klick über `svg.onclick`, `frSize(c, d)`), mit Löschen; Platz über/unter/neben dem Label mit der geringsten
+  Überdeckung anderer Labels und Punkte. Nicht mehr in der Karte unter dem Chart.
+- Test: `node tests/groessen-leiste.js [Runden]` (Playwright, Handy/iPad/PC, rund 60 s bei 3 Runden): Video-Fall mit zufälliger Verschachtelung und mit
+  echten Tipps, Nachbau mit Nachbar-Zählung (Tiefe `PGMAXL`; die Version davor zeigte dort genau die Meldung aus dem Video und setzte nichts), Größe 7,
+  Leiste mit echten Tipps (Lage, Kleiner/Größer/Löschen, Labels). `tests/wellengroessen.js` prüft Schreibweise, Farben, Kontrast und Legende für sechs Größen.
 - Reihenfolge frei (`frRelevel` nach jedem Punkt und nach dem Ziehen, `frNormLev`): Die Größe folgt aus der Verschachtelung, nicht aus der
   Reihenfolge. Liegt eine bestehende, nicht kleinere Zählung ganz in einer Welle der geänderten Zählung, rückt sie samt Unterteilungen darunter
   (die neue wird größer); beginnt eine neue in einer Welle einer bestehenden, ist sie eine Größe kleiner (`frMeta`); schließt sie an, gleich groß.
   Läuft eine Unterteilung über ihre Welle hinaus (nicht die offene nächste Welle), bekommt sie vorläufig die Größe der überschnittenen Zählung,
   über dem Chart steht dann der Hinweis „überschneiden sich nur teilweise …“ (`frConfNote`, `.pgconf`, aus `out.conf`). Danach ist die größte
   Zählung immer Größe 1, die Labels stellen sich um. „Zurück“ stellt die Größen vor dem Punkt her (`cm0` am Punkt).
-- Von Hand: Auswählen, Zählung antippen, „Größer“/„Kleiner“ (`frSizeUI`, `#fbig`/`#fsmall`, in der Zeile mit „Ganze Zählung löschen“, damit die Karte nicht höher wird; eine höhere Karte ließ die Seite
-  beim Tippen verrutschen) verschiebt die Zählung samt Unterteilungen um eine
-  Stufe; gesperrt bei Größe 1 bzw. wenn die feinste Unterteilung schon Größe 5 ist oder die Zählung die einzige größte ist.
+- Von Hand: Auswählen, Zählung antippen, „Größer“/„Kleiner“ in der Leiste am Label (`frSizeUI` liefert die Knöpfe für `frSelBar`) verschiebt die Zählung
+  samt Unterteilungen um eine Stufe; gesperrt bei Größe 1 bzw. wenn die feinste Unterteilung schon Größe 6 ist oder die Zählung die einzige größte ist.
 - Am Handy ist die Leiste unten in Schwer rund 175 px hoch, mehr als der Abstand von `main` (120 px), und verdeckte die Legende: Chart-Bildschirme
   (`main:has(#pgc)`, unter 840 px) haben unten fest 210 px. Nicht nachmessen: Ein gemessener Abstand ließ die Seite beim Tippen verrutschen
   (`tests/schwer-touch.js` griff beim Ziehen das falsche Label).
-- Test: `node tests/wellengroessen.js [Runden]` (Playwright, Handy/iPad/PC, rund 3 s je Gerät und 4 Runden): Schreibweise, Zählungen mit 1–5 Größen
+- Test: `node tests/wellengroessen.js [Runden]` (Playwright, Handy/iPad/PC, rund 3 s je Gerät und 4 Runden): Schreibweise, Zählungen mit 1–6 Größen
   in zufälliger Reihenfolge (Start in der Welle bzw. Auswahl + Zählweise), Labels und Punktfarben je Größe, Größe 6, Löschen einer mittleren Größe
   mit Rückgängig, Zoom-Staffelung, Kontrast, Legende, Reihenfolge frei (erst Subwellen, dann darüber; erst groß, dann klein; gemischt über drei
   Größen; teilweise Überschneidung mit Hinweis; Größer/Kleiner), Leicht großgeschrieben.

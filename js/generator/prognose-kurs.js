@@ -26,11 +26,13 @@ const PGLEN={imp:[20,10,28,12,30],zig:[28,16,32],fr:[22,22,34],fe:[22,22,34],fru
  dl:[22,12,22,12,24],db:[16,16,16,16,16],de:[16,16,16,16,16],dz:[30,26,30],tz:[18,16,18,16,18]}; // Dauer der Wellen im Verhältnis zueinander
 const PGZL={N:'imp',ABC:'zig',TRI:'trk',WXY:'dz',TZ:'tz'}; // Zählweise → Muster mit dieser Beschriftung
 const pgLab=(key,j)=>{const l=PAT[key].labels[j];return /^X\d$/.test(l)?'X':l}; // X1/X2 heißen im Chart beide X
-// Fünf Wellengrößen (seit 27.11.2026, Lenny; übliche Elliott-Schreibweise): 1 sehr groß ① Ⓐ (im Kreis), 2 groß (1) (A), 3 mittel 1 A,
-// 4 klein (i) (a), 5 sehr klein i a. Ziffern werden ab Größe 4 römisch, Buchstaben klein.
-const PGMAXL=5,PGROM=['','i','ii','iii','iv','v'];
-const pgTxt=(lev,l)=>{l=String(l);const r=/^[1-5]$/.test(l)?PGROM[+l]:l.toLowerCase();return lev<=1?l:lev===2?'('+l+')':lev===3?l:lev===4?'('+r+')':r};
-const PGSIZE=['','sehr große Welle','große Welle','mittlere Welle','kleine Welle','sehr kleine Welle'];
+// Sechs Wellengrößen (seit 26.11.2026 abends, Lenny; vollständige Elliott-Schreibweise, vorher fünf): 1 sehr groß ① Ⓐ Ⓦ (im Kreis),
+// 2 groß (1) (A) (W), 3 mittel 1 A W, 4 klein ⓘ ⓐ ⓦ (im Kreis, neu), 5 sehr klein (i) (a) (w), 6 kleinste i a w.
+// Ziffern werden ab Größe 4 römisch, Buchstaben klein. Den Kreis zeichnet der Chart (pgCirc), pgTxt liefert nur den Text.
+const PGMAXL=6,PGROM=['','i','ii','iii','iv','v'];
+const pgTxt=(lev,l)=>{l=String(l);const r=/^[1-5]$/.test(l)?PGROM[+l]:l.toLowerCase();return lev<=1?l:lev===2?'('+l+')':lev===3?l:lev===4?r:lev===5?'('+r+')':r};
+const pgCirc=lev=>lev===1||lev===4; // Größen mit Kreis
+const PGSIZE=['','sehr große Welle','große Welle','mittlere Welle','kleine Welle','sehr kleine Welle','kleinste Welle'];
 const PGW={imp:10,dl:1.2,db:1,de:.6,zig:6,fr:3,fe:3,fru:1,trk:2,tre:1,dz:2.5,tz:1}; // wie oft ein Teilmuster gewählt wird
 const pgPick=a=>{let r=Math.random()*a.reduce((x,k)=>x+(PGW[k]||1),0);for(const k of a){r-=PGW[k]||1;if(r<=0)return k}return a[a.length-1]};
 // Ohne Truncation (W5-4): sonst wäre Punkt 3 extremer als das Ende, und das Ende der Welle kein echtes Hoch bzw. Tief.
